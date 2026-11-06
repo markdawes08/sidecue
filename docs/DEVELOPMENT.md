@@ -36,9 +36,10 @@ Both build and test accept `-Configuration Debug`; Release is the default. Test 
 | `src/Sidecue.Infrastructure` | Future storage and provider adapters |
 | `src/Sidecue.Desktop` | WPF application and composition root |
 | `tests/Sidecue.Architecture.Tests` | Project dependency direction and pure-layer restore checks |
+| `tests/Sidecue.Core.Tests` | Identity/time, immutable event and audio ownership invariants |
 | `tests/Sidecue.Desktop.Tests` | Compiled XAML, view-model binding and layout smoke check |
 
-Only Desktop currently has product code: a small window explaining that meeting features are not yet available. The other four projects establish dependency boundaries; they contain no placeholder meeting logic. The immutable initial view model needs no observable-property framework. Add CommunityToolkit.Mvvm when actual changing UI state requires it.
+Desktop contains a small window explaining that meeting features are not yet available. Core contains validated [contract records](CONTRACT_RECORDS.md). Application, Windows and Infrastructure still establish dependency boundaries without meeting logic. The immutable initial view model needs no observable-property framework. Add CommunityToolkit.Mvvm when actual changing UI state requires it.
 
 ## Dependency changes
 
@@ -55,6 +56,6 @@ Review all changed `packages.lock.json` files and include them in the user's com
 
 [The Windows workflow](../.github/workflows/ci.yml) installs the pinned SDK, checks repository documents, restores locked packages, builds, runs the same tests and uploads TRX results. It uses `windows-2025` and logs the actual runner image version; that hosted image label is serviced over time. Action revisions are pinned to commits. The workflow needs only read access to source and has no production secrets or live AI calls.
 
-Run checks relevant to the change and the selected task's required acceptance. These bootstrap tests do not prove audio capture, screen-share exclusion, encryption, provider quality or release packaging. Their tasks will add the appropriate tests and evidence when implemented. Packaging and interactive native test commands do not exist yet.
+Run checks relevant to the change and the selected task's required acceptance. The current contract, architecture and shell tests do not prove audio capture, screen-share exclusion, encryption, provider quality or release packaging. Their tasks will add the appropriate tests and evidence when implemented. Packaging and interactive native test commands do not exist yet.
 
 The README is intentionally left alone. Keep operational commands here and task context in [PROJECT_STATE.md](PROJECT_STATE.md).

@@ -61,7 +61,7 @@
       "id": "SC-001",
       "phase": 0,
       "title": "Implement domain contracts and deterministic replay",
-      "status": "planned",
+      "status": "in_progress",
       "depends_on": [
         "SC-000"
       ],
@@ -102,7 +102,7 @@
       "id": "SC-001A",
       "phase": 0,
       "title": "Define identity, timing and immutable event records",
-      "status": "ready",
+      "status": "done",
       "task_type": "implementation",
       "parent_id": "SC-001",
       "depends_on": [
@@ -143,15 +143,17 @@
           2
         ]
       },
-      "evidence": [],
+      "evidence": [
+        "docs/evidence/SC-001A/2026-11-06.md"
+      ],
       "blockers": [],
-      "owner": null
+      "owner": "codex-root"
     },
     {
       "id": "SC-001B",
       "phase": 0,
       "title": "Define the minimal service and request contracts",
-      "status": "planned",
+      "status": "ready",
       "task_type": "implementation",
       "parent_id": "SC-001",
       "depends_on": [

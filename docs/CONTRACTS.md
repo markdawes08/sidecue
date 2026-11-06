@@ -1,6 +1,6 @@
 # Sidecue application contracts
 
-Contract baseline 0.1, November 6, 2026. This is an implementation specification, not compiled application code. The C# signatures below describe boundaries; agents must implement and test them in the solution. Read [DATA_AND_RECOVERY.md](DATA_AND_RECOVERY.md) for persistence and lifecycle behavior.
+Contract baseline 0.1, November 6, 2026. This is the implementation specification. SC-001A implements the identity, time, audio ownership and event records in Core; [the record mapping](CONTRACT_RECORDS.md) describes their API and limits. The interface signatures and runtime behavior below still require implementation and testing. Read [DATA_AND_RECOVERY.md](DATA_AND_RECOVERY.md) for persistence and lifecycle behavior.
 
 ## Ownership and dependency direction
 
