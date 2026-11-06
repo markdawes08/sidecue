@@ -1,0 +1,54 @@
+# Original delivery archive; the extracted instructions are versioned.
+/Sidecue_Codex_Package.zip
+
+# .NET build, package, test and coverage output.
+**/[Bb]in/
+**/[Oo]bj/
+**/TestResults/
+/artifacts/
+/coverage/
+*.coverage
+*.coveragexml
+*.trx
+*.nupkg
+*.snupkg
+
+# Per-user IDE and operating-system state.
+.vs/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Local configuration, credentials and signing material.
+.env
+.env.*
+!.env.example
+!.env.template
+*.local.json
+*.pfx
+*.p12
+*.key
+*.pem
+/.secrets/
+/secrets/
+
+# Private experiments, meeting data, databases and diagnostic output.
+# Put private recordings/screenshots/exports in local/, never in fixtures/.
+/local/
+/.scratch/
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+*.log
+*.dmp
+
+# Keep SDK/package pins and lockfiles, synthetic fixtures, shared configuration,
+# CI, source snapshots and sanitized evidence under version control.

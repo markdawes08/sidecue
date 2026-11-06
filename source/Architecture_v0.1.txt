@@ -1,0 +1,333 @@
+SIDECUE ARCHITECTURE AND IMPLEMENTATION PLAN
+Version 0.1 | November 6, 2026
+Project owner: Mark Dawes
+Platform: Windows desktop
+Status: Recommended technical baseline for planning. Implementation and Windows runtime validation have not started.
+
+1. ARCHITECTURE DECISION
+
+Build Sidecue as an original Windows application in C# on .NET 10 LTS, with a WPF interface, an explicit asynchronous meeting pipeline, encrypted local storage, and replaceable speech and language model providers.
+
+Start as a single-user desktop product. Use one application process with well-separated libraries and background workers. Add process isolation for document parsing or local inference when those features require it. A background worker is not a Windows service. Sidecue will run in the signed-in user's session, without administrator privileges for ordinary use.
+
+Capture and stored meeting history are local. The first implementation uses cloud transcription, generation, and embeddings, so it is not an offline or fully local AI product. Users configure their own provider keys during the initial personal release. A managed service can replace that connection mode later.
+
+Windows compatibility is the current commitment. Target Windows 11 x64 on Microsoft-supported releases and test both Home and Pro. Defer Windows 10, ARM64, macOS, Linux, and mobile. Keep business logic independent of WPF and Win32 so future ports can reuse the engine, while accepting that another platform would need a new UI and capture implementation.
+
+The supplied full requirements remain the product backlog. This document selects the technical approach and sequencing; it does not promise that every enterprise feature ships in the first release. The project name is Sidecue, provisionally selected by Mark.
+
+2. RESEARCH BASIS AND ORIGINALITY
+
+The source review covered implementation files, package manifests, and documentation in three repositories from the supplied GitHub topic. These projects were reviewed statically; they were not built or executed.
+
+- TechyCSR/OpenCluely at 0a9da75135f5aade3a067d86a7c8bb73f372f014 uses Electron and JavaScript, with capture, speech, LLM, session, and window services. It illustrates provider separation and multiple desktop surfaces.
+- shubhamshnd/Open-Cluely at 96c070986d7f7312c6ecfff684ebd89339a147d9 uses Electron and JavaScript, AssemblyAI streaming transcription, Gemini/Ollama generation, and distinct microphone/system audio paths. Its audio pipeline separates interim and final transcript events.
+- PSYEONE/interviewr-ai at b1d09ac07dfbacbf916e28820554e6f5c14ab67a uses Tauri 2, Svelte/TypeScript, a Rust shell, and a Python/FastAPI engine with Linux audio capture. Its code demonstrates bounded audio queues, cancellation, answer IDs, and a small SQLite-backed retrieval store.
+
+The main lesson is to separate capture, durable records, model context, generation, and presentation. A similar feature set does not require adopting another project's framework or codebase. Sidecue will have its own implementation, UX, prompts, data model, tests, and identity. Use established dependencies with their required notices; do not import reference-project source, assets, or prompts as a shortcut.
+
+3. CHOSEN TECHNOLOGY STACK
+
+Desktop UI: WPF on .NET 10, XAML, CommunityToolkit.Mvvm, and explicit view models. Use readable modern styling, keyboard navigation, per-monitor DPI support, and virtualized transcript/history lists.
+
+Application runtime: .NET Generic Host for dependency injection, lifecycle, configuration, and logging; System.Threading.Channels for bounded work queues; CancellationToken and IAsyncEnumerable for streaming operations. Use ordinary application services rather than a general autonomous-agent framework.
+
+Windows integration: WASAPI for microphone and playback capture; stable NAudio abstractions where suitable; narrow COM/Win32 interop for missing operations. Windows.Graphics.Capture for user-selected screenshots. SetWindowDisplayAffinity for capture exclusion. RegisterHotKey for configurable global commands.
+
+Initial transcription provider: Deepgram streaming Listen over WebSocket, with independent microphone and remote-audio connections. Pin a tested provider model/configuration in release settings rather than scattering model names through code. Start with interim results enabled and an endpointing value around 300 ms, then tune against meeting fixtures. This is a starting configuration, not an asserted universal optimum.
+
+Initial generation provider: OpenAI streaming text/image-capable generation through a dedicated adapter. Provide live and detailed response profiles. Model identifiers, endpoint configuration, capability flags, and token budgets belong in versioned configuration. Choose and pin the exact live/detailed model IDs during the first latency and answer-quality evaluation, not by assuming the newest model is always suitable. Anthropic is the second planned adapter. Provider fallback may use only providers explicitly enabled by the user or organization; a service outage must not silently send meeting data to a different vendor.
+
+Initial embeddings: OpenAI text-embedding-3-small. Store the provider, model ID, dimensions, normalization convention, and extraction/chunking version with every index. Embedding requests send document text to that configured provider, which must be explained when enabling cloud indexing. A local embedding adapter can be added later.
+
+Persistence: Microsoft.Data.Sqlite.Core with a validated SQLCipher native distribution. Use explicit parameterized SQL and ordered SQL migrations, a serialized writer, short read transactions, foreign keys, and WAL. Validate the exact native SQLite and SQLCipher versions and encryption behavior in the first packaging spike. Do not assume adding a Password connection-string field encrypts standard SQLite.
+
+Retrieval: SQLite FTS5 keyword search plus embedding similarity, combined through reciprocal rank fusion. Store vectors in the encrypted database and initially use exact cosine search over the permitted corpus. Cache a bounded normalized matrix in memory when beneficial. Benchmark before adopting an approximate index or a separate vector service.
+
+Secrets: Current-user Windows DPAPI protects provider credentials and a random database key. Keep user state under %LocalAppData%/SidecueData with appropriate user ACLs, explicitly outside the installer-owned application root. Never package working keys in the installer, source repository, .env files, or logs.
+
+Packaging: A self-contained Windows x64 application packaged with Velopack for a per-user installer and updates. Sign release executables/installers and verify the update path. Check for updates outside active capture and apply them only after a session is safely stopped. Test clean install, upgrade, uninstall, and rollback/data-schema compatibility. Keep the database, DPAPI-wrapped key, settings, and backups outside Velopack RootAppDir. Ordinary uninstall preserves user data; an explicit delete-data action removes it. Self-contained deployment means Sidecue releases must also update the bundled .NET runtime.
+
+Testing: xUnit for domain/application behavior and integration tests, deterministic provider fakes, a transcript/audio replay harness, and Windows UI Automation tests using FlaUI where suitable. Build and test on Windows GitHub Actions runners. Use an interactive Windows test machine for real audio devices, screen sharing, GPU behavior, and long-session tests.
+
+Why WPF: it fits a Windows-only application whose difficult work involves window handles, focus, audio devices, keyboard commands, and native capture. Microsoft still supports WPF; WinUI 3 is also a valid choice and Microsoft's general recommendation for new Windows interfaces. This recommendation does not claim that WPF is universally faster or more reliable. Tauri or Electron would become more attractive if immediate cross-platform UI reuse outweighed native Windows simplicity.
+
+4. MODULES AND DEPENDENCY RULES
+
+Use one solution and one repository. Begin with five production projects rather than creating dozens of assemblies.
+
+Sidecue.Core
+  Immutable domain records, identifiers, source references, transcript revisions, policies, and session-state definitions. No UI, database, Windows, or provider SDK dependency.
+
+Sidecue.Application
+  Session controller, assistance coordinator, context assembly, retrieval orchestration, note generation, and use-case interfaces. Depends on Core. Owns the rules for cancellation, priorities, retries, and state transitions.
+
+Sidecue.Windows
+  Audio capture, endpoint notifications, optional screenshots, hotkeys, display affinity, monitor identity, DPI, and power/session notifications. Implements application interfaces and contains Windows-specific interop.
+
+Sidecue.Infrastructure
+  Speech and model adapters, SQLCipher database, migrations, DPAPI-backed storage, document ingestion, retrieval implementation, exports, job store, and diagnostics. Depends on Application/Core. Split providers or persistence into separate assemblies only when build time or ownership justifies it.
+
+Sidecue.Desktop
+  WPF views/view models, tray, dashboard, overlay, settings, and composition root. Wires implementations to interfaces. Business rules and provider calls do not live in window code-behind.
+
+Repository support folders
+  tests/ for unit, integration, Windows, UI, and replay tests.
+  docs/ for architecture decisions, data contracts, threat model, UX behavior, test matrix, and source research.
+  prompts/ for versioned prompt templates and output schemas.
+  tools/ for PowerShell build, test, package, diagnostics, and replay commands.
+
+No local HTTP server is required for the first desktop release. Optional out-of-process model/import workers will use a versioned, length-limited named-pipe protocol restricted to the current user, with process supervision and shutdown tied to the parent. Process separation alone must not be described as a security sandbox.
+
+5. LIVE AUDIO AND TRANSCRIPTION
+
+Microphone and meeting playback are independent sources from capture onward. Preserve source ID, stream epoch, sequence number, format, and monotonic timestamp on every audio frame. Keep wall-clock UTC separately for meeting history.
+
+Capture in native device format and resample on worker threads to the provider's accepted mono format. Initial transport uses 16 kHz PCM16 and approximately 100 ms payloads, with separate streams rather than prematurely mixing sources. Obtain device/QPC timestamps where available and handle silence, discontinuities, clock drift, and device invalidation explicitly.
+
+Start with WASAPI shared-mode microphone and render-endpoint loopback. Add process-tree audio selection once basic capture is proven; retain an explicit system-audio fallback. Process selection must be labelled accurately: selecting a browser process can include other tabs, not just a particular meeting.
+
+Audio callbacks perform minimal work and enqueue frames. They never wait for SQL, network requests, inference, or the UI. Initially cap queued audio around two seconds per source. On overrun, retain current audio, record the missing interval, and show degraded capture. Never silently discard finalized transcript or lifecycle events. If persistence fails or remains blocked, enter RecoveryRequired and stop capture before a bounded unsaved-text buffer fills. Cap that buffer at 1 MiB initially, label its text as unsaved, and preserve it in memory for retry or explicit export. Surface the error directly in the UI; reporting cannot rely only on the failed database.
+
+Partial transcripts replace earlier partials for the same logical segment. Final segments are committed to storage. Speech endpoint events may trigger turn boundaries but are not identical to final-segment events. Deepgram's is_final and speech_final have different meanings and must be normalized by the adapter.
+
+Use source identity to distinguish local microphone from remote playback. Display the microphone as You only where the capture arrangement supports that attribution. Remote diarization begins with anonymous labels, scoped to a connection epoch. Calendar attendee names may be offered for manual assignment but cannot prove speaker identity.
+
+Headphones are the first validated capture setup. Speakerphone audio requires explicit echo and duplication testing because remote playback can also reach the microphone. Probe available acoustic echo cancellation support and evaluate a dedicated solution if required. Never deduplicate legitimate repeated statements using a simple text match.
+
+Handle USB removal, default endpoint changes, Bluetooth profile changes, permissions failure, sleep/wake, lock/unlock, and network disconnects. Recreate invalidated streams, start a new stream epoch, record gaps, and keep the session recoverable. No disk recording is used to conceal an outage; unsaved audio cannot be reconstructed after a crash.
+
+6. ASSISTANCE ORCHESTRATION AND CONTEXT
+
+An assistance request is an explicit operation. Its inputs are the chosen action, optional typed question, selected profile version, current context epoch, and a transcript revision. Freeze these into a ContextSnapshot before generation.
+
+Construct context from recent conversation, a source-linked rolling meeting summary, relevant document chunks, selected meeting metadata, and an optional screenshot acquired for that request. Start with an 8,000 to 16,000 token input budget and roughly 150 to 300 output tokens for live suggestions. Enforce the actual selected model's limits with a tokenizer and a reserved output margin. Detailed technical answers can use a separate larger profile.
+
+The full transcript remains durable independently of the prompt budget. Rolling summaries retain links to source segments; they are not repeatedly summarized without access to the original evidence. A million-token context window is not an architectural requirement.
+
+Keep one foreground generation active. A new manual request cancels or supersedes the previous foreground request. Manual actions outrank automatic suggestions. Every output event carries SessionId, ContextEpoch, RequestId, and sequence number. The UI ignores late output from an obsolete request.
+
+Dynamic chips are lower-priority suggestions, generated only after useful transcript changes, with debounce, deduplication, and rate/cost limits. They must not consume the foreground request slot indefinitely. Begin with manual Ask, Suggest what to say, Follow-up questions, and Recap. Add automatic insights after the manual path meets quality and latency targets.
+
+Use explicit GenerationStarted, TextDelta, EvidenceUpdated, Completed, Cancelled, and Failed events. Distinguish a partial answer from a complete one. Persist provider/model/profile version, token usage when supplied, and source references with completed artifacts. Do not store raw model chain-of-thought. Show operational status such as Listening, Finding sources, or Writing response.
+
+Treat transcript, document, and screenshot content as untrusted input. It can supply facts but cannot authorize tools, secrets access, external writes, or policy changes. Do not execute model-generated code or silently send follow-up messages. Render code and formatted text with a restricted renderer and explicit link handling.
+
+Fact check must distinguish checking against uploaded material from checking live external sources. The initial implementation can verify against available evidence and report insufficient evidence. Optional web retrieval is a later provider capability with source URLs, timestamps, and explicit user/organization policy.
+
+7. OVERLAY AND SCREEN CONTEXT
+
+Use an ordinary borderless, topmost WPF window with an owned top-level HWND. Prefer a compact opaque or carefully tested translucent surface rather than requiring a custom graphics renderer. Non-activating display and interactive text entry are separate modes, so streaming an answer does not steal keyboard focus from the meeting.
+
+Expose a small command bar, response panel, expandable evidence, capture indicator, pause/stop controls, and keyboard shortcuts. Full history and editing belong in the dashboard. Keep all core commands accessible with keyboard and screen readers. Persist monitor identity, size, and position; recover gracefully when a monitor disappears.
+
+Use SetWindowDisplayAffinity with WDA_EXCLUDEFROMCAPTURE for supported capture exclusion. Verify the return value and each relevant top-level window, including auxiliary dialogs, menus, and tooltips. DirectX alone does not establish invisibility. The API is not a security boundary and does not guarantee exclusion from every recording mechanism. Do not claim the process disappears from Task Manager or categorically exclude Windows Home based on the source document's vendor-specific observations.
+
+Test Teams, Zoom, and Meet in supported browsers for both application-window and monitor sharing. Record OS/build, meeting client version, GPU/driver, DPI, capture mode, and observed result. A successful API call is not evidence that a remote participant cannot see the window. Where exclusion cannot be established, provide a clear status and an immediate hide command.
+
+Optional screen context uses Windows.Graphics.Capture and the system target picker. Capture only the selected window/display for a user-invoked request, show exactly what will be sent in a preview, and provide explicit include/send control. Use stable native target identity, not resolution matching or a first-monitor fallback. Dispose GPU frame resources, handle resizing/HDR/device loss, and keep the image only in bounded memory for that request. Continuous screenshot collection is outside the initial design.
+
+8. STORAGE, PRIVACY, AND RECOVERY
+
+SQLCipher encrypts transcript text, notes, document chunks, FTS indexes, embeddings, and job payloads at rest. DPAPI protects the database key and provider credentials. Include WAL, temporary data, backups, and migrations in the encryption verification. Microsoft documentation's example uses an unsupported SQLCipher build; selection of a maintained, distributable native build is a phase-zero gate, not a dependency to copy blindly.
+
+Use a single serialized database writer and short transactions. Enable foreign keys and use WAL with synchronous=FULL initially. Verify that the shipped native SQLite version includes the documented 2026 WAL-reset fix, such as 3.51.3 or a documented backport. Keep the database on a local filesystem outside OneDrive/network-sync locations. Backups must use a consistent database snapshot rather than copying only the main file while WAL is active. Initial encrypted backups are restorable only with the original usable Windows user profile and its protected key. Label and test this limitation. Recovery after profile loss or migration requires a separately implemented passphrase-protected portable export containing recoverable key material; it is not provided by DPAPI alone.
+
+Core entities:
+- Session: ID, title, state, UTC times, languages, profile version, retention policy.
+- AudioStream: source/device identity, connection epoch, capture metadata.
+- TranscriptSegment: stable ID, sequence, revision, time range, text, speaker key, provenance.
+- TranscriptGap: interval, source, and reason.
+- AssistRequest and AssistArtifact: context/request IDs, action, model, status, text, evidence and usage.
+- DocumentVersion and DocumentChunk: content hash, source, extraction/chunking version, page/heading location, access scope, embedding version.
+- PromptProfileVersion: immutable behavior, note/follow-up templates, and output schemas.
+- MeetingArtifactVersion: generated summary, decisions/action items, provenance, and separately versioned user edits.
+- BackgroundJob: type, idempotency key, payload, attempts, lease/status, and retry time.
+- SchemaVersion: applied migration history.
+
+Do not intentionally persist raw audio or screenshots. Bound transient buffers and exclude meeting content from diagnostics and automatic crash uploads. Operating-system paging and full-memory dumps are separate from application persistence and must not be represented as guaranteed memory secrecy.
+
+The control is named Pause listening. It stops audio acquisition and audio uploads, drops unsent audio, and records a cutoff. It does not cancel an answer already using approved context, block a manual Ask about existing text, or silently pause separately requested document indexing. Screenshot inclusion still requires its own explicit request. Display active non-audio processing separately so Pause listening never implies that all network activity has stopped. Already transmitted provider data cannot be recalled. Hide only changes visibility; it does not pause or end a session. Clear assistant context increments the context epoch and cancels generation; it does not delete saved history. Use distinct controls and tests for all four operations.
+
+On normal end, stop capture, allow a bounded transcription drain, commit final segments, and transactionally enqueue a summary job. If the drain times out, record the unresolved tail interval and mark the transcript incomplete. Any retained partial tail stays explicitly provisional and is not silently promoted to finalized evidence. Notes may use committed text while identifying the incomplete ending. On restart, identify interrupted sessions and offer recovery or notes from committed text. Never claim uncommitted speech was recovered. A failed summary can retry without overwriting user edits or duplicating action items.
+
+Retention and deletion cover transcripts, notes, documents, vectors, FTS entries, queued jobs, and app-managed backups. User-exported copies are outside managed deletion and must be identified as such. Local deletion does not imply provider-side deletion. TLS and encrypted local storage are not end-to-end encryption against a cloud service that processes plaintext. Training/retention commitments depend on the selected provider and account configuration; certifications are future operational work, not properties supplied by a library.
+
+9. DOCUMENT RETRIEVAL AND MEETING OUTPUTS
+
+First supported imports are TXT, Markdown, DOCX, and text-based PDF. Use a bounded parser pipeline, explicit size/page limits, and extraction errors. DOCX parsing uses the Open XML SDK; PDF extraction uses a maintained PDF text library such as PdfPig after fixture and dependency validation. Add scanned-PDF OCR and legacy DOC conversion in a later isolated import worker. Do not execute macros or embedded active content.
+
+Ingestion computes a source hash, extracts structured text, chunks by headings/paragraphs with modest overlap, stores provenance, generates embeddings, and publishes a new searchable document version only when its indexing job is complete. Updates and deletions invalidate caches. A model/dimension/chunking change creates a new index generation and an atomic switch after successful rebuild.
+
+Search combines keyword and vector rankings, removes redundant evidence, and limits the prompt to useful excerpts. Every retrieved chunk includes its original title, version, page or heading, and ID. Validate that model-returned citation IDs were supplied to that request. Presence of a citation is not proof that it supports a claim; evaluation must test entailment.
+
+Produce summaries, decisions, questions, and action items from finalized transcript evidence. Leave owners and due dates unassigned when the meeting does not establish them. Store generated drafts separately from user-edited versions. Regeneration proposes a new version instead of overwriting edits. Export readable text/Markdown and transcript formats first; additional document export can follow.
+
+Profiles bundle system behavior, response style, selected knowledge scope, meeting-note template, and follow-up template. Version profiles and pin the version used in a session/request. Users may change modes during a meeting, with subsequent requests recording the new version. Technical/coding mode changes prompting and presentation; it does not execute code.
+
+10. CALENDARS AND LATER CLOUD SERVICES
+
+The initial desktop application works without a Sidecue account or hosted application backend. Calendar, synchronization, public sharing, CRM/ATS, billing, and administration are added after the personal meeting loop is dependable.
+
+Use provider interfaces for Google Calendar and Microsoft Graph. Desktop authentication uses the system browser and OAuth with PKCE where supported; do not embed a client secret. Event IDs and provider revisions identify records. Calendar titles can name sessions and linked prior notes can supply pre-meeting context.
+
+A desktop behind NAT cannot reliably receive calendar webhooks directly. Initially use provider delta/incremental synchronization with bounded scheduled refresh, then add a small cloud webhook receiver to fulfill push synchronization. Treat event cancellation, rescheduling, expired subscriptions, time zones, and duplicate notifications explicitly.
+
+Auto-detection is a suggestion/armed feature. A calendar end time alone should not truncate a meeting that runs late. Provide an end prompt, activity grace period, and manual control. This intentionally improves the source description's rigid auto-stop behavior.
+
+Follow-up email creates an editable draft and requires an explicit send action. CRM writeback uses a durable outbox, idempotency keys, field mappings, retries, and a visible result. Recognition of an attendee does not itself authorize sending information to them.
+
+When hosted features are introduced, use a modular ASP.NET Core service with PostgreSQL/pgvector, object storage, and durable background jobs. Keep the desktop meeting pipeline usable when the Sidecue backend is down; cloud-dependent features show their own state. Start with one deployable backend, not microservices or Kubernetes.
+
+Tenant authorization precedes shared retrieval and sync. Check access before search, content fetch, embedding retrieval, and cache reuse. Partition caches and keys appropriately. Include membership revocation, deletion propagation, conflict handling, and audit events in the sync design. Do not synchronize raw SQLite files or replicate a user's DPAPI-wrapped key to other machines.
+
+Later web administration uses React and TypeScript with generated API contracts. It does not require reusing WPF UI code. Add organizations, roles, SSO/SCIM, versioned assigned profiles, shared knowledge, usage/billing entitlements, and CRM/ATS incrementally. Coaching metrics must be defined and evaluated; sentiment and engagement should not be presented as objective facts without validation.
+
+11. CODING AND VERIFICATION RULES
+
+Use strict nullable reference types, analyzers, central dependency versions, an SDK pin, locked dependency restores where supported, and reproducible build scripts. Pin reviewed GitHub Actions by commit. Update dependencies through reviewed changes with regression coverage. Record dependency licenses and third-party notices.
+
+Interfaces belong at external boundaries and meaningful use cases; avoid an interface for every tiny class. Prefer immutable event records, typed IDs and statuses, explicit error categories, async I/O, cancellation, and bounded retries with jitter. Retry transient failures, not invalid credentials, schema mismatches, or malformed input.
+
+A Windows callback may enqueue work but cannot run application logic. No synchronous network/SQL/inference on the WPF dispatcher. Do not introduce global mutable session state, fire-and-forget tasks without ownership, or unlimited queues. Own and dispose audio buffers, WebSockets, capture sessions, and GPU resources deterministically.
+
+Log operational metadata through Microsoft.Extensions.Logging. Correlate session/request IDs, durations, queue depths, dropped-frame counts, provider failures, usage, and state transitions. Do not log transcript or prompt bodies. Optional diagnostic exports should be previewable and redacted.
+
+Create tests that protect behavior: transcript revisions/finals, clock/source ordering, duplicate provider messages, stale response rejection, pause cutoff, clear-context semantics, crash recovery, disk-full behavior, migration integrity, index rebuild/delete, and output provenance. Use deterministic clocks and recorded synthetic/provider event fixtures. Ordinary CI must not require live paid provider calls or private meetings.
+
+Maintain a small reviewed evaluation set of meeting scenarios: technical discussion, governance review, overlapping speakers, unclear question, missing evidence, long session, and document injection attempts. Score helpfulness, unsupported factual claims, citation support, action-item attribution, terminology, and latency. Model/prompt upgrades must pass this set.
+
+Windows validation includes real devices and capture applications. Hosted CI cannot prove hardware audio quality, Bluetooth recovery, focus behavior, or screen-share exclusion. Run two-hour sessions during development and overnight soak tests before release. Test clean machines without developer tools, multiple DPI settings, multiple monitors, unsupported capture cases, and denied microphone access.
+
+Initial engineering targets, not advertised guarantees:
+- Local pause/hide controls respond within 100 ms under ordinary load.
+- First useful partial transcript p95 within 2 seconds of captured speech under the stated test setup.
+- First answer text p95 within 3 seconds of a manual request with a warmed connection and the chosen live model, without an additional screenshot confirmation delay.
+- Stable memory over a two-hour meeting with bounded UI lists/context/audio queues; transcript storage may grow with duration.
+- Every known capture gap is recorded when storage is available. A failed persistence operation is immediately visible and enters RecoveryRequired, even when it cannot be recorded in the database.
+
+Measure capture, STT, retrieval, model-first-token, and rendering separately. Publish test hardware, network conditions, model/configuration, and p50/p95 values before claiming performance.
+
+12. IMPLEMENTATION SEQUENCE AND EXIT GATES
+
+Phase 0 - Windows and packaging proof
+Build small prototypes for two-source audio, capture exclusion, screenshots, device changes, encrypted storage, and installation. Establish a replay harness and the supported-environment test matrix. Exit only after there is evidence for the native paths and a distributable encrypted database build. Do not build the large UI before resolving these risks.
+
+Phase 1 - Reliable meeting recorder without stored audio
+Implement the session state machine, mic/loopback selection, diagnostics, live transcript, pause/resume, durable final segments, gap events, restart recovery, and transcript export. Use a minimal dashboard and provider configuration. Exit with long-session and interruption tests passing.
+
+Phase 2 - Useful live assistance
+Implement the overlay, keyboard commands, context snapshots, streamed answers, prompt profiles, cancellation, clear-context behavior, cost/usage reporting, and concise/manual actions. Exit with a real end-to-end meeting demonstrating responsive assistance and zero stale-answer leakage between requests/sessions.
+
+Phase 3 - Grounded assistance and meeting outputs
+Add selected-document ingestion, hybrid retrieval, citations, screenshot context, editable notes, action items, searchable history, retention/deletion, and follow-up drafts. Exit with provenance, deletion, ingestion-failure, and answer-quality evaluations passing.
+
+Phase 4 - Personal release hardening
+Complete audio echo/attribution scenarios, supported Teams/Zoom/Meet tests, accessibility, languages, onboarding, signed updates, backup/recovery behavior, power/device handling, and release documentation. Optional local inference becomes a separately benchmarked feature. The initial public product is the completed personal workflow, not every enterprise requirement.
+
+Phase 5 - Integrations and managed service
+Add calendar integration, pre-meeting briefs, optional hosted account/sync, webhook receiver, explicit sharing, and managed AI access. Then add teams, permissions, SSO/SCIM, CRM/ATS, billing, coaching and organization analytics in independently testable increments.
+
+13. ORIGINAL REQUIREMENT COVERAGE
+
+Source sections 1 to 2: Core desktop/overlay in phases 0 to 2; web portal in phase 5; non-Windows/mobile deferred.
+Section 3: Audio and diagnostics in phases 0 to 1; screenshots in phase 3; calendar in phase 5.
+Sections 4 to 5: Transcript and manual assistance in phases 1 to 2; grounded/automatic insights phased after manual quality.
+Section 6: Supported capture exclusion validated from phase 0 onward; universal undetectability is not a technical guarantee.
+Section 7: Session lifecycle and recovery in phase 1; calendar/activity suggestions in phase 5.
+Section 8: Notes, transcripts, editing/export, and follow-up drafts in phases 1 to 3; public links after hosted sharing exists.
+Section 9: Pre-call briefs in phase 5, built from calendar/history/document evidence.
+Section 10: Personal knowledge in phase 3; shared/team knowledge and scheduled web ingestion in phase 5.
+Section 11: CRM/ATS and calendar adapters in phase 5, with a durable integration outbox.
+Section 12: Coaching/ROI after definitions and evaluation in phase 5.
+Section 13: Roles, SSO/SCIM, managed deployment guidance, and administration in phase 5.
+Section 14: Personal versioned profiles in phase 2; organization approval/assignment in phase 5.
+Sections 15 to 16: Core settings/shortcuts early; accessibility and tested language combinations hardened in phase 4.
+Section 17: Privacy, encrypted storage, and credential boundaries from phase 0; formal compliance evidence is separate operational work.
+Sections 18 to 19: Installer/update basics early; billing, support integrations, referrals, and enterprise entitlements later.
+Section 20: No meeting bot, saved raw audio/video, autonomous desktop actions, voice impersonation, or phone handling in the initial product.
+
+14. FIRST DESIGN DECISIONS TO RECORD FOR CODING AGENTS
+
+ADR 001: Windows 11 x64 and C#/.NET 10 WPF.
+ADR 002: Modular in-process application with bounded background work.
+ADR 003: Independent mic and remote audio sources with explicit gap events.
+ADR 004: Provider adapters and versioned model configuration.
+ADR 005: Durable finalized transcripts independent of prompt context.
+ADR 006: Encrypted SQLite and current-user protected secrets.
+ADR 007: Supported OS capture exclusion, verified empirically.
+ADR 008: Hybrid retrieval with document provenance and index generations.
+ADR 009: Explicit user actions, cancellation, and no general autonomous runtime.
+ADR 010: Personal desktop first; modular hosted services later.
+
+The next planning deliverable should translate these decisions into interface contracts, a solution skeleton, and small vertical implementation tasks. Each task should specify dependencies, owned files, acceptance behavior, tests, and evidence required. Detailed agent prompts and actual application code are intentionally the next stage.
+
+15. PRIMARY REFERENCES
+
+Research snapshot reviewed November 6, 2026. Repository code may change after the pinned revisions above. Source descriptions establish what was observed, not production certification of those projects.
+
+[R1] User-supplied topic
+https://github.com/topics/open-source-cluely
+
+[R2] TechyCSR OpenCluely
+https://github.com/TechyCSR/OpenCluely
+Implementation inspected: package.json; src/managers/window.manager.js; src/services/capture.service.js; src/managers/session.manager.js.
+
+[R3] shubhamshnd Open-Cluely
+https://github.com/shubhamshnd/Open-Cluely
+Implementation inspected: src/windows/assistant/renderer/features/assembly-ai/audio-pipeline.js; src/services/assembly-ai/service.js; src/windows/assistant/window.js; package.json.
+
+[R4] PSYEONE interviewr-ai
+https://github.com/PSYEONE/interviewr-ai
+Implementation inspected: backend/app/audio/capture.py; backend/app/session.py; backend/app/rag/store.py; backend/app/rag/retriever.py; backend/pyproject.toml; overlay/package.json; overlay/src-tauri/Cargo.toml.
+
+[R5] Microsoft .NET support policy
+https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core
+
+[R6] Microsoft Windows framework guidance
+https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/migrate-to-windows-app-sdk/migration-decision-guide
+
+[R7] WASAPI loopback recording
+https://learn.microsoft.com/en-us/windows/win32/coreaudio/loopback-recording
+
+[R8] Application process loopback sample
+https://learn.microsoft.com/en-us/samples/microsoft/windows-classic-samples/applicationloopbackaudio-sample/
+
+[R9] Capture exclusion API and limitations
+https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowdisplayaffinity
+
+[R10] Windows screen capture
+https://learn.microsoft.com/en-us/windows/apps/develop/media-authoring-processing/screen-capture
+
+[R11] Deepgram streaming finalization and endpointing
+https://developers.deepgram.com/docs/understand-endpointing-interim-results
+
+[R12] Deepgram diarization
+https://developers.deepgram.com/docs/diarization
+
+[R13] Microsoft SQLite encryption guidance
+https://learn.microsoft.com/en-us/dotnet/standard/data/sqlite/encryption
+
+[R14] SQLite WAL and version-specific durability notes
+https://www.sqlite.org/wal.html
+
+[R15] SQLite full text search
+https://www.sqlite.org/fts5.html
+
+[R16] OpenAI embeddings
+https://developers.openai.com/api/docs/guides/embeddings
+
+[R17] Velopack installation and updating
+https://docs.velopack.io/
+
+[R18] .NET channels
+https://learn.microsoft.com/en-us/dotnet/core/extensions/channels
+
+[R19] Windows data protection
+https://learn.microsoft.com/en-us/dotnet/standard/security/how-to-use-data-protection
+
+[R20] Microsoft MVVM Toolkit
+https://learn.microsoft.com/en-us/dotnet/communitytoolkit/mvvm/
+
+[R21] Velopack installation root and preserved data
+https://docs.velopack.io/integrating/preserved-files

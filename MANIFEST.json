@@ -1,0 +1,140 @@
+{
+  "package": "Sidecue Codex reference package",
+  "version": "1.0",
+  "created_date": "2026-11-06",
+  "architecture_baseline": "0.1",
+  "implementation_included": false,
+  "hash_algorithm": "SHA-256",
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "size_bytes": 6875,
+      "sha256": "3119bd1011a8a9a41cf7ff2c8e78e4f6a53cfde03cada00cb5f09f46905ece1e"
+    },
+    {
+      "path": "PACKAGE_CHECKS.txt",
+      "size_bytes": 1125,
+      "sha256": "4e38a132ff7f09e0ce7c3c72e3d3d3262c41a1f26c438dae29c6f87b239084c3"
+    },
+    {
+      "path": "README.md",
+      "size_bytes": 2739,
+      "sha256": "1c16bfa9737285390537249764b60d7bf521c3715ea73f37ec0b0686cb35d9b9"
+    },
+    {
+      "path": "START_HERE.md",
+      "size_bytes": 3039,
+      "sha256": "74549dbd1f9ad1dde9da27dd8ca7ea2cf19122470040abb6ea19339b1f4b14fb"
+    },
+    {
+      "path": "agent-prompts/CONTINUE_WORK.md",
+      "size_bytes": 978,
+      "sha256": "b17452dbcddbde2647aa4e7b71029b1b7cd1ba33e2e165ff60d887ab8b27018f"
+    },
+    {
+      "path": "agent-prompts/REVIEW_WORK.md",
+      "size_bytes": 1207,
+      "sha256": "4c899869ec485e58664fc7ab32478a19f8ca601aa0b97603a7a30491ffc2b863"
+    },
+    {
+      "path": "agent-prompts/START_CODING.md",
+      "size_bytes": 1621,
+      "sha256": "b5e132095423676ef7d8462e795cc183ad51f0732279bfdb00e798d61c39b89d"
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "size_bytes": 6843,
+      "sha256": "aafe0a95ef5c16f99df881cd83a2b92fca03f8b41ccd7b1af8d40095d1a2778b"
+    },
+    {
+      "path": "docs/CONTRACTS.md",
+      "size_bytes": 17866,
+      "sha256": "823de171f8ddfdf855dcfb8167b06a9561120717baf762ccb79a8ff2fe534259"
+    },
+    {
+      "path": "docs/DATA_AND_RECOVERY.md",
+      "size_bytes": 19801,
+      "sha256": "ba188950155180786fd0eadc5cd422bce94fa1e6b283d4b39d84f3e76e133ef0"
+    },
+    {
+      "path": "docs/DECISIONS.md",
+      "size_bytes": 4012,
+      "sha256": "ac3c099e1a4c2874fc2690d8b2d82ae1691264e664c7fa0a0a91661569885a9b"
+    },
+    {
+      "path": "docs/IMPLEMENTATION_PLAN.md",
+      "size_bytes": 46591,
+      "sha256": "f3db6d4d3b892d82afc8e30a6cb07bddd86da5b14e34184a436171b988669c4b"
+    },
+    {
+      "path": "docs/PROJECT_STATE.md",
+      "size_bytes": 2721,
+      "sha256": "e096d7bf58c7d186ba8d34bf44ef09006a1036bae8141cc1e0fc29ce5e0d6d3c"
+    },
+    {
+      "path": "docs/SCOPE_AND_REQUIREMENTS.md",
+      "size_bytes": 4749,
+      "sha256": "ce2ac6cd2ab0455fb255874fcdfcb3e5aa1e6b6367e7c2972aa8a32f58282c95"
+    },
+    {
+      "path": "docs/SECURITY_AND_DATA_FLOW.md",
+      "size_bytes": 9273,
+      "sha256": "052d1dc7ff28d5bcbe630fcbc65e606bba1739fe87eb543bf200502fbf86726d"
+    },
+    {
+      "path": "docs/VERIFICATION.md",
+      "size_bytes": 12137,
+      "sha256": "ed4cfa5ffdeaf6618ef67fe551dcea31702c7bf305107c57b89fad082f0bbc17"
+    },
+    {
+      "path": "docs/WINDOWS_TEST_MATRIX.md",
+      "size_bytes": 9628,
+      "sha256": "3c9088ab8b1ee6020b9d75b71248e7adc19177bf9cbff22acad622701948fcab"
+    },
+    {
+      "path": "docs/evidence/README.md",
+      "size_bytes": 926,
+      "sha256": "370e018c7ea7bfe946c89db417572e2ef45f2774e441fd8e2352dfb4684f790d"
+    },
+    {
+      "path": "fixtures/README.md",
+      "size_bytes": 1225,
+      "sha256": "2d4764d619520ae5a836805179c25ef5f8624bc4e4cafba53fb77722138da1c9"
+    },
+    {
+      "path": "fixtures/meeting_cases.json",
+      "size_bytes": 4736,
+      "sha256": "cbbbe61859944d0f0843364c56f0115ec205fafb80906932008c56c72276f50f"
+    },
+    {
+      "path": "source/Architecture_v0.1.txt",
+      "size_bytes": 38077,
+      "sha256": "09fd7fbf477d92d2f9cd2bc8ada9e64d24cd190049d8480881bee00568eec420"
+    },
+    {
+      "path": "source/Requirements_Baseline.txt",
+      "size_bytes": 22904,
+      "sha256": "103823e56c2e6b309a7bfd856c8967ffb3961dd4ef4760be68ec42cd9f9677a7"
+    },
+    {
+      "path": "tasks/backlog.json",
+      "size_bytes": 55142,
+      "sha256": "a28cb634dde0bc66219fd25a821c5ce5b362514134e5aa692fd3ecc6d2ea6c25"
+    },
+    {
+      "path": "templates/DECISION_RECORD.md",
+      "size_bytes": 1042,
+      "sha256": "fcdfcfaba02c3c9af11042273d829127a17c933383ca09bafe6960d5e0a34590"
+    },
+    {
+      "path": "templates/TASK_HANDOFF.md",
+      "size_bytes": 904,
+      "sha256": "a010d9ce6c55baf7f6b22f140fb3cba91f2fa5854505fafb46e898f9686f312f"
+    },
+    {
+      "path": "templates/TEST_EVIDENCE.md",
+      "size_bytes": 4017,
+      "sha256": "4b2797fff8184b6e063826e946df6d1314a94f5547cf0d270fc661a12abc0f1c"
+    }
+  ]
+}

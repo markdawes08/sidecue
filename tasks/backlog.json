@@ -1,0 +1,1427 @@
+{
+  "schema_version": "1.0",
+  "project": "Sidecue",
+  "planning_baseline": "Sidecue architecture v0.1, November 6 2026",
+  "status_source": "This file is the only live task and phase-gate status source.",
+  "allowed_task_statuses": [
+    "planned",
+    "ready",
+    "in_progress",
+    "blocked",
+    "implemented_unverified",
+    "done"
+  ],
+  "allowed_gate_statuses": [
+    "pending",
+    "blocked",
+    "passed"
+  ],
+  "selection_policy": "Choose an unowned ready task or promote a planned task only when dependencies are done and required gates have passed. Independent work may continue around a blocked gate when its own dependencies and required gates permit it. Never mark hardware-dependent work done without the listed interactive Windows evidence.",
+  "tasks": [
+    {
+      "id": "SC-000",
+      "phase": 0,
+      "title": "Bootstrap the solution and repeatable checks",
+      "status": "ready",
+      "depends_on": [],
+      "requires_gates": [],
+      "scope": [
+        "Create the five production projects with the architecture dependency direction and xUnit test projects.",
+        "Pin an installed supported .NET 10 SDK patch and reviewed packages, centralize versions, enable nullable/analyzers, and add PowerShell build/test entry points.",
+        "Add Windows CI with no production keys or live provider calls."
+      ],
+      "acceptance": [
+        "Clean Windows checkout restores, builds, and runs deterministic tests through documented commands.",
+        "Core and Application do not depend on WPF, Windows APIs, or provider SDKs.",
+        "Working app is a minimal shell; no feature is represented as already complete."
+      ],
+      "validation": [
+        "Capture exact build/test commands, SDK/package lock state, runner image and successful outputs.",
+        "Verify a clean checkout can repeat the process without untracked local setup."
+      ],
+      "owned_areas": [
+        "Sidecue.sln or Sidecue.slnx",
+        "global.json",
+        "Directory.Build.props",
+        "Directory.Packages.props",
+        "src/*/*.csproj",
+        "tests/*/*.csproj",
+        "tools/build.ps1",
+        "tools/test.ps1",
+        ".github/workflows/ci.yml"
+      ],
+      "requires_interactive_windows_evidence": false,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-001",
+      "phase": 0,
+      "title": "Implement domain contracts and deterministic replay",
+      "status": "planned",
+      "depends_on": [
+        "SC-000"
+      ],
+      "requires_gates": [],
+      "scope": [
+        "Implement the smallest typed records/interfaces needed for capture, transcript events, session commands, context snapshots, and generation events.",
+        "Create deterministic clock, capture, transcriber, provider, and persistence fakes and a replay runner."
+      ],
+      "acceptance": [
+        "A synthetic meeting replays without hardware, network access, or provider keys.",
+        "Events preserve session, source, stream epoch, sequence, monotonic time and UTC roles.",
+        "Interface contract version and mapping rules are documented alongside implementation."
+      ],
+      "validation": [
+        "Replay duplicate, reordered, partial/final, stream-reset, and late-answer events.",
+        "Assert deterministic output for a fixed fixture and explicit rejection of invalid event identities."
+      ],
+      "owned_areas": [
+        "src/Sidecue.Core/",
+        "src/Sidecue.Application/Abstractions/",
+        "tests/Sidecue.Replay.Tests/",
+        "tests/fixtures/",
+        "tools/replay.ps1"
+      ],
+      "requires_interactive_windows_evidence": false,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-002",
+      "phase": 0,
+      "title": "Prove overlay focus and capture exclusion",
+      "status": "planned",
+      "depends_on": [
+        "SC-000"
+      ],
+      "requires_gates": [],
+      "scope": [
+        "Create a small owned top-level WPF overlay and apply WDA_EXCLUDEFROMCAPTURE with result/error reporting.",
+        "Prove non-activating display, interactive input, hide/show and hotkey conflict handling.",
+        "Exercise auxiliary windows and monitor/DPI movement."
+      ],
+      "acceptance": [
+        "A real Windows observer recording verifies the chosen supported screen-share paths.",
+        "Unsupported or failed exclusion remains visible as a limitation with immediate hide available.",
+        "Streaming display does not steal meeting focus; keyboard entry remains usable."
+      ],
+      "validation": [
+        "Record OS, GPU/driver, client/browser versions, share mode and actual remote-observer result for Teams, Zoom and Meet baseline cases.",
+        "Test two monitors, mixed DPI, popups/tooltips/dialogs and hotkey conflicts. API return success alone does not pass."
+      ],
+      "owned_areas": [
+        "src/Sidecue.Windows/Windowing/",
+        "src/Sidecue.Desktop/Prototypes/Overlay/",
+        "tests/Sidecue.Windows.Tests/Windowing/",
+        "docs/evidence/SC-002/"
+      ],
+      "requires_interactive_windows_evidence": true,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-003",
+      "phase": 0,
+      "title": "Prove two-source capture and stream epochs",
+      "status": "planned",
+      "depends_on": [
+        "SC-001"
+      ],
+      "requires_gates": [],
+      "scope": [
+        "Capture mic and render endpoint loopback separately through WASAPI.",
+        "Normalize on worker threads, preserve source/time/epoch metadata, and demonstrate bounded queues.",
+        "Detect invalidated devices and reopen a source with a new epoch and explicit gap."
+      ],
+      "acceptance": [
+        "A headset meeting produces distinct microphone and remote streams with no intentional audio files.",
+        "USB removal/default-output change creates a visible discontinuity instead of silently relabeling the same stream.",
+        "The capture callback never waits for UI, network, inference or database work."
+      ],
+      "validation": [
+        "Use synthetic overload to verify bounded memory and counted/delimited gaps.",
+        "Run physical microphone/loopback and device-change checks with metadata-only measurements.",
+        "Replay a dropped middle audio interval and verify later provider-relative timestamps map to the original session timeline, with uncertain spans labelled."
+      ],
+      "owned_areas": [
+        "src/Sidecue.Windows/Audio/",
+        "tests/Sidecue.Windows.Tests/Audio/",
+        "tests/Sidecue.Replay.Tests/Audio/",
+        "docs/evidence/SC-003/"
+      ],
+      "requires_interactive_windows_evidence": true,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-004",
+      "phase": 0,
+      "title": "Prove encrypted database and protected keys",
+      "status": "planned",
+      "depends_on": [
+        "SC-000"
+      ],
+      "requires_gates": [],
+      "scope": [
+        "Select and pin a maintained distributable SQLCipher native build with a compatible Microsoft.Data.Sqlite.Core integration.",
+        "Protect a random key using current-user DPAPI, keep data in SidecueData outside the installer root, and prove WAL/FTS behavior.",
+        "Record native versions, license/distribution basis, and the documented SQLite WAL fix or backport."
+      ],
+      "acceptance": [
+        "A wrong key fails and plaintext fixtures are absent from database/WAL/temporary artifacts.",
+        "A restart under the same Windows user can read the data; expected failure without the protected key is explicit.",
+        "FTS/search and migrations function with encryption enabled; no plaintext fallback exists."
+      ],
+      "validation": [
+        "Test wrong key, reopen, transaction interruption, FTS query, migration and native-library loading on a clean Windows environment.",
+        "Inspect native SQLite/SQLCipher runtime versions, not just NuGet versions."
+      ],
+      "owned_areas": [
+        "src/Sidecue.Infrastructure/Persistence/",
+        "src/Sidecue.Infrastructure/Security/",
+        "tests/Sidecue.Infrastructure.Tests/Encryption/",
+        "docs/evidence/SC-004/"
+      ],
+      "requires_interactive_windows_evidence": true,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-005",
+      "phase": 0,
+      "title": "Prove selected-target screenshot capture",
+      "status": "planned",
+      "depends_on": [
+        "SC-000",
+        "SC-002"
+      ],
+      "requires_gates": [],
+      "scope": [
+        "Use Windows.Graphics.Capture and the system target picker for one requested image.",
+        "Show preview before explicit inclusion, dispose frames, and keep snapshots in memory.",
+        "Exercise resize, target closure, multiple same-resolution monitors, and device loss handling."
+      ],
+      "acceptance": [
+        "Selection uses native target identity and never falls back to a different display without selection.",
+        "Cancelling the picker/preview sends no image and leaves no screenshot file.",
+        "Unsupported/HDR/resizing cases are reported or processed correctly under the supported matrix."
+      ],
+      "validation": [
+        "Perform real Windows picker/preview/cancel/resize/target-close checks and inspect temporary-file behavior.",
+        "Use device-loss and cancellation fakes to verify resource disposal."
+      ],
+      "owned_areas": [
+        "src/Sidecue.Windows/ScreenCapture/",
+        "src/Sidecue.Desktop/Prototypes/ScreenCapture/",
+        "tests/Sidecue.Windows.Tests/ScreenCapture/",
+        "docs/evidence/SC-005/"
+      ],
+      "requires_interactive_windows_evidence": true,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-006",
+      "phase": 0,
+      "title": "Prove installation and data preservation",
+      "status": "planned",
+      "depends_on": [
+        "SC-000",
+        "SC-004"
+      ],
+      "requires_gates": [],
+      "scope": [
+        "Package the minimal shell as a self-contained win-x64 Velopack build.",
+        "Keep database, keys and backups outside RootAppDir and verify standard-user installation.",
+        "Exercise an internal upgrade/uninstall and state the signing/trust configuration used."
+      ],
+      "acceptance": [
+        "A clean Windows machine without developer tools installs and starts the shell.",
+        "Upgrade and ordinary uninstall preserve user data and its protected key.",
+        "Unsigned development-package evidence is labelled as development-only; release signing is still a later requirement."
+      ],
+      "validation": [
+        "Record clean-machine install/start/upgrade/uninstall/reinstall evidence.",
+        "Verify data path is outside installer-owned directories and native encryption libraries load after packaging."
+      ],
+      "owned_areas": [
+        "tools/package.ps1",
+        "packaging/",
+        "src/Sidecue.Desktop/Startup/",
+        "tests/Sidecue.Infrastructure.Tests/Paths/",
+        "docs/evidence/SC-006/"
+      ],
+      "requires_interactive_windows_evidence": true,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-007",
+      "phase": 1,
+      "title": "Implement the meeting lifecycle",
+      "status": "planned",
+      "depends_on": [
+        "SC-001"
+      ],
+      "requires_gates": [],
+      "scope": [
+        "Implement Idle/Starting/Listening/Paused/Stopping/Completed and Interrupted/RecoveryRequired outcomes.",
+        "Keep capture state separate from generation state and serialize lifecycle commands.",
+        "Define Pause listening, Hide, Clear context and End as distinct operations."
+      ],
+      "acceptance": [
+        "Repeated start/pause/end commands are safe and produce deterministic states.",
+        "Pause cuts off capture/uploads and drops unsent audio while permitting approved-context generation.",
+        "Clear context increments epoch and cancels generation without deleting saved history."
+      ],
+      "validation": [
+        "Replay command races, pause during start, stop during reconnect, clear during generation and repeated terminal commands."
+      ],
+      "owned_areas": [
+        "src/Sidecue.Application/Sessions/",
+        "src/Sidecue.Core/Sessions/",
+        "tests/Sidecue.Application.Tests/Sessions/"
+      ],
+      "requires_interactive_windows_evidence": false,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-008",
+      "phase": 1,
+      "title": "Persist transcript revisions and finalized segments",
+      "status": "planned",
+      "depends_on": [
+        "SC-001",
+        "SC-004"
+      ],
+      "requires_gates": [],
+      "scope": [
+        "Add ordered migrations and the session/stream/segment/gap schema.",
+        "Implement a serialized writer with short transactions and idempotent final-segment writes.",
+        "Keep partial display state separate from finalized evidence."
+      ],
+      "acceptance": [
+        "Duplicate provider final messages cannot create duplicate transcript content.",
+        "Stream epochs and time ranges survive restart and corrected revisions follow an explicit rule.",
+        "No partial text is silently promoted to final text."
+      ],
+      "validation": [
+        "Integration tests cover duplicated/reordered events, migration rollback, foreign keys and store reopen.",
+        "Verify encrypted storage and WAL are still active for the production schema."
+      ],
+      "owned_areas": [
+        "src/Sidecue.Infrastructure/Persistence/",
+        "src/Sidecue.Application/Transcripts/",
+        "tests/Sidecue.Infrastructure.Tests/Transcripts/",
+        "tests/Sidecue.Replay.Tests/Transcripts/"
+      ],
+      "requires_interactive_windows_evidence": false,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-009",
+      "phase": 1,
+      "title": "Add the Deepgram streaming adapter",
+      "status": "planned",
+      "depends_on": [
+        "SC-001"
+      ],
+      "requires_gates": [],
+      "scope": [
+        "Implement separate microphone and remote WebSocket sessions behind IStreamingTranscriber.",
+        "Map is_final, speech_final, source identity, diarization scope, errors and reconnect epochs to contracts.",
+        "Load a configured model, format and endpointing setting without embedding keys in code."
+      ],
+      "acceptance": [
+        "Partial/final/utterance-end semantics remain distinct.",
+        "Connection loss is visible and begins a new epoch without unbounded buffering or blind replay.",
+        "Invalid credentials are actionable and do not trigger endless retries or provider switching."
+      ],
+      "validation": [
+        "Use recorded synthetic protocol events for finalization, close, timeout, malformed message and authentication failures.",
+        "Run a separately enabled synthetic-audio smoke test only with configured credentials; save no secret payloads.",
+        "Test sent-sample interval mapping across queue overflow and reconnect; provider offsets must not assume missing audio was transmitted."
+      ],
+      "owned_areas": [
+        "src/Sidecue.Infrastructure/Transcription/",
+        "tests/Sidecue.Infrastructure.Tests/Transcription/",
+        "tests/fixtures/providers/"
+      ],
+      "requires_interactive_windows_evidence": false,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-010",
+      "phase": 1,
+      "title": "Connect capture to durable live transcription",
+      "status": "planned",
+      "depends_on": [
+        "SC-003",
+        "SC-007",
+        "SC-008",
+        "SC-009"
+      ],
+      "requires_gates": [
+        "G0"
+      ],
+      "scope": [
+        "Wire two capture sources through bounded normalization/transcription channels and transcript persistence.",
+        "Report gaps, queue pressure and persistence failures directly to the session controller.",
+        "Stop capture in RecoveryRequired before the bounded unsaved-text buffer fills."
+      ],
+      "acceptance": [
+        "Two-source speech appears live and committed segments survive restart.",
+        "Artificially slow consumers cannot cause unbounded memory growth.",
+        "Disk-full/locked-store failures label unsaved text and pause acquisition rather than claiming a save."
+      ],
+      "validation": [
+        "Replay backpressure and failed writes with a deterministic clock.",
+        "Exercise real headset capture with a network interruption and validate source/epoch labels."
+      ],
+      "owned_areas": [
+        "src/Sidecue.Application/Capture/",
+        "src/Sidecue.Application/Transcripts/",
+        "tests/Sidecue.Application.Tests/Pipeline/",
+        "docs/evidence/SC-010/"
+      ],
+      "requires_interactive_windows_evidence": true,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-011",
+      "phase": 1,
+      "title": "Build diagnostics and the minimal transcript dashboard",
+      "status": "planned",
+      "depends_on": [
+        "SC-007",
+        "SC-010"
+      ],
+      "requires_gates": [],
+      "scope": [
+        "Add source selection, audio meters, provider readiness, session start/pause/end and a virtualized transcript view.",
+        "Expose recording/capture state and unsaved/degraded states clearly.",
+        "Provide copy/export of committed transcript text."
+      ],
+      "acceptance": [
+        "Users can verify each source before starting and tell capture state without inspecting logs.",
+        "Long transcripts do not freeze scrolling or control input.",
+        "An export distinguishes gaps and provisional/incomplete content."
+      ],
+      "validation": [
+        "UI Automation covers source validation, start/pause/end and export.",
+        "Load a long replay and measure dispatcher response; test no-device and denied-permission states."
+      ],
+      "owned_areas": [
+        "src/Sidecue.Desktop/Views/Diagnostics/",
+        "src/Sidecue.Desktop/Views/Session/",
+        "src/Sidecue.Desktop/ViewModels/",
+        "tests/Sidecue.Ui.Tests/"
+      ],
+      "requires_interactive_windows_evidence": false,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-012",
+      "phase": 1,
+      "title": "Recover interrupted sessions and incomplete endings",
+      "status": "planned",
+      "depends_on": [
+        "SC-007",
+        "SC-008",
+        "SC-010"
+      ],
+      "requires_gates": [],
+      "scope": [
+        "Persist lifecycle transitions and recognize unclean shutdowns.",
+        "Implement bounded stop draining with an unresolved tail marker on timeout.",
+        "Allow recovery/explicit export of available committed data without inventing missing audio."
+      ],
+      "acceptance": [
+        "A crash returns committed transcript and an Interrupted state.",
+        "Drain timeout marks the transcript incomplete and retained partials provisional.",
+        "Retry/export paths remain available after a failed write without silently replacing user data."
+      ],
+      "validation": [
+        "Kill the test app during capture, commit and stop; reopen and compare committed evidence.",
+        "Simulate provider tail never finalizing and storage unavailability during error reporting."
+      ],
+      "owned_areas": [
+        "src/Sidecue.Application/Recovery/",
+        "src/Sidecue.Infrastructure/Persistence/",
+        "tests/Sidecue.Infrastructure.Tests/Recovery/",
+        "docs/evidence/SC-012/"
+      ],
+      "requires_interactive_windows_evidence": false,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-013",
+      "phase": 1,
+      "title": "Validate a two-hour transcription session",
+      "status": "planned",
+      "depends_on": [
+        "SC-011",
+        "SC-012"
+      ],
+      "requires_gates": [
+        "G0"
+      ],
+      "scope": [
+        "Run the integrated meeting loop with synthetic/authorized test speech and real devices.",
+        "Measure latency, memory, gaps, source attribution and recovery through interruptions.",
+        "Resolve discovered pipeline defects before closing the phase."
+      ],
+      "acceptance": [
+        "Two-hour run shows bounded non-history memory and responsive pause/hide controls.",
+        "Every injected outage has an explicit observed outcome and no silent transcript corruption.",
+        "Evidence states exact OS/device/provider settings and measured p50/p95 values."
+      ],
+      "validation": [
+        "Exercise USB/default-device changes, network disconnect, overlapping speech, pause and end timeout.",
+        "Inspect logs for secrets, prompts and transcript content."
+      ],
+      "owned_areas": [
+        "docs/evidence/SC-013/",
+        "tests/Sidecue.Replay.Tests/",
+        "tools/diagnostics.ps1"
+      ],
+      "requires_interactive_windows_evidence": true,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-014",
+      "phase": 2,
+      "title": "Build versioned profiles and bounded context snapshots",
+      "status": "planned",
+      "depends_on": [
+        "SC-001",
+        "SC-008"
+      ],
+      "requires_gates": [],
+      "scope": [
+        "Implement immutable prompt profile versions and live/detailed response settings.",
+        "Assemble recent transcript, source-linked summary and evidence slots under the model token budget.",
+        "Pin transcript revision, profile version and context epoch per request."
+      ],
+      "acceptance": [
+        "The saved transcript is unaffected by prompt trimming or clear context.",
+        "Snapshots are immutable and reserve output capacity within configured limits.",
+        "A profile change affects subsequent requests while earlier artifacts retain their original version."
+      ],
+      "validation": [
+        "Test long transcripts, token limits, empty context, profile switching, summary provenance and stale epochs."
+      ],
+      "owned_areas": [
+        "src/Sidecue.Application/Context/",
+        "src/Sidecue.Infrastructure/Profiles/",
+        "prompts/",
+        "tests/Sidecue.Application.Tests/Context/"
+      ],
+      "requires_interactive_windows_evidence": false,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-015",
+      "phase": 2,
+      "title": "Implement the streaming generation adapter",
+      "status": "planned",
+      "depends_on": [
+        "SC-001",
+        "SC-014"
+      ],
+      "requires_gates": [],
+      "scope": [
+        "Implement the initial OpenAI adapter for text and declared image capability.",
+        "Normalize streaming text, completion, cancellation, failure and available usage events.",
+        "Keep model IDs configurable and provider fallback restricted to explicitly enabled providers."
+      ],
+      "acceptance": [
+        "Fake streaming responses and configured live requests use the same application contract.",
+        "Timeouts/authentication/limits return typed failures with bounded retries.",
+        "No raw model reasoning, keys or prompt bodies enter diagnostic logs."
+      ],
+      "validation": [
+        "Contract tests cover partial output, mid-stream failure, cancellation, malformed events and usage absence.",
+        "Use a separately enabled synthetic-prompt provider smoke test and record the selected model/configuration."
+      ],
+      "owned_areas": [
+        "src/Sidecue.Infrastructure/Generation/",
+        "tests/Sidecue.Infrastructure.Tests/Generation/",
+        "tests/fixtures/providers/"
+      ],
+      "requires_interactive_windows_evidence": false,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-016",
+      "phase": 2,
+      "title": "Coordinate cancellation and request priority",
+      "status": "planned",
+      "depends_on": [
+        "SC-007",
+        "SC-014",
+        "SC-015"
+      ],
+      "requires_gates": [],
+      "scope": [
+        "Implement a single foreground request slot with manual priority.",
+        "Cancel/supersede previous requests and reject output with obsolete session, context epoch or request ID.",
+        "Persist completed/cancelled/failed artifact status separately from rendered deltas."
+      ],
+      "acceptance": [
+        "A late response from a prior request cannot overwrite a newer response.",
+        "Clear context and session end invalidate the intended work deterministically.",
+        "Manual requests are not starved by background suggestions or summaries."
+      ],
+      "validation": [
+        "Race tests interleave start, clear, cancellation, completion and out-of-order deltas across two sessions."
+      ],
+      "owned_areas": [
+        "src/Sidecue.Application/Assistance/",
+        "tests/Sidecue.Application.Tests/Assistance/"
+      ],
+      "requires_interactive_windows_evidence": false,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-017",
+      "phase": 2,
+      "title": "Integrate the overlay and global commands",
+      "status": "planned",
+      "depends_on": [
+        "SC-002",
+        "SC-011",
+        "SC-016"
+      ],
+      "requires_gates": [
+        "G0"
+      ],
+      "scope": [
+        "Replace prototype wiring with a view-model-driven command bar and streamed answer panel.",
+        "Implement customizable hotkeys, explicit interactive/non-activating modes and saved monitor placement.",
+        "Connect clear/hide/pause/end to their distinct application commands."
+      ],
+      "acceptance": [
+        "Answers stream without focus theft and the user can enter a question deliberately.",
+        "Hotkey conflicts are reported and disabled bindings work.",
+        "Every auxiliary window follows tested capture-exclusion behavior and has a reliable hide path."
+      ],
+      "validation": [
+        "UI tests cover keyboard-only operation, rapid requests, hide/show and context clear.",
+        "Repeat physical focus and baseline screen-share checks after integrating the actual controls."
+      ],
+      "owned_areas": [
+        "src/Sidecue.Desktop/Views/Overlay/",
+        "src/Sidecue.Desktop/ViewModels/Overlay/",
+        "src/Sidecue.Windows/Hotkeys/",
+        "tests/Sidecue.Ui.Tests/Overlay/",
+        "docs/evidence/SC-017/"
+      ],
+      "requires_interactive_windows_evidence": true,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-018",
+      "phase": 2,
+      "title": "Deliver manual meeting actions and usage feedback",
+      "status": "planned",
+      "depends_on": [
+        "SC-014",
+        "SC-016",
+        "SC-017"
+      ],
+      "requires_gates": [],
+      "scope": [
+        "Add Ask, Suggest what to say, Follow-up questions and Recap with concise response defaults.",
+        "Add profile selection, optional detailed mode, provider/model status and available usage totals.",
+        "Keep factual support and insufficient-context responses distinct."
+      ],
+      "acceptance": [
+        "Each action uses the current snapshot and records its action/profile/model.",
+        "An unclear question does not produce fabricated meeting facts.",
+        "Cancelled/partial answers and unknown usage are labelled accurately."
+      ],
+      "validation": [
+        "Replay short technical and governance-style fictional meetings with rubric-based expected behavior.",
+        "Test missing context, unsupported facts, profile changes and usage values absent from the provider."
+      ],
+      "owned_areas": [
+        "src/Sidecue.Application/Actions/",
+        "src/Sidecue.Desktop/Views/Overlay/",
+        "prompts/actions/",
+        "tests/Sidecue.Application.Tests/Actions/"
+      ],
+      "requires_interactive_windows_evidence": false,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-019",
+      "phase": 2,
+      "title": "Select model defaults and validate assistance quality",
+      "status": "planned",
+      "depends_on": [
+        "SC-018"
+      ],
+      "requires_gates": [
+        "G1"
+      ],
+      "scope": [
+        "Evaluate configured candidate model IDs against fixed synthetic meeting fixtures.",
+        "Record latency/usefulness/cost metadata and select live/detailed defaults by evidence.",
+        "Demonstrate cancellation, focus behavior and context continuity in an end-to-end meeting."
+      ],
+      "acceptance": [
+        "Selected models have a recorded configuration and rationale.",
+        "Live/detailed profiles meet stated acceptance rubrics or limitations remain explicit.",
+        "No stale-answer leakage occurs across request/session changes."
+      ],
+      "validation": [
+        "Measure capture/STT/retrieval/model/render stages separately with p50/p95 and test conditions.",
+        "Perform a real Windows meeting demonstration and preserve a redacted evidence report."
+      ],
+      "owned_areas": [
+        "docs/evidence/SC-019/",
+        "tests/evals/",
+        "prompts/",
+        "configuration/model-profiles.json"
+      ],
+      "requires_interactive_windows_evidence": true,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-020",
+      "phase": 3,
+      "title": "Import text documents with stable provenance",
+      "status": "planned",
+      "depends_on": [
+        "SC-004",
+        "SC-008"
+      ],
+      "requires_gates": [],
+      "scope": [
+        "Implement bounded TXT/Markdown/DOCX/text-PDF extraction and chunking.",
+        "Hash sources, version extraction and preserve page/heading/range references.",
+        "Report unsupported scanned PDFs/legacy DOC without executing embedded content."
+      ],
+      "acceptance": [
+        "Malformed/oversized imports fail visibly without corrupting prior document versions.",
+        "Equivalent source content has stable identity and chunks retain traceable locations.",
+        "No document text leaks into logs or plaintext side indexes."
+      ],
+      "validation": [
+        "Fixture tests cover headings/tables, Unicode, empty/scanned documents, size limits and parse cancellation.",
+        "Verify imported content and indexes are within encrypted storage."
+      ],
+      "owned_areas": [
+        "src/Sidecue.Infrastructure/Documents/",
+        "tests/Sidecue.Infrastructure.Tests/Documents/",
+        "tests/fixtures/documents/"
+      ],
+      "requires_interactive_windows_evidence": false,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-021",
+      "phase": 3,
+      "title": "Create versioned embedding and keyword indexes",
+      "status": "planned",
+      "depends_on": [
+        "SC-020"
+      ],
+      "requires_gates": [],
+      "scope": [
+        "Implement the embedding adapter and encrypted FTS/vector storage.",
+        "Use restartable ingestion jobs and publish a new index generation atomically.",
+        "Store provider/model/dimension/chunking metadata and reject incompatible search vectors."
+      ],
+      "acceptance": [
+        "Interrupted indexing never exposes a half-built document version.",
+        "Changing an embedding model or dimensions triggers a separate rebuild.",
+        "Cloud-indexing disclosure matches actual document text sent to the enabled provider."
+      ],
+      "validation": [
+        "Test restart/retry, duplicate imports, model/dimension mismatch, cancellation and atomic switch.",
+        "Assert no plaintext FTS database or vector file is created."
+      ],
+      "owned_areas": [
+        "src/Sidecue.Infrastructure/Retrieval/Indexing/",
+        "src/Sidecue.Infrastructure/Embeddings/",
+        "tests/Sidecue.Infrastructure.Tests/Indexing/"
+      ],
+      "requires_interactive_windows_evidence": false,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-022",
+      "phase": 3,
+      "title": "Retrieve evidence and validate citations",
+      "status": "planned",
+      "depends_on": [
+        "SC-014",
+        "SC-021"
+      ],
+      "requires_gates": [],
+      "scope": [
+        "Combine FTS/BM25 and exact cosine ranking with reciprocal rank fusion.",
+        "Filter to selected knowledge scope, deduplicate chunks and fit evidence into context budgets.",
+        "Validate returned citation IDs and show source/version/location in the UI."
+      ],
+      "acceptance": [
+        "Relevant exact terms and semantic matches can both retrieve evidence.",
+        "Deleted/out-of-scope chunks cannot enter prompts through caches.",
+        "Invented citation IDs are rejected; missing support is visible."
+      ],
+      "validation": [
+        "Use a fixed corpus with expected retrieval cases, permission/scope exclusions, deletions and misleading evidence.",
+        "Evaluate whether cited text supports claims, not only whether IDs exist."
+      ],
+      "owned_areas": [
+        "src/Sidecue.Application/Retrieval/",
+        "src/Sidecue.Infrastructure/Retrieval/",
+        "src/Sidecue.Desktop/Views/Evidence/",
+        "tests/evals/retrieval/"
+      ],
+      "requires_interactive_windows_evidence": false,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-023",
+      "phase": 3,
+      "title": "Attach an approved screenshot to one request",
+      "status": "planned",
+      "depends_on": [
+        "SC-005",
+        "SC-015",
+        "SC-016",
+        "SC-017"
+      ],
+      "requires_gates": [
+        "G0"
+      ],
+      "scope": [
+        "Connect selected-target capture and preview to the assistance request snapshot.",
+        "Include only an explicitly confirmed image and honor provider vision capability.",
+        "Bound and dispose image buffers after completion/cancel."
+      ],
+      "acceptance": [
+        "Cancelling preview never uploads the image.",
+        "An image cannot be attached to a different request after cancellation or session change.",
+        "Target closure, capture failure and unsupported vision fail with a usable text-only path."
+      ],
+      "validation": [
+        "Mock transport verifies image absence/presence by request ID.",
+        "Real Windows tests cover target selection, preview, cancellation, resizing and no persistent screenshot artifacts."
+      ],
+      "owned_areas": [
+        "src/Sidecue.Application/ScreenContext/",
+        "src/Sidecue.Desktop/Views/ScreenPreview/",
+        "tests/Sidecue.Application.Tests/ScreenContext/",
+        "docs/evidence/SC-023/"
+      ],
+      "requires_interactive_windows_evidence": true,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-024",
+      "phase": 3,
+      "title": "Generate grounded meeting artifacts through durable jobs",
+      "status": "planned",
+      "depends_on": [
+        "SC-012",
+        "SC-014",
+        "SC-015"
+      ],
+      "requires_gates": [],
+      "scope": [
+        "Transactionally enqueue post-meeting generation when finalizing a session.",
+        "Generate summaries, decisions, open questions and action items with transcript references.",
+        "Version generated drafts independently of user edits and make retries idempotent."
+      ],
+      "acceptance": [
+        "A failed/restarted job resumes without duplicating artifacts or overwriting edits.",
+        "Unestablished owners/dates stay unassigned and incomplete transcripts remain identified.",
+        "Generated facts refer to supplied finalized evidence."
+      ],
+      "validation": [
+        "Kill/restart around enqueue/claim/commit boundaries; inject generation failures.",
+        "Evaluate unsupported claims, citation validity, missing owners/dates and regeneration after edits."
+      ],
+      "owned_areas": [
+        "src/Sidecue.Application/MeetingArtifacts/",
+        "src/Sidecue.Infrastructure/Jobs/",
+        "prompts/meeting-notes/",
+        "tests/Sidecue.Infrastructure.Tests/Jobs/",
+        "tests/evals/notes/"
+      ],
+      "requires_interactive_windows_evidence": false,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-025",
+      "phase": 3,
+      "title": "Add editable notes and searchable meeting history",
+      "status": "planned",
+      "depends_on": [
+        "SC-022",
+        "SC-024"
+      ],
+      "requires_gates": [],
+      "scope": [
+        "Provide history search, transcript navigation, editable note versions and evidence links.",
+        "Export text/Markdown/transcript formats with explicit destinations.",
+        "Keep large result lists virtualized and indexing off the dispatcher."
+      ],
+      "acceptance": [
+        "User edits survive regeneration, restart and export.",
+        "Search results retain meeting/document provenance and do not mix generated claims with transcript quotes.",
+        "Failed export cannot be reported as successfully written."
+      ],
+      "validation": [
+        "UI/integration tests cover edit/version selection, source navigation, large history and export failures."
+      ],
+      "owned_areas": [
+        "src/Sidecue.Desktop/Views/History/",
+        "src/Sidecue.Desktop/Views/Notes/",
+        "src/Sidecue.Infrastructure/Exports/",
+        "tests/Sidecue.Ui.Tests/History/"
+      ],
+      "requires_interactive_windows_evidence": false,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-026",
+      "phase": 3,
+      "title": "Implement retention and deletion across derived data",
+      "status": "planned",
+      "depends_on": [
+        "SC-021",
+        "SC-024",
+        "SC-025"
+      ],
+      "requires_gates": [],
+      "scope": [
+        "Implement explicit deletion and retention jobs covering transcripts, artifacts, chunks, vectors, FTS, queued jobs and app-managed backups.",
+        "Invalidate relevant in-memory caches and prevent in-flight work from recreating deleted records.",
+        "Explain that exported copies and provider-retained data are separate."
+      ],
+      "acceptance": [
+        "Deleted content cannot appear in search, prompt context, regenerated notes or queued work.",
+        "Deletion is recoverable/retryable after interruption without dangling references.",
+        "No secure-erasure or provider-deletion guarantee is invented."
+      ],
+      "validation": [
+        "Test deletion during generation/indexing and restart midway through a retention operation.",
+        "Search every managed representation after deletion and validate cache invalidation."
+      ],
+      "owned_areas": [
+        "src/Sidecue.Application/Retention/",
+        "src/Sidecue.Infrastructure/Persistence/",
+        "tests/Sidecue.Infrastructure.Tests/Retention/"
+      ],
+      "requires_interactive_windows_evidence": false,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-027",
+      "phase": 3,
+      "title": "Prepare editable follow-up drafts and complete grounded workflow",
+      "status": "planned",
+      "depends_on": [
+        "SC-023",
+        "SC-025",
+        "SC-026"
+      ],
+      "requires_gates": [
+        "G2"
+      ],
+      "scope": [
+        "Generate an editable follow-up draft from selected meeting evidence and profile template.",
+        "Support copy/export or draft handoff without automatic sending.",
+        "Validate the full transcript-to-retrieval-to-notes-to-draft workflow."
+      ],
+      "acceptance": [
+        "Drafts preserve user corrections and do not invent commitments, owners or dates.",
+        "No message is sent by generating or exporting a draft.",
+        "The grounded workflow passes provenance and deletion checks end to end."
+      ],
+      "validation": [
+        "Use fictional meetings with disputed decisions and missing recipients/dates.",
+        "Verify incomplete transcripts and deleted evidence cannot silently become confident commitments."
+      ],
+      "owned_areas": [
+        "src/Sidecue.Application/FollowUps/",
+        "src/Sidecue.Desktop/Views/FollowUps/",
+        "prompts/follow-ups/",
+        "tests/evals/follow-ups/"
+      ],
+      "requires_interactive_windows_evidence": false,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-028",
+      "phase": 4,
+      "title": "Harden audio selection and speakerphone attribution",
+      "status": "planned",
+      "depends_on": [
+        "SC-013",
+        "SC-019"
+      ],
+      "requires_gates": [
+        "G1"
+      ],
+      "scope": [
+        "Add process-tree audio selection with explicit system-audio fallback.",
+        "Evaluate supported AEC capability and speakerphone duplication/overlap behavior.",
+        "Document tested headset/speakerphone boundaries and keep anonymous diarization labels honest."
+      ],
+      "acceptance": [
+        "Process capture does not silently widen to all system audio.",
+        "Browser process selection is not represented as guaranteed single-tab capture.",
+        "Speakerphone limitations are measured and user-visible; text deduplication does not discard legitimate speech."
+      ],
+      "validation": [
+        "Physical tests cover speakers/headsets, multiple output devices, simultaneous speech and browser audio from multiple tabs."
+      ],
+      "owned_areas": [
+        "src/Sidecue.Windows/Audio/",
+        "src/Sidecue.Application/Transcripts/",
+        "tests/Sidecue.Windows.Tests/Audio/",
+        "docs/evidence/SC-028/"
+      ],
+      "requires_interactive_windows_evidence": true,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-029",
+      "phase": 4,
+      "title": "Complete device power and sharing compatibility checks",
+      "status": "planned",
+      "depends_on": [
+        "SC-017",
+        "SC-023",
+        "SC-028"
+      ],
+      "requires_gates": [
+        "G0",
+        "G2"
+      ],
+      "scope": [
+        "Harden sleep/wake, lock/unlock, permissions, Bluetooth transitions, docking and GPU loss.",
+        "Complete supported Teams/Zoom/Meet share-mode coverage on supported Windows Home/Pro builds.",
+        "Update the compatibility matrix with observed limits and retest affected paths."
+      ],
+      "acceptance": [
+        "Resume/device transitions preserve session identity while marking new stream epochs and gaps.",
+        "Unknown or failed screen exclusion never displays an unearned protected status.",
+        "All declared supported configurations have observer-side evidence."
+      ],
+      "validation": [
+        "Run the physical Windows matrix across monitor/window sharing, popup/dialog cases, mixed DPI and monitor removal.",
+        "Record exact versions and hardware alongside each result."
+      ],
+      "owned_areas": [
+        "src/Sidecue.Windows/",
+        "docs/evidence/SC-029/",
+        "tests/Sidecue.Windows.Tests/"
+      ],
+      "requires_interactive_windows_evidence": true,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-030",
+      "phase": 4,
+      "title": "Finish onboarding accessibility and language behavior",
+      "status": "planned",
+      "depends_on": [
+        "SC-025",
+        "SC-027"
+      ],
+      "requires_gates": [],
+      "scope": [
+        "Add first-run provider/capture setup, clear cloud-processing disclosure and interactive diagnostics.",
+        "Verify keyboard navigation, screen-reader labels, contrast and scalable text.",
+        "Test explicit transcription/output language settings and per-language limitations."
+      ],
+      "acceptance": [
+        "A new user can establish working sources and providers without developer tools.",
+        "Core meeting controls and history are operable with keyboard and assistive technology.",
+        "Unsupported language/model combinations are prevented or clearly identified."
+      ],
+      "validation": [
+        "Run clean-profile onboarding and real screen-reader/keyboard checks.",
+        "Use multilingual fixtures and expanded/long localized strings without clipping."
+      ],
+      "owned_areas": [
+        "src/Sidecue.Desktop/Views/Onboarding/",
+        "src/Sidecue.Desktop/Resources/",
+        "tests/Sidecue.Ui.Tests/Accessibility/",
+        "docs/evidence/SC-030/"
+      ],
+      "requires_interactive_windows_evidence": true,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-031",
+      "phase": 4,
+      "title": "Harden signed updates and release installation",
+      "status": "planned",
+      "depends_on": [
+        "SC-006",
+        "SC-012",
+        "SC-026"
+      ],
+      "requires_gates": [
+        "G0"
+      ],
+      "scope": [
+        "Implement update checks and safe application only after the session stops.",
+        "Verify signed release artifacts/update source validation and failed-update recovery.",
+        "Check schema compatibility, downgrade handling, data preservation and explicit delete-data behavior."
+      ],
+      "acceptance": [
+        "An active meeting cannot be interrupted by automatic update/restart.",
+        "An invalid or untrusted update is rejected.",
+        "Clean install, upgrade, reinstall and uninstall behavior match documented data policy."
+      ],
+      "validation": [
+        "Run clean Windows standard-user install and real signed upgrade with interrupted download/apply scenarios.",
+        "Record certificate/update trust behavior and ensure no credentials enter packages."
+      ],
+      "owned_areas": [
+        "tools/package.ps1",
+        "packaging/",
+        "src/Sidecue.Infrastructure/Updates/",
+        "docs/evidence/SC-031/"
+      ],
+      "requires_interactive_windows_evidence": true,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-032",
+      "phase": 4,
+      "title": "Validate encrypted backup and restore boundaries",
+      "status": "planned",
+      "depends_on": [
+        "SC-004",
+        "SC-012",
+        "SC-026",
+        "SC-031"
+      ],
+      "requires_gates": [],
+      "scope": [
+        "Implement consistent encrypted database snapshots and same-profile restore.",
+        "Keep key/backups outside the installer root and label original-profile dependency.",
+        "Defer portable passphrase export until independently designed and tested; do not imply DPAPI is portable."
+      ],
+      "acceptance": [
+        "A backup captured during activity restores a consistent committed state in the original usable profile.",
+        "Wrong/missing key and lost-profile scenarios fail clearly without plaintext fallback.",
+        "Restore cannot silently replace newer user data or bypass deletion/retention rules."
+      ],
+      "validation": [
+        "Restore snapshots from active WAL, after upgrade and after ordinary reinstall.",
+        "Test absent/corrupt key and backup with an explicit rollback/recovery plan."
+      ],
+      "owned_areas": [
+        "src/Sidecue.Infrastructure/Backups/",
+        "src/Sidecue.Desktop/Views/Recovery/",
+        "tests/Sidecue.Infrastructure.Tests/Backups/",
+        "docs/evidence/SC-032/"
+      ],
+      "requires_interactive_windows_evidence": true,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-033",
+      "phase": 4,
+      "title": "Run soak performance and privacy acceptance",
+      "status": "planned",
+      "depends_on": [
+        "SC-027",
+        "SC-028",
+        "SC-029",
+        "SC-030",
+        "SC-031",
+        "SC-032"
+      ],
+      "requires_gates": [
+        "G3"
+      ],
+      "scope": [
+        "Run overnight synthetic/authorized meeting soak and measured performance scenarios.",
+        "Inspect logs/temp/cache/crash behavior for raw audio, screenshots, keys and unintended plaintext.",
+        "Exercise fault injection and address measurable regressions before release."
+      ],
+      "acceptance": [
+        "Non-history memory remains bounded, controls stay responsive, and measurements include test conditions.",
+        "Transcript/provider/storage failures are visible and recoverable within documented limits.",
+        "Captured content is absent from automatic diagnostics and app-created raw-media files."
+      ],
+      "validation": [
+        "Measure p50/p95 stage latency and compare to engineering targets with no unsupported marketing claims.",
+        "Run disk-full, network faults, long transcript, deletion during work, cancellation and restart scenarios."
+      ],
+      "owned_areas": [
+        "tools/diagnostics.ps1",
+        "tests/Sidecue.Replay.Tests/",
+        "tests/evals/",
+        "docs/evidence/SC-033/"
+      ],
+      "requires_interactive_windows_evidence": true,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-034",
+      "phase": 4,
+      "title": "Assemble personal release evidence and operating guide",
+      "status": "planned",
+      "depends_on": [
+        "SC-033"
+      ],
+      "requires_gates": [
+        "G0",
+        "G1",
+        "G2",
+        "G3"
+      ],
+      "scope": [
+        "Compile the supported-environment matrix, resolved risks, remaining limitations and reproducible release checks.",
+        "Verify shipped dependencies/notices, data lifecycle, model configuration and recovery instructions.",
+        "Prepare reviewable release artifacts and release notes; public publishing requires its own authorized action."
+      ],
+      "acceptance": [
+        "Every claimed supported scenario points to actual evidence; blocked or untested scenarios remain explicit.",
+        "All personal-release phase gates can be evaluated from recorded results.",
+        "The owner can install/use/recover/update the reviewed build with the documented instructions."
+      ],
+      "validation": [
+        "Run a clean checkout release build and compare manifest/dependency versions to tested artifacts.",
+        "Review package contents, signatures, notices and guide against observed behavior."
+      ],
+      "owned_areas": [
+        "docs/evidence/SC-034/",
+        "docs/RELEASE_READINESS.md",
+        "docs/USER_GUIDE.md",
+        "packaging/"
+      ],
+      "requires_interactive_windows_evidence": true,
+      "evidence": [],
+      "blockers": [],
+      "owner": null
+    }
+  ],
+  "phase_gates": [
+    {
+      "id": "G0",
+      "phase": 0,
+      "status": "pending",
+      "depends_on_gates": [],
+      "required_tasks": [
+        "SC-000",
+        "SC-001",
+        "SC-002",
+        "SC-003",
+        "SC-004",
+        "SC-005",
+        "SC-006"
+      ],
+      "acceptance": [
+        "Native overlay/capture/screenshot paths have real Windows evidence.",
+        "Encrypted native database distribution and standard-user installation have been proven."
+      ],
+      "evidence": []
+    },
+    {
+      "id": "G1",
+      "phase": 1,
+      "status": "pending",
+      "depends_on_gates": [
+        "G0"
+      ],
+      "required_tasks": [
+        "SC-007",
+        "SC-008",
+        "SC-009",
+        "SC-010",
+        "SC-011",
+        "SC-012",
+        "SC-013"
+      ],
+      "acceptance": [
+        "Two-source transcription is durable, bounded and recoverable.",
+        "Two-hour Windows run and fault cases are documented."
+      ],
+      "evidence": []
+    },
+    {
+      "id": "G2",
+      "phase": 2,
+      "status": "pending",
+      "depends_on_gates": [
+        "G1"
+      ],
+      "required_tasks": [
+        "SC-014",
+        "SC-015",
+        "SC-016",
+        "SC-017",
+        "SC-018",
+        "SC-019"
+      ],
+      "acceptance": [
+        "Manual assistance is useful and meets measured latency/quality expectations or documented supported limits.",
+        "Cancelled/obsolete output cannot leak across requests/sessions."
+      ],
+      "evidence": []
+    },
+    {
+      "id": "G3",
+      "phase": 3,
+      "status": "pending",
+      "depends_on_gates": [
+        "G2"
+      ],
+      "required_tasks": [
+        "SC-020",
+        "SC-021",
+        "SC-022",
+        "SC-023",
+        "SC-024",
+        "SC-025",
+        "SC-026",
+        "SC-027"
+      ],
+      "acceptance": [
+        "Grounded document and meeting outputs preserve provenance, edits and deletion semantics.",
+        "The complete personal knowledge/notes/drafts workflow is verified."
+      ],
+      "evidence": []
+    },
+    {
+      "id": "G4",
+      "phase": 4,
+      "status": "pending",
+      "depends_on_gates": [
+        "G3"
+      ],
+      "required_tasks": [
+        "SC-028",
+        "SC-029",
+        "SC-030",
+        "SC-031",
+        "SC-032",
+        "SC-033",
+        "SC-034"
+      ],
+      "acceptance": [
+        "Supported Windows compatibility, accessibility, installation, updating, backup and soak evidence are complete.",
+        "Personal release artifacts are reviewable; passing this gate does not authorize public publication."
+      ],
+      "evidence": []
+    }
+  ],
+  "deferred_epics": [
+    {
+      "id": "EP-501",
+      "title": "Calendar connections and pre-meeting briefs",
+      "scope": "Google Calendar and Microsoft Graph authentication, incremental sync, meeting context, reminders and later hosted webhook delivery."
+    },
+    {
+      "id": "EP-502",
+      "title": "Hosted identity sync and explicit sharing",
+      "scope": "Modular ASP.NET Core service, PostgreSQL/pgvector, object storage, durable jobs, optional account/sync, deletion propagation and explicit share links."
+    },
+    {
+      "id": "EP-503",
+      "title": "Organizations permissions and shared knowledge",
+      "scope": "Tenant authorization before shared retrieval, scoped caches, roles, profile assignment, SSO/SCIM and audit events."
+    },
+    {
+      "id": "EP-504",
+      "title": "CRM and ATS integrations",
+      "scope": "Explicit OAuth connections, mapping, durable outbox, idempotent writeback, retry and visible results."
+    },
+    {
+      "id": "EP-505",
+      "title": "Billing administration and evaluated coaching",
+      "scope": "Entitlements, usage accounting, web administration, defined and validated coaching metrics."
+    },
+    {
+      "id": "EP-506",
+      "title": "Optional local inference and broader content support",
+      "scope": "Separately benchmarked local STT/LLM/embedding workers, OCR, legacy DOC conversion and optional web retrieval. These are not personal-release blockers."
+    },
+    {
+      "id": "EP-507",
+      "title": "Additional platforms",
+      "scope": "ARM64, macOS, Linux and mobile require a future scope decision and platform-specific proof; no current implementation task."
+    },
+    {
+      "id": "EP-508",
+      "title": "Automatic insights and extended personal modes",
+      "scope": "After the manual assistance quality gate G2 passes, schedule a separate personal enhancement iteration for debounced question/objection chips, suggestion ranking, configurable actions, and evaluated technical profiles. Preserve request priority, rate/cost limits, cancellation and evidence rules. These features remain in the product backlog but are not required for the first manual-assistance release."
+    }
+  ]
+}

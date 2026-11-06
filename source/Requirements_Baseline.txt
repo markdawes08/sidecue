@@ -1,0 +1,497 @@
+PROJECT PLANNING BASELINE
+Recorded: November 6, 2026
+Product name: Sidecue (working name selected November 6, 2026)
+
+Confirmed project decisions
+- Build the application described in the supplied requirements below.
+- Focus on Windows compatibility only for now. Other operating systems and the mobile companion are deferred.
+- Development will be carried out primarily through Codex agents.
+- The current conversation is for planning, beginning with product naming.
+
+Planning notes
+- The supplied specification is preserved in full below as the requirements baseline.
+- Its stated Windows baseline is Windows 11 x64. Detailed supported versions, editions, and hardware will be settled during technical planning.
+- The broader feature list is retained; release phases and the first release scope have not yet been selected.
+- Source assertions about rendering, capture exclusion, compatibility, context limits, encryption, certifications, and vendor integrations require validation before becoming implementation commitments or product claims.
+- Working name: Sidecue. The recommended architecture is recorded in Sidecue_Architecture_v0.1.txt. That document distinguishes proposed technical decisions from validated implementation behavior.
+
+BEGIN ORIGINAL SUPPLIED REQUIREMENTS
+
+# Technical Specification: Real-Time AI Meeting Assistance Software
+
+The following is a complete technical description of a desktop AI meeting assistant application, its capabilities, subsystems, and platform architecture. The product name is deliberately omitted.
+
+---
+
+## 1. Product Overview
+
+The software is a desktop-resident, AI-powered meeting assistant. Its core function is to listen to live audio and observe on-screen context during voice/video calls, transcribe the conversation in real time, and generate contextual answers, suggestions, and follow-ups through an assistive overlay. It also produces post-meeting artifacts (summaries, action items, transcripts), pre-meeting briefs, coaching analytics, and a searchable activity history.
+
+Key design principles:
+
+- **No-bot participation** — the software never joins the meeting as a participant; there is no bot on the call or extra guest in the roster.
+- **Local-first capture** — audio and screen context are captured from the user's own machine, not the conferencing back end.
+- **Overlay-based UI** — assistance is rendered in a floating, repositionable panel rather than a separate window that behaves like a normal participant.
+- **Retrieval-augmented generation (RAG)** — answers are grounded in an organization-supplied knowledge base plus live CRM/ATS data.
+
+---
+
+## 2. Platform & Client Architecture
+
+### 2.1 Desktop Applications
+
+The desktop client runs on:
+
+| Platform | Requirements |
+| --- | --- |
+| macOS | macOS 10.15 (Catalina) or later; Apple Silicon or Intel; ~500 MB disk; 8 GB RAM recommended |
+| Windows | Windows 11 (deprecated support for Windows 10 due to GPU acceleration requirements); x64; ~500 MB disk; 8 GB RAM recommended |
+
+### 2.2 Rendering Layer
+
+The assistance overlay is rendered at the graphics layer rather than as an ordinary application window:
+
+- On Windows, rendering uses the **DirectX** graphics API.
+- On macOS, rendering uses the **Metal** framework.
+- These APIs place content between applications and the GPU, below the operating system's screen-capture compositing layer.
+
+**Consequence:** when a user shares their screen during a call, the overlay rendered at GPU level is excluded from the screen-capture stream. The overlay exists on the local monitor but does not appear in shared screens, meeting recordings, or external meeting tools. The implementation relies on the same "infinite overlay" / privacy-overlay conventions that mainstream video conferencing clients use to keep their own floating controls off shared output.
+
+GPU acceleration is enabled on Windows for smooth overlay operation.
+
+### 2.3 Companion Mobile Application
+
+A mobile companion app provides AI assistance away from the desktop:
+
+- Operates as a meeting recorder for in-person meetings.
+- Serves as a voice-memo recorder, capturing details for later summarization.
+
+### 2.4 Web Dashboard / Portal
+
+A web platform mirrors the desktop feature set for administrators and users:
+
+- Displays activity history, meeting notes, and transcripts.
+- Hosts knowledge base management, team/role configuration, integrations, billing, and analytics.
+- Provides a dedicated enterprise subdomain for organization administration.
+
+### 2.5 Command Bar & Desktop Widget
+
+Two UI surfaces exist:
+
+- A **command bar/widget** for in-session interaction, movable across monitors and resizable with safe-area padding.
+- A **simplified desktop widget** focused on one-click AI help, designed to be less invasive during meetings.
+
+---
+
+## 3. Input & Sensing Subsystems
+
+### 3.1 Audio Capture
+
+The application captures live meeting audio through two paths:
+
+- **Microphone capture** — records the user's input.
+- **System audio loopback** — processes and redirects system audio so the other party's speech is captured even from the same device.
+- On Apple devices, accessibility permissions are used to enable automatic meeting detection; on Windows and Apple Silicon (M-series) Macs, a dedicated audio compatibility subsystem is used.
+
+Audio capture can be toggled on/off mid-session via a waveform switch, allowing the user to pause recording/aid without ending the session.
+
+### 3.2 Audio Input Testing
+
+A pre-meeting diagnostics utility allows the user to:
+
+- Verify microphone function and transcription readiness before joining a call.
+- View real-time audio-level visualization.
+- Preview the live transcript.
+
+### 3.3 Screen Context Capture (Optional)
+
+The software can capture the current screen state to provide context for questions about what the user is looking at (e.g., code, spreadsheets, documents). This feature:
+
+- Is exposed as a **screenshot toggle** in settings for privacy control.
+- Shows a preview of exactly what the model "sees" when screen context is included in a query.
+
+### 3.4 Calendar Integration
+
+Connecting a calendar enables:
+
+- Real-time calendar synchronization (listening directly to change events rather than polling).
+- Meeting alerts/notifications (two per meeting).
+- One-click "join meeting" from the dashboard.
+- Automatic use of calendar event titles as meeting/session titles.
+
+---
+
+## 4. Real-Time Processing Pipeline
+
+The in-call pipeline consists of:
+
+1. **Streaming transcription** — live speech-to-text with partial-transcript updates for low-latency feedback, plus speaker labeling (diarization).
+2. **Keyword/event detection** — the stream is scanned to detect questions, sales objections, and technical terms.
+3. **Retrieval** — relevant knowledge is pulled from the configured knowledge base via RAG.
+4. **Generation** — an LLM (enterprise models, including GPT-5 class models and Claude-class models for international users) produces a streamed answer. Responses can stream in chunks; reasoning tokens can be surfaced so the user sees the assistant "thinking."
+5. **Rendering** — the answer is displayed in the overlay/command bar, optionally in a stealth mode.
+
+---
+
+## 5. Live Assistance Features
+
+### 5.1 "Ask AI" (Assist) Command
+
+At any time the user can invoke an AI query against:
+- the live meeting audio,
+- the current screen content,
+- or typed chat/input.
+
+A default key binding (`Cmd/Ctrl + Enter`) triggers this; the binding is user-customizable.
+
+### 5.2 Default Action Buttons
+
+One-click canned actions are available:
+
+- "What should I say next?"
+- "Suggest follow-up questions"
+- "Fact check"
+- "Who am I talking to?"
+- "Recap"
+
+### 5.3 Dynamic Insights
+
+Detected questions, objections, keywords, and technical terms from the transcript are surfaced as tappable chips below the main insights card. Selecting one (or pressing `Tab` for the top suggestion) returns an instant contextual answer.
+
+### 5.4 Smart Mode / Coding Assistance
+
+A "Smart Mode" toggle (lightning icon) adapts assistance for technical/coding contexts, enabling the assistant to answer questions about code on screen.
+
+### 5.5 Stealth / Undetectable Answer Mode
+
+A secondary key binding (`Cmd/Ctrl + Shift + Enter`) fetches an answer without requiring typed input and displays it in a manner that does not appear on screen share during invisibility mode.
+
+### 5.6 Session Context Controls
+
+- The assistant conversation/session context can be cleared with a shortcut (`Cmd/Ctrl + R`).
+- Chats maintain a longer context window.
+
+---
+
+## 6. Invisibility / Undetectability
+
+This is a headline capability with these properties:
+
+- The assistant's UI can be hidden from **screen-sharing software**, **recordings**, and **external meeting tools**.
+- Controls additionally determine visibility of the application in the **OS task bar** and **system notifications**.
+- Toggle points: an eye icon on the command bar/widget, a Settings toggle ("Make Invisible"), or keyboard control.
+- The user's local monitor still displays the overlay; only the shared stream is protected.
+
+**Compatibility caveats (as documented):**
+
+- Full invisibility across Google Meet, Zoom, Microsoft Teams (window-share), HackerRank, and similar tools on supported hardware.
+- Known gaps: Windows 10, Windows 11 Home, and pre-2020 Apple devices may remain visible in Microsoft Teams, full-screen Zoom share, and full-screen Google Meet share.
+- The application remains visible in the task manager/activity monitor regardless.
+
+---
+
+## 7. Meeting Lifecycle Management
+
+### 7.1 Session Start
+
+Sessions can be started from:
+
+- A meeting alert notification.
+- An upcoming-meeting card in the dashboard.
+- A manual "Start" button in the dashboard.
+
+The application can **auto-detect meeting start/end** via calendar integration or microphone-state change detection.
+
+### 7.2 During Session
+
+- The session timer is shown on the end-session button.
+- Audio toggling pauses/resumes listening without ending the session.
+- The widget can be hidden entirely (keeping the session running) via an `X` control or a hide shortcut.
+
+### 7.3 Session End
+
+Sessions end automatically at the calendar meeting end or when mic change is detected; manual end is also available. A minimum-duration rule (2 minutes when mic is off) prevents accidental short sessions. Only properly started-and-stopped sessions generate summaries.
+
+### 7.4 Session Resume
+
+A running session can be resumed to accumulate context across an extended meeting. Very long transcripts can slow responses, so resume/split is recommended.
+
+---
+
+## 8. Post-Call Output
+
+### 8.1 Meeting Notes
+
+Auto-generated after each session:
+
+- Comprehensive summaries of key discussion points.
+- Key insights, decisions made, and takeaways.
+- AI-drafted next steps / action items.
+- Sentiment analysis and participant engagement metrics (enterprise).
+- Custom meeting-note templates by mode/team.
+- A "Define Fixer" capability improving accuracy of definition actions in notes.
+
+Notes are **directly editable** in place.
+
+### 8.2 Transcripts
+
+- Full conversation record with speaker identification.
+- Real-time transcript view in the dashboard (moved from the widget) with speaker labels.
+- Copy-and-export of the full transcript.
+- Partial (real-time) transcript updates during meetings.
+
+### 8.3 Sharing & Deletion
+
+- Generate a public share link for a meeting summary.
+- Delete meeting items from the activity list.
+
+### 8.4 AI Follow-Up Emails
+
+On meeting end, the application automatically surfaces the summary, action items, and a **one-click follow-up email** that drafts:
+- Directly in Gmail for Gmail users, or
+- In the default mail client for non-Gmail users (auto-drafting).
+
+Enterprise users can define custom follow-up actions; meeting-note templates include customized email templates.
+
+---
+
+## 9. Pre-Call Briefs
+
+With calendar integration, the software generates pre-meeting briefs that include:
+
+- Meeting details (date, time, duration, agenda).
+- Participant identification, professional profiles, roles, and company background research.
+- Meeting context — previous meeting history, relevant documents, topics.
+- Suggested talking points and questions.
+- "Last talked about" links back to prior meeting notes.
+
+Participants can be searched instantly with cached results from past meetings (by email, name, etc.), and click-through to participant cards/history.
+
+---
+
+## 10. Knowledge Base & Retrieval
+
+### 10.1 Content Ingestion
+
+- **File uploads** by admins: PDF, DOC, DOCX, TXT, MD, and other text formats.
+- **Folder hierarchy** for organization (Articles, custom folders).
+- **Live links / web scraping** — scheduled collection of support docs, product pages, wikis, help centers (backend-configured).
+- **CRM/ATS data-source sync** via integration platform.
+
+### 10.2 Retrieval System
+
+- **RAG** (retrieval-augmented generation) pulls the most relevant content at query time.
+- Large context window: ~400K tokens advertised for general use, 1M+ tokens for enterprise (quality retrieval caps around 1M).
+- A third-party "memory layer" provides dynamic, brain-like memory that scales.
+- RAG is used across live insights, Ask AI, scoped context for coaching and notes, and conversation linking into pre-call briefs.
+
+### 10.3 Permissions & Analytics
+
+- Team-level permissions and shared access.
+- Usage analytics tracking how knowledge content is used during calls.
+
+---
+
+## 11. Integrations & Live Data
+
+### 11.1 CRM/ATS Integration (via a Merge-style integration platform)
+
+Supported systems include:
+
+| Category | Platforms |
+| --- | --- |
+| CRM | HubSpot, Salesforce, Pipedrive, Zoho CRM + more |
+| ATS | Greenhouse, Lever, Workday, BambooHR + more |
+
+Capabilities:
+
+- **Contact matching** — match call participants to existing contacts by email, phone, name, company (with optional fuzzy matching).
+- **Activity synchronization** — pull previous meetings/calls, email interactions, deal/opportunity status, engagement history, custom activities.
+- **Meeting-notes push** — write summaries, key points, action items, sentiment, engagement metrics, and custom fields back into the CRM/ATS.
+- **Field mapping** — contact matching criteria, activity types, custom field mappings, sync frequency (immediate/hourly/daily/batch).
+- **Error handling** — automatic retries, detailed logs, email alerts on sync failure, dashboard health monitoring.
+- **Authentication** — magic-link OAuth connections; API keys stored securely; SOC 2 Type II platform; rate limiting.
+
+### 11.2 Calendar
+
+Google Calendar (primary) with refresh capability without re-authentication; integration IDs tracked for connected services.
+
+---
+
+## 12. Coaching, Analytics & ROI
+
+### 12.1 Missed Opportunities
+
+Teams define ideal outputs/sales scorecards; the system monitors how reps respond to prospect queries in real time and, post-call, produces a "Missed Opportunities" summary with actionable improvement guidance.
+
+### 12.2 Scoring & ROI
+
+- Overall per-call and aggregate scores for ROI monitoring.
+- Team comparisons and benchmarking.
+- Trend analysis over time.
+- Customizable criteria per call type.
+- Admins see team-wide dashboards; reps see their own.
+
+---
+
+## 13. Teams, Roles & Administration
+
+### 13.1 Roles
+
+- **Org Admin** — near-total control over organization, teams, users, prompts.
+- **Team Manager** — add/remove members, create and assign team-scoped prompts.
+- **Members** — end users, can belong to multiple teams.
+
+### 13.2 Prompt Scoping
+
+- **System prompts** define AI behavior per team or organization.
+- Team-scoped prompts are visible only to that team's managers/admins.
+- Org-scoped prompts managed by org admins, assignable to anyone.
+- Each user holds exactly one assigned prompt at a time; assignment replaces the previous one.
+- Automatic role→team→prompt mapping on login for roles such as sales rep, account manager, sales manager, sales director.
+
+### 13.3 Directory Sync (SCIM / SSO)
+
+- Uses WorkOS Directory Sync for user lifecycle management.
+- SCIM-based provisioning/deprovisioning from Microsoft Active Directory, Okta, Workday, Google Workspace, and other providers.
+- Group mapping, attribute configuration, webhook-driven updates, self-service admin portal.
+- Role-based access control (RBAC) integration for team permission management.
+
+### 13.4 MDM Management
+
+Documented guidance and troubleshooting for managed/mobile-device-management environments and IT permission restrictions, including handling of update-check behavior on MDM devices.
+
+### 13.5 Analytics & Reporting
+
+- Usage metrics, engagement rates, AI token usage tracking, category tracking.
+- Hourly materialized views for fast analytics queries.
+- Pilot/success reporting with ROI tracking for enterprise deployments.
+
+---
+
+## 14. Customization & Prompt Engineering
+
+### 14.1 Modes / Prompt Profiles
+
+Users switch between named "modes" (e.g., a sales-tuned profile) directly from the widget dropdown or profile menu. Modes bundle system prompts, meeting-note templates, and follow-up templates.
+
+### 14.2 Customization Suite (Enterprise)
+
+- A customization workbook for designing prompts per team/use case.
+- Prompt development process: design → evaluation → approval → rollout.
+- Prompt **version control** for tracking changes over time.
+- Custom live action buttons that trigger arbitrary prompts, links, or actions (enterprise only; consumer tier limited to two built-in actions).
+- Sort modes alphabetically or by team order; per-user auto-suggestion toggles.
+
+### 14.3 Personalization (Consumer tier)
+
+A plain-text prompt editor with a limited context window to personalize the assistant's knowledge.
+
+---
+
+## 15. Controls, Keyboard Shortcuts & Settings
+
+### 15.1 Default Key Bindings
+
+| Shortcut | Action |
+| --- | --- |
+| `Cmd/Ctrl + Enter` | Ask AI about screen, audio, or chat |
+| `Cmd/Ctrl + R` | Clear session context |
+| `Cmd/Ctrl + ← / →` | Move widget left/right on screen |
+| `Cmd/Ctrl + \` | Hide/show command bar widget |
+| `Cmd/Ctrl + Shift + Enter` | Stealth/undetectable answer during invisibility mode |
+
+All bindings are user-customizable or individually disable-able; international/EU keyboard layouts are supported.
+
+### 15.2 General Settings
+
+- Interactive in-app tutorial.
+- Invisibility toggles (screen share, taskbar, notifications).
+- Output language (responses, summaries, action items, UI text).
+- Meeting audio language (transcription accuracy, context, translation features).
+- Monitor selection (with drag support).
+- Auto-launch on login toggle.
+- App version display with update-and-restart.
+- Billing/plan management; notifications on meeting limits.
+
+### 15.3 Theme & Polish
+
+- Automatic light/dark theme sync with OS preferences.
+- Window position/height persistence across sessions.
+
+---
+
+## 16. Language Support
+
+- **Output language** setting for AI responses, meeting summaries, actionable items, and interface text.
+- **Meeting audio language** setting for listen-mode transcription and context understanding.
+- Multilingual action suggestions; translation-oriented summaries.
+- Deliberate limitation: no reliable real-time automatic speech-translation between parties during a live call.
+
+---
+
+## 17. Data Security, Privacy & Compliance
+
+- **End-to-end encryption** in transit and at rest (enterprise).
+- **No training on user data**; no automatic training from meetings.
+- Compliance posture: SOC 2, ISO 27001, GDPR, CCPA, HIPAA; 24/7 third-party monitoring with a trust center.
+- DPAs and mutual NDAs available (enterprise).
+- Custom privacy alerts: recording alerts, restricting meeting notes to external teams, etc.
+- Device-limit enforcement (max 2 simultaneous devices).
+- RBAC and lazy-loaded user context; JWT token handling for organization identity.
+- Only the transcript is stored — screen recordings and audio files are not saved.
+- Screenshot capture is opt-in and toggleable.
+
+---
+
+## 18. Billings, Tiers & Entitlement Controls
+
+The feature set is gated across tiers:
+
+| Capability | Individual tier | Enterprise tier |
+| --- | --- | --- |
+| Live insights / Ask AI | ✅ | ✅ (priority enterprise models) |
+| Meeting notes | ✅ | ✅ + custom templates |
+| AI follow-up emails | ✅ | ✅ + custom follow-up actions |
+| Teams/granular controls | ❌ | ✅ unlimited |
+| Custom live actions | 2 fixed actions only | ✅ arbitrary actions |
+| Knowledge base | narrow prompt editor | ✅ 1M+ token RAG, onboarding |
+| Coaching/scoring | ❌ | ✅ |
+| CRM/ATS integrations | ❌ | ✅ (Salesforce, HubSpot, Pipedrive, calendars, custom) |
+| Custom privacy alerts | ❌ | ✅ |
+| No-training/encryption guarantees, DPAs | ❌ | ✅ |
+| Undetectability plan | optional add-on | included |
+
+Free tier: limited daily AI messages and meeting counts. An undetectability-only paid plan exists as a separate offering. In-app billing supports subscription management, annual billing confirmation, instant plan refresh, and cancel/period state updates.
+
+---
+
+## 19. Operational & Support Features
+
+- In-app changelog viewer.
+- Bug reporting button.
+- Universal support chat (embedded bot; enterprise gets dedicated channels incl. Slack Connect/Microsoft Teams).
+- Onboarding flow with optional tutorial video and revamped first-run experience.
+- Invite-a-friend mechanism.
+- Automated update system with lazy loading for fast startup and reduced MDM conflicts.
+
+---
+
+## 20. Documented Limitations (What It Does Not Do)
+
+Per the vendor's own documentation, the software:
+
+- Does **not** join meetings as a bot.
+- Does **not** screen-record meetings or save audio — only transcripts are stored.
+- Does **not** auto-train on meetings.
+- Is **not** a chatbot for customer support.
+- Had **no** mobile-call assistance historically (mobile app is a recorder/notepad, not a live call assistant).
+- Has **no** voice assistant — it does not answer by voice or perform spoken tasks.
+- Does **not** take or handle phone calls on the user's behalf.
+- Does **not** provide reliable real-time audio translation between speakers.
+- Does **not** perform desktop automation (button clicks, file downloads) on the user's behalf.
+- Is optimized for sales/meeting assistance rather than general-purpose AI agent use.
+
+---
+
+This document is a consolidated technical description drawn from the product's public documentation, changelog, and third-party technical analyses, and reflects capabilities as of the late-2025 to early-2026 release cycle.

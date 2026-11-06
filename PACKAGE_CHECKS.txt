@@ -1,0 +1,22 @@
+SIDECUE REFERENCE PACKAGE CHECKS
+Date: November 6, 2026
+Package version: 1.0
+
+PASS: UTF-8 text; new authored files have trailing newlines. Original source bytes preserved.
+PASS: Local Markdown links and task anchors resolve within the package.
+PASS: JSON documents parse.
+PASS: 35 unique tasks and five unique gates; all references resolve.
+PASS: Task and gate dependency graph is acyclic.
+PASS: SC-000 alone is ready; remaining tasks planned; every gate pending.
+PASS: Required task scope, acceptance and verification fields are populated.
+PASS: Task cards cover every backlog task.
+PASS: Six synthetic evaluation seeds are explicitly not-run.
+PASS: Source snapshots are byte-for-byte copies of the saved planning files.
+PASS: Root AGENTS.md is under 8 KiB.
+PASS: No accidental assembly-workspace paths in delivered text.
+PASS: Markdown code fences are balanced.
+
+This validates the reference package only. No Sidecue application code was
+compiled, no application test was run, and no Windows or provider behavior
+was validated. The manifest records the original package snapshot and is
+not an application release manifest.

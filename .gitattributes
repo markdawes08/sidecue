@@ -1,0 +1,5 @@
+* text=auto eol=lf
+
+# Historical source bytes are checked against the original package manifest.
+source/*.txt -text
+*.zip binary
