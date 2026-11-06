@@ -4,9 +4,9 @@ This is the repository entry point for implementing Sidecue. The current user ta
 
 ## First session
 
-Read [AGENTS.md](AGENTS.md), [PROJECT_STATE.md](docs/PROJECT_STATE.md), and [backlog.json](tasks/backlog.json). Inspect the working tree before creating the solution. For an implementation request, start SC-000. For a preparation or review request, stay within that scope and leave implementation statuses unchanged. Do not initialize a nested git repository, replace an existing solution, or overwrite unrelated instructions.
+Read [AGENTS.md](AGENTS.md), [PROJECT_STATE.md](docs/PROJECT_STATE.md), and [backlog.json](tasks/backlog.json). Inspect the working tree before changing the solution. For an implementation request, select the next dependency-ready task; SC-000 is only the starting point for an unbootstrapped repository. For a preparation or review request, stay within that scope and leave implementation statuses unchanged. Do not initialize a nested git repository, replace an existing solution, or overwrite unrelated instructions.
 
-The first implementation task should establish a reproducible C# solution and deterministic test entry point. Prove native capture, window exclusion, encryption, and packaging in phase 0 before expanding the product interface. There are no application build commands yet. The repository-only check is `powershell -NoProfile -File tools/check-repository.ps1`; it does not build or test the product. Creating and verifying application commands belongs to SC-000.
+SC-000 establishes the C# solution and deterministic test entry point. See [DEVELOPMENT.md](docs/DEVELOPMENT.md) for SDK setup, build, test and run commands. Prove native capture, window exclusion, encryption, and packaging in phase 0 before expanding the product interface. The separate repository-only check is `powershell -NoProfile -File tools/check-repository.ps1`; it does not build or test the product.
 
 ## Minimum reading for a task
 

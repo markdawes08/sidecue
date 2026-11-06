@@ -35,4 +35,6 @@ The owner has not asked this package to publish a repository, purchase infrastru
 
 ## Research record
 
+SC-000's reviewed build/test versions and exact CI pins are recorded in [DEPENDENCIES.md](DEPENDENCIES.md). Native/provider selections remain with their owning tasks. The initial static shell postpones the MVVM toolkit dependency until changing UI state needs it; the selected architecture is unchanged.
+
 The pinned comparison revisions and official references are in [Architecture_v0.1.txt](../source/Architecture_v0.1.txt). They explain the design, not authorization to copy another project's source. Recheck temporal API/package claims when implementing. Record the URLs, access date, actual selected versions, and tested compatibility in the task evidence.

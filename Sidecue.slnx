@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Sidecue.Core/Sidecue.Core.csproj" />
+    <Project Path="src/Sidecue.Application/Sidecue.Application.csproj" />
+    <Project Path="src/Sidecue.Windows/Sidecue.Windows.csproj" />
+    <Project Path="src/Sidecue.Infrastructure/Sidecue.Infrastructure.csproj" />
+    <Project Path="src/Sidecue.Desktop/Sidecue.Desktop.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Sidecue.Architecture.Tests/Sidecue.Architecture.Tests.csproj" />
+    <Project Path="tests/Sidecue.Desktop.Tests/Sidecue.Desktop.Tests.csproj" />
+  </Folder>
+</Solution>

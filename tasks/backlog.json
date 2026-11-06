@@ -22,7 +22,7 @@
       "id": "SC-000",
       "phase": 0,
       "title": "Bootstrap the solution and repeatable checks",
-      "status": "ready",
+      "status": "done",
       "depends_on": [],
       "requires_gates": [],
       "scope": [
@@ -51,9 +51,11 @@
         ".github/workflows/ci.yml"
       ],
       "requires_interactive_windows_evidence": false,
-      "evidence": [],
+      "evidence": [
+        "docs/evidence/SC-000/2026-11-06.md"
+      ],
       "blockers": [],
-      "owner": null
+      "owner": "codex-root"
     },
     {
       "id": "SC-001",

@@ -1,6 +1,6 @@
 # Sidecue technical baseline
 
-Version 0.1. Adopted as the implementation planning baseline on November 6, 2026. No implementation or runtime behavior has yet been validated. Read [DECISIONS.md](DECISIONS.md) for decisions and unresolved implementation selections; read [Architecture_v0.1.txt](../source/Architecture_v0.1.txt) for the full rationale and source research.
+Version 0.1. Adopted as the implementation planning baseline on November 6, 2026. This document defines the design; [PROJECT_STATE.md](PROJECT_STATE.md) and task evidence distinguish actual implementation and verified behavior. Read [DECISIONS.md](DECISIONS.md) for decisions and unresolved implementation selections; read [Architecture_v0.1.txt](../source/Architecture_v0.1.txt) for the full rationale and source research.
 
 ## Shape
 

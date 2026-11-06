@@ -1,44 +1,46 @@
 # Current project context
 
-Updated: November 6, 2026. Package version: 1.0. Architecture baseline: 0.1.
+Updated: November 6, 2026. Architecture baseline: 0.1.
 
 ## Current reality
 
-The reference package has been verified and extracted into the repository root. START_HERE.md is the project entry point; AGENTS.md records the owner's working preferences; ignore rules and text conventions are in place. A small PowerShell script checks documentation and backlog integrity. Historical sources and the original manifest remain unchanged. The original zip is retained locally and ignored.
+Sidecue has a five-project .NET solution and a minimal WPF window. The window states that meeting features are not available yet. It performs no audio capture, persistence or provider calls. Core, Application, Windows and Infrastructure currently establish dependency boundaries without placeholder meeting logic.
 
-The root README was shortened at the user's request. Leave it alone until the user asks otherwise; use the working documents for context and updates.
+SDK/package pins, lockfiles, recommended analyzers with warnings as errors, PowerShell setup/build/test/run commands and Windows CI configuration are present. The immutable shell view model needs no MVVM toolkit package yet; add the selected toolkit when mutable UI behavior needs it.
 
-No application solution, application build/test scripts, provider integration, Windows prototype, or completed runtime test exists. This session was repository preparation only. Evidence is in [the preparation record](evidence/repository-preparation/2026-11-06.md).
+Task and gate status belongs only in [backlog.json](../tasks/backlog.json). The latest implementation evidence is [SC-000](evidence/SC-000/2026-11-06.md), including exact source hashes, commands, corrected failures and limitations. Historical package provenance and source snapshots remain unchanged.
 
-Task and gate status belongs only in [backlog.json](../tasks/backlog.json). Do not copy the status table here. A fresh implementation starts with SC-000 and proceeds according to dependencies and gates in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md).
+## Standing owner preferences
 
-## Context needed by the next agent
+- Leave the root README alone until the user says otherwise. Use START_HERE.md, this handoff and task documents for context.
+- The user handles all staging, committing and pushing. Include a suggested commit message when files change.
+- Maintain .gitignore. Generated output, downloaded SDKs, private data and secrets stay out of Git; source, lockfiles, synthetic fixtures and sanitized evidence stay reviewable.
+- Test the affected behavior and required task acceptance. Once relevant checks pass, expand only for a failure, dependency change or unresolved concern.
+- Keep changes bounded and handoffs concrete enough for smaller models to resume without the chat. Do not confuse a shell, build or mock test with implemented meeting features.
 
-- User wants an original project implemented primarily through Codex agents.
-- Windows compatibility is the current focus. The native C#/.NET/WPF stack was deliberately selected after reviewing other implementations.
-- Full source requirements include broad enterprise features and technical claims that are corrected or deferred in [SCOPE_AND_REQUIREMENTS.md](SCOPE_AND_REQUIREMENTS.md).
-- Use cloud providers initially, behind adapters. Local persistence/capture is not a claim of fully local inference.
-- The owner prefers practical, autonomous progress and direct explanations without em dashes or blame-oriented wording.
-- The user performs all staging, commits and pushes. Always supply a suggested commit message when files change. Maintain `.gitignore` as new tooling is introduced.
-- Use focused tests and required task/gate evidence. Stop after relevant checks pass unless changes, failures or unresolved risks justify more. Keep handoffs concrete enough for smaller models to resume without the chat history.
-- No repository remote, private account configuration, signing identity, API credentials, or real meeting data is supplied by this package.
+## Verified commands and environment
 
-## Environment and command inventory
+See [DEVELOPMENT.md](DEVELOPMENT.md) for setup, commands and dependency updates; see [DEPENDENCIES.md](DEPENDENCIES.md) for official sources and version/license notes.
 
-Observed locally on November 6, 2026: Windows x64 build 26200; Windows PowerShell 5.1.26100.9711; Git 2.55.0; .NET SDK 10.0.301 with MSBuild 18.6.4 and .NET/WindowsDesktop runtime 10.0.9. Windows Kits include directories exist for 10.0.19041.0, 10.0.22621.0, 10.0.26100.0 and 10.0.28000.0. Directory presence is not a toolchain compatibility test. Exact support status, SDK/package pins and restore/build compatibility must be checked during SC-000; nothing is pinned yet.
+```powershell
+# Optional, if the exact SDK is not on PATH:
+powershell -NoProfile -File tools/setup-sdk.ps1
 
-Repository check: `powershell -NoProfile -File tools/check-repository.ps1` from the root. It validates JSON, task/gate references and cycles, task-card presence, inline local Markdown file links and original source hashes. It does not validate Markdown anchors, external URLs, application behavior or fixture outcomes.
+# Locked restore, Release build and deterministic tests:
+powershell -NoProfile -File tools/test.ps1
 
-No application build, test, package, or run command has been verified. Missing Windows hardware checks remain explicit limitations, even if pure tests can run elsewhere.
+# Open the minimal shell after a Debug build:
+powershell -NoProfile -File tools/run.ps1
+```
 
-## Current unknowns
+Local validation used Windows 11 Home 25H2, build 26200.9711, x64, PowerShell 5.1, SDK 10.0.403 and runtime 10.0.14. The system SDK remains 10.0.301; tooling uses the verified local SDK under ignored artifacts/dotnet. No machine-wide installation or persistent PATH change was made.
 
-The tested SQLCipher distribution, exact provider/model pins, capture compatibility matrix, packaging/signing capability, and measured latency are pending implementation evidence. These are listed in [DECISIONS.md](DECISIONS.md) and scheduled in the backlog. Do not use dummy values that look production-ready.
+A source-only export with fresh NuGet/CLI caches restored locked dependencies and built with zero warnings/errors. All eight tests passed: seven architecture cases and one WPF XAML/binding/layout case. The actual Release executable opened and closed normally. The run script invokes the same build/launch tools; no separate visual UX acceptance is claimed.
+
+The Windows CI workflow is checked in for the user's review, targets windows-2025, and records the actual runner image. Hosted execution is pending the user's push. The clean source export was local, not a fresh OS installation or a new Git commit.
 
 ## Next concrete action
 
-When asked to begin implementation, select SC-000 in [the backlog](../tasks/backlog.json), read its [task card](IMPLEMENTATION_PLAN.md#sc-000), and recheck the working tree. Create the five-project solution, minimal WPF shell, xUnit projects, reviewed SDK/package pins, build/test PowerShell commands and Windows CI. Verify the task's clean-checkout acceptance and document actual commands/results. Keep that slice bounded; later tasks own meeting features and native proofs. No task or gate was advanced by this preparation.
+Select SC-001 in the backlog and read its [task card](IMPLEMENTATION_PLAN.md#sc-001), CONTRACTS.md and the relevant verification cases. Claim it, implement the smallest typed records/interfaces and deterministic replay/fakes, then prove identity, ordering, epoch and stale-result behavior with synthetic events. Keep actual native capture, encryption and provider work in their owning tasks.
 
-## Handoff maintenance
-
-Replace this narrative as work progresses: describe actual implemented behavior, integration state, blockers, verified commands, and the next concrete action. Link the most recent task evidence and handoff. Keep old task-specific records under `docs/evidence/` instead of appending a growing diary here.
+Exact SQLCipher selection, provider/model pins, supported hardware/share scenarios, signed packaging and measured latency remain unresolved. No phase gate is closed by the bootstrap. Keep the personal Windows workflow ahead of hosted/team features and preserve the existing data boundaries.
