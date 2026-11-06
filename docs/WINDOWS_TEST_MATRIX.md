@@ -35,6 +35,8 @@ For every row, exercise these Sidecue surfaces: main overlay, command bar, dashb
 | CAP-09 | Supported browser meeting | Browser tab | Record the actual capture behavior and audio mode; do not infer results from window share | not-run |
 | CAP-10 | Direct local capture API probe | Window and monitor | API return/error, DWM/window style, each owned top-level HWND, recreate after UI changes | not-run |
 
+[SC-002A evidence](evidence/SC-002A/2026-11-06.md) covers the prototype's local HWND/API and lifecycle subset only. It includes no window/monitor capture observation and does not complete CAP-10 or any receiving-client row.
+
 Each required variant needs its own evidence record. A row passes only when its required variants pass for the declared support set. Any untested capture path remains untested. A software/client/driver update that changes capture behavior requires rerunning affected rows. The public behavior is exclusion from verified supported capture paths, not universal undetectability or removal from Task Manager.
 
 ## Audio and session cases

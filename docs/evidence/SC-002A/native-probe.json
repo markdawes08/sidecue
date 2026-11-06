@@ -1,0 +1,44 @@
+{
+  "Probe": "SC-002A-local-overlay",
+  "RecordedUtc": "2026-11-06T21:09:11.8472564+00:00",
+  "OsDescription": "Microsoft Windows 10.0.26200",
+  "Runtime": ".NET 10.0.14",
+  "Is64BitProcess": true,
+  "UserInteractive": true,
+  "RemoteCaptureVerified": false,
+  "CompositionEnabled": true,
+  "CompositionHResult": 0,
+  "OwnedWindowCreated": true,
+  "FirstApply": {
+    "Status": "ApiAccepted",
+    "Reason": "None",
+    "Win32Error": null,
+    "HResult": null
+  },
+  "FirstReadback": {
+    "Succeeded": true,
+    "Affinity": 17,
+    "Win32Error": 0
+  },
+  "AllowsTransparency": false,
+  "WindowStyle": "SingleBorderWindow",
+  "DpiScaleX": 1.5,
+  "HideWorked": true,
+  "HideShowRetainedWindow": true,
+  "RecreatedWindowAppliedAgain": true,
+  "SecondApply": {
+    "Status": "ApiAccepted",
+    "Reason": "None",
+    "Win32Error": null,
+    "HResult": null
+  },
+  "SecondReadback": {
+    "Succeeded": true,
+    "Affinity": 17,
+    "Win32Error": 0
+  },
+  "HideControlWorked": true,
+  "OwnerCloseReleasedOverlay": true,
+  "AffinityApplyCount": 2,
+  "LifecyclePassed": true
+}

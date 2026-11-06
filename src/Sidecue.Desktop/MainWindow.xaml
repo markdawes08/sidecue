@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="{Binding Title}"
-        Width="640" Height="320"
+        Width="640" Height="410"
         MinWidth="420" MinHeight="260"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"
@@ -31,6 +31,14 @@
                                TextWrapping="Wrap" />
                 </StackPanel>
             </Border>
+            <WrapPanel Margin="0,20,0,0">
+                <Button Content="Show overlay prototype" Padding="14,8"
+                        Click="ShowOverlayClicked" />
+                <Button Content="Hide overlay" Margin="12,0,0,0" Padding="14,8"
+                        Click="HideOverlayClicked" />
+            </WrapPanel>
+            <TextBlock Margin="0,12,0,0" TextWrapping="Wrap"
+                       Text="The prototype reports Windows capture-exclusion support. Screen-sharing behavior has not been verified." />
         </StackPanel>
     </ScrollViewer>
 </Window>

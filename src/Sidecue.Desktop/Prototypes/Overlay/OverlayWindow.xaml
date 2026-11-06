@@ -1,0 +1,45 @@
+<Window x:Class="Sidecue.Desktop.Prototypes.Overlay.OverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Sidecue overlay prototype"
+        Width="460" Height="320"
+        MinWidth="380" MinHeight="280"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Topmost="True"
+        Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"
+        Foreground="{DynamicResource {x:Static SystemColors.WindowTextBrushKey}}"
+        FontFamily="{DynamicResource {x:Static SystemFonts.MessageFontFamilyKey}}"
+        FontSize="14">
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <StackPanel>
+                <TextBlock Text="Overlay prototype"
+                           FontSize="22" FontWeight="SemiBold" />
+                <TextBlock x:Name="CapabilityStatusText"
+                           Text="{Binding StatusText}"
+                           Margin="0,20,0,0" FontSize="16" FontWeight="SemiBold"
+                           TextWrapping="Wrap" />
+                <TextBlock x:Name="CapabilityDetailText"
+                           Text="{Binding DetailText}"
+                           Margin="0,8,0,0" TextWrapping="Wrap" />
+                <TextBlock x:Name="VerificationNoticeText"
+                           Text="{Binding VerificationNotice}"
+                           Margin="0,16,0,0" TextWrapping="Wrap" />
+            </StackPanel>
+        </ScrollViewer>
+        <DockPanel Grid.Row="1" Margin="0,20,0,0" LastChildFill="False">
+            <Button x:Name="HideOverlayButton"
+                    DockPanel.Dock="Right" Padding="16,8"
+                    Content="_Hide overlay" Click="OnHideClick"
+                    AutomationProperties.Name="Hide overlay" />
+            <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center"
+                       Text="Esc to hide" />
+        </DockPanel>
+    </Grid>
+</Window>

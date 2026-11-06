@@ -7,6 +7,7 @@
     <Project Path="src/Sidecue.Desktop/Sidecue.Desktop.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Sidecue.Windows.Tests/Sidecue.Windows.Tests.csproj" />
     <Project Path="tests/Sidecue.Replay.Tests/Sidecue.Replay.Tests.csproj" />
     <Project Path="tests/Sidecue.Application.Tests/Sidecue.Application.Tests.csproj" />
     <Project Path="tests/Sidecue.Core.Tests/Sidecue.Core.Tests.csproj" />

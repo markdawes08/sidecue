@@ -268,7 +268,7 @@
       "id": "SC-002",
       "phase": 0,
       "title": "Prove overlay focus and capture exclusion",
-      "status": "planned",
+      "status": "in_progress",
       "depends_on": [
         "SC-000"
       ],
@@ -312,7 +312,7 @@
       "id": "SC-002A",
       "phase": 0,
       "title": "Create an overlay with honest exclusion capability reporting",
-      "status": "ready",
+      "status": "done",
       "task_type": "implementation",
       "parent_id": "SC-002",
       "depends_on": [
@@ -352,15 +352,17 @@
         ],
         "validation": []
       },
-      "evidence": [],
+      "evidence": [
+        "docs/evidence/SC-002A/2026-11-06.md"
+      ],
       "blockers": [],
-      "owner": null
+      "owner": "codex-root"
     },
     {
       "id": "SC-002B",
       "phase": 0,
       "title": "Implement overlay focus modes and keyboard controls",
-      "status": "planned",
+      "status": "ready",
       "task_type": "implementation",
       "parent_id": "SC-002",
       "depends_on": [
