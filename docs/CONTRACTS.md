@@ -1,6 +1,6 @@
 # Sidecue application contracts
 
-Contract baseline 0.1, November 6, 2026. This is the implementation specification. SC-001A implements the identity, time, audio ownership and event records in Core; [the record mapping](CONTRACT_RECORDS.md) describes their API and limits. The interface signatures and runtime behavior below still require implementation and testing. Read [DATA_AND_RECOVERY.md](DATA_AND_RECOVERY.md) for persistence and lifecycle behavior.
+Contract baseline 0.1, November 6, 2026. This is the implementation specification. SC-001A implements Core records; SC-001B adds the initial service/request contracts. See [record mapping](CONTRACT_RECORDS.md) and [service mapping](CONTRACT_SERVICES.md) for the compiled subset, lifetime rules and deferred extensions. The broader signatures and runtime behavior below are requirements, not proof of working adapters. Read [DATA_AND_RECOVERY.md](DATA_AND_RECOVERY.md) for persistence and lifecycle behavior.
 
 ## Ownership and dependency direction
 

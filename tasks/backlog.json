@@ -153,7 +153,7 @@
       "id": "SC-001B",
       "phase": 0,
       "title": "Define the minimal service and request contracts",
-      "status": "ready",
+      "status": "done",
       "task_type": "implementation",
       "parent_id": "SC-001",
       "depends_on": [
@@ -197,15 +197,17 @@
         ],
         "validation": []
       },
-      "evidence": [],
+      "evidence": [
+        "docs/evidence/SC-001B/2026-11-06.md"
+      ],
       "blockers": [],
-      "owner": null
+      "owner": "codex-root"
     },
     {
       "id": "SC-001C",
       "phase": 0,
       "title": "Add deterministic fakes and the first replay runner",
-      "status": "planned",
+      "status": "ready",
       "task_type": "implementation",
       "parent_id": "SC-001",
       "depends_on": [

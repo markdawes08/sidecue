@@ -37,9 +37,10 @@ Both build and test accept `-Configuration Debug`; Release is the default. Test 
 | `src/Sidecue.Desktop` | WPF application and composition root |
 | `tests/Sidecue.Architecture.Tests` | Project dependency direction and pure-layer restore checks |
 | `tests/Sidecue.Core.Tests` | Identity/time, immutable event and audio ownership invariants |
+| `tests/Sidecue.Application.Tests` | Service signature boundaries and immutable request/context/store envelopes |
 | `tests/Sidecue.Desktop.Tests` | Compiled XAML, view-model binding and layout smoke check |
 
-Desktop contains a small window explaining that meeting features are not yet available. Core contains validated [contract records](CONTRACT_RECORDS.md). Application, Windows and Infrastructure still establish dependency boundaries without meeting logic. The immutable initial view model needs no observable-property framework. Add CommunityToolkit.Mvvm when actual changing UI state requires it.
+Desktop contains a small window explaining that meeting features are not yet available. Core contains validated [contract records](CONTRACT_RECORDS.md) and [request envelopes](CONTRACT_SERVICES.md); Application defines the corresponding service interfaces. Windows and Infrastructure still establish dependency boundaries without adapters. The immutable initial view model needs no observable-property framework. Add CommunityToolkit.Mvvm when actual changing UI state requires it.
 
 ## Dependency changes
 
