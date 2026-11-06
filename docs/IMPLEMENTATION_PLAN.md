@@ -4,18 +4,29 @@ This plan translates the architecture into small implementation tasks. Read [AGE
 
 ## How to select and complete work
 
-1. Read the current task, its dependencies, required phase gates, and relevant contracts before changing code. Inspect the repository rather than assuming this package represents implemented features.
-2. Work on one coherent task at a time. An agent may delegate disjoint subparts, but one owner integrates and verifies the task. Coordinate shared contract, project-file, migration and backlog changes.
-3. Promote a planned task to ready only when its dependencies are done and its required gates have passed. If hardware access blocks a gate, continue independent tasks whose own prerequisites permit it. Do not remove the gate or label a mock result as Windows proof.
-4. When the code is implemented but a required physical/provider verification is unavailable, use implemented_unverified or blocked with an exact next validation action. Keep the phase gate pending or blocked.
-5. A done task has its acceptance behavior implemented and its listed evidence recorded. Commit/worktree details, commands, outcomes, limitations and evidence references must be truthful. Do not set a gate to passed merely because its code compiles.
-6. Recheck current official provider/native-library documentation when implementing version-sensitive details. Keep the accepted architecture unless new evidence calls for a documented decision update. Resolve routine implementation details autonomously; a task does not grant authority to publish, purchase, or send messages.
+One prompt defaults to **one executable leaf**, its focused checks, evidence and handoff. The original SC-000 through SC-034 IDs remain feature-level acceptance boundaries. SC-000 is already complete; SC-007 and SC-016 remain focused standalone leaves. Other parents list smaller children such as SC-001A. A request for "the next block" or a parent ID selects one eligible leaf, not the whole feature. Broader work requires an explicit user request.
+
+1. Read AGENTS.md and PROJECT_STATE.md. Run `powershell -NoProfile -File tools/show-task.ps1`, or add `-Id SC-001A` for a leaf / `-Id SC-001` for its next eligible child. Use `-Owner <agent-id>` to resume work assigned to that identity. Without an owner, automatic selection considers only unowned leaves; explicit IDs report ownership conflicts without reassigning them. The command is read-only and prints the selected backlog slice and parent acceptance, so an agent need not read the entire ledger.
+2. Read the leaf's `instruction_file`, relevant contracts and original parent acceptance. Inspect the working tree. Check external prerequisites before claiming the leaf in backlog.json; availability is not implied by dependency readiness.
+3. A leaf can start only after its `depends_on` tasks are done and `requires_gates` have passed. Children inherit every original upstream prerequisite and gate, plus their preceding sibling where needed. They never depend on their own parent. Parent `children` are completion dependencies, not prerequisites for starting the first child.
+4. Implement the bounded outcome and its relevant tests together. Do not split by individual classes, separate routine testing into another prompt, or invent tests for trivial getters. A verification leaf is for a distinct integrated/physical/live/long-run proof, not an excuse to skip implementation checks.
+5. Record actual commands, results and limitations under docs/evidence/<leaf-ID>/. Update the leaf, reconcile its parent, and update PROJECT_STATE.md with the exact next leaf. Then stop unless the user explicitly requested more blocks. The user's staging/commit/push ownership and suggested-commit-message rule still apply.
+
+## Parent completion and evidence
+
+- Groups are not executable and never become `ready`. They remain `planned` until work starts, then reflect actual progress as `in_progress`, `implemented_unverified` or `blocked` as appropriate. They become `done` only when every listed child (including added corrective work) is done and **all original scope, acceptance and verification obligations have evidence**. The final child's handoff performs this reconciliation; no separate ceremonial closeout task is needed.
+- `parent_coverage` uses 1-based positions in the original parent's scope, acceptance and validation arrays. Every item is assigned to children, but a coverage number is not a passing result. Original parent wording, upstream dependencies and phase-gate coverage are preserved.
+- Compilation, mocked tests or a completed code leaf cannot establish native capture, sharing exclusion, provider quality, encryption/installation behavior or signed-update trust. Required checks stay pending when their actual environment is unavailable.
+- Verification leaves declare finite fixtures/cases and external needs such as a receiving client, hardware, configured test credentials, signing capability or an overnight window. A long or blocked run can span prompts. Keep failed, interrupted and unrun outcomes explicit; do not narrow the supported matrix just to finish a prompt.
+- A newly discovered substantial defect becomes a narrowly scoped corrective child with focused validation. Depend it on completed implementation/preparation prerequisites, not the still-failing verification or a parent/closeout that needs the fix. Link the failed run as evidence instead. Add the correction to the parent's children, map the affected acceptance, and make the blocked verification/assessment wait for the correction before its targeted rerun. Preserve failed results; do not falsely mark a failed verification done to unblock its fix. Repeat only affected checks unless a broader run is justified.
 
 ## Execution shape
 
-Phase 0 validates native risks before the large interface. Core contracts, replay tests and selected independent infrastructure can advance while a physical check is blocked, but an integrated milestone cannot skip its gate. Production-owned paths below are the intended future layout, not evidence that code already exists. Evidence directories under docs/evidence are created by the task that produces actual results.
+Phase 0 proves native risks before the large interface. Independent tasks can proceed around blocked evidence only when their own dependencies/gates and the user's requested scope permit it. Never silently switch to another block because the selected one needs external input.
 
-Keep each change reviewable. If a task becomes too large, split it in backlog.json while preserving dependency and phase-gate coverage. Retain the original task as a coordination parent linked to its children rather than silently discarding acceptance criteria. Keep its existing status vocabulary; it becomes done only after all child work and original acceptance evidence are complete. Do not invent a superseded status or remove a gate dependency. Reconcile the plan when task boundaries change.
+Each child has one bounded outcome, explicit prerequisites, excluded work, acceptance and focused checks. The aim is work that can normally finish in one prompt, not a guarantee regardless of environment or new findings. If a future leaf still proves too broad, refine it before starting while preserving original acceptance and the dependency graph. Use the existing status vocabulary and keep tasks/backlog.json as the only status authority. Update its matching card when scope changes.
+
+Agents may delegate disjoint subparts of the selected leaf, with one owner integrating shared contracts, dependencies, migrations and backlog edits. Current official provider/native-library documentation must still be checked when implementing version-sensitive details. Do not publish, purchase, send messages or weaken requirements merely because a later task describes those capabilities.
 
 ## Phase gates
 
@@ -31,43 +42,43 @@ The JSON gate records carry the live state. G1 through G4 also require the prece
 
 ## Task index
 
-| Task | Phase | Deliverable |
-| --- | --- | --- |
-| [SC-000](#sc-000) | 0 | Bootstrap the solution and repeatable checks |
-| [SC-001](#sc-001) | 0 | Implement domain contracts and deterministic replay |
-| [SC-002](#sc-002) | 0 | Prove overlay focus and capture exclusion |
-| [SC-003](#sc-003) | 0 | Prove two-source capture and stream epochs |
-| [SC-004](#sc-004) | 0 | Prove encrypted database and protected keys |
-| [SC-005](#sc-005) | 0 | Prove selected-target screenshot capture |
-| [SC-006](#sc-006) | 0 | Prove installation and data preservation |
-| [SC-007](#sc-007) | 1 | Implement the meeting lifecycle |
-| [SC-008](#sc-008) | 1 | Persist transcript revisions and finalized segments |
-| [SC-009](#sc-009) | 1 | Add the Deepgram streaming adapter |
-| [SC-010](#sc-010) | 1 | Connect capture to durable live transcription |
-| [SC-011](#sc-011) | 1 | Build diagnostics and the minimal transcript dashboard |
-| [SC-012](#sc-012) | 1 | Recover interrupted sessions and incomplete endings |
-| [SC-013](#sc-013) | 1 | Validate a two-hour transcription session |
-| [SC-014](#sc-014) | 2 | Build versioned profiles and bounded context snapshots |
-| [SC-015](#sc-015) | 2 | Implement the streaming generation adapter |
-| [SC-016](#sc-016) | 2 | Coordinate cancellation and request priority |
-| [SC-017](#sc-017) | 2 | Integrate the overlay and global commands |
-| [SC-018](#sc-018) | 2 | Deliver manual meeting actions and usage feedback |
-| [SC-019](#sc-019) | 2 | Select model defaults and validate assistance quality |
-| [SC-020](#sc-020) | 3 | Import text documents with stable provenance |
-| [SC-021](#sc-021) | 3 | Create versioned embedding and keyword indexes |
-| [SC-022](#sc-022) | 3 | Retrieve evidence and validate citations |
-| [SC-023](#sc-023) | 3 | Attach an approved screenshot to one request |
-| [SC-024](#sc-024) | 3 | Generate grounded meeting artifacts through durable jobs |
-| [SC-025](#sc-025) | 3 | Add editable notes and searchable meeting history |
-| [SC-026](#sc-026) | 3 | Implement retention and deletion across derived data |
-| [SC-027](#sc-027) | 3 | Prepare editable follow-up drafts and complete grounded workflow |
-| [SC-028](#sc-028) | 4 | Harden audio selection and speakerphone attribution |
-| [SC-029](#sc-029) | 4 | Complete device power and sharing compatibility checks |
-| [SC-030](#sc-030) | 4 | Finish onboarding accessibility and language behavior |
-| [SC-031](#sc-031) | 4 | Harden signed updates and release installation |
-| [SC-032](#sc-032) | 4 | Validate encrypted backup and restore boundaries |
-| [SC-033](#sc-033) | 4 | Run soak performance and privacy acceptance |
-| [SC-034](#sc-034) | 4 | Assemble personal release evidence and operating guide |
+| Task | Phase | Deliverable | Executable blocks |
+| --- | --- | --- | --- |
+| [SC-000](#sc-000) | 0 | Bootstrap the solution and repeatable checks | Standalone leaf |
+| [SC-001](#sc-001) | 0 | Implement domain contracts and deterministic replay | [SC-001A to SC-001C](tasks/SC-001.md) |
+| [SC-002](#sc-002) | 0 | Prove overlay focus and capture exclusion | [SC-002A to SC-002F](tasks/SC-002.md) |
+| [SC-003](#sc-003) | 0 | Prove two-source capture and stream epochs | [SC-003A to SC-003D](tasks/SC-003.md) |
+| [SC-004](#sc-004) | 0 | Prove encrypted database and protected keys | [SC-004A to SC-004C](tasks/SC-004.md) |
+| [SC-005](#sc-005) | 0 | Prove selected-target screenshot capture | [SC-005A to SC-005C](tasks/SC-005.md) |
+| [SC-006](#sc-006) | 0 | Prove installation and data preservation | [SC-006A to SC-006C](tasks/SC-006.md) |
+| [SC-007](#sc-007) | 1 | Implement the meeting lifecycle | Standalone leaf |
+| [SC-008](#sc-008) | 1 | Persist transcript revisions and finalized segments | [SC-008A to SC-008C](tasks/SC-008.md) |
+| [SC-009](#sc-009) | 1 | Add the Deepgram streaming adapter | [SC-009A to SC-009C](tasks/SC-009.md) |
+| [SC-010](#sc-010) | 1 | Connect capture to durable live transcription | [SC-010A to SC-010C](tasks/SC-010.md) |
+| [SC-011](#sc-011) | 1 | Build diagnostics and the minimal transcript dashboard | [SC-011A to SC-011C](tasks/SC-011.md) |
+| [SC-012](#sc-012) | 1 | Recover interrupted sessions and incomplete endings | [SC-012A to SC-012C](tasks/SC-012.md) |
+| [SC-013](#sc-013) | 1 | Validate a two-hour transcription session | [SC-013A to SC-013B](tasks/SC-013.md) |
+| [SC-014](#sc-014) | 2 | Build versioned profiles and bounded context snapshots | [SC-014A to SC-014C](tasks/SC-014.md) |
+| [SC-015](#sc-015) | 2 | Implement the streaming generation adapter | [SC-015A to SC-015C](tasks/SC-015.md) |
+| [SC-016](#sc-016) | 2 | Coordinate cancellation and request priority | Standalone leaf |
+| [SC-017](#sc-017) | 2 | Integrate the overlay and global commands | [SC-017A to SC-017C](tasks/SC-017.md) |
+| [SC-018](#sc-018) | 2 | Deliver manual meeting actions and usage feedback | [SC-018A to SC-018C](tasks/SC-018.md) |
+| [SC-019](#sc-019) | 2 | Select model defaults and validate assistance quality | [SC-019A to SC-019C](tasks/SC-019.md) |
+| [SC-020](#sc-020) | 3 | Import text documents with stable provenance | [SC-020A to SC-020C](tasks/SC-020.md) |
+| [SC-021](#sc-021) | 3 | Create versioned embedding and keyword indexes | [SC-021A to SC-021C](tasks/SC-021.md) |
+| [SC-022](#sc-022) | 3 | Retrieve evidence and validate citations | [SC-022A to SC-022B](tasks/SC-022.md) |
+| [SC-023](#sc-023) | 3 | Attach an approved screenshot to one request | [SC-023A to SC-023B](tasks/SC-023.md) |
+| [SC-024](#sc-024) | 3 | Generate grounded meeting artifacts through durable jobs | [SC-024A to SC-024C](tasks/SC-024.md) |
+| [SC-025](#sc-025) | 3 | Add editable notes and searchable meeting history | [SC-025A to SC-025C](tasks/SC-025.md) |
+| [SC-026](#sc-026) | 3 | Implement retention and deletion across derived data | [SC-026A to SC-026B](tasks/SC-026.md) |
+| [SC-027](#sc-027) | 3 | Prepare editable follow-up drafts and complete grounded workflow | [SC-027A to SC-027B](tasks/SC-027.md) |
+| [SC-028](#sc-028) | 4 | Harden audio selection and speakerphone attribution | [SC-028A to SC-028C](tasks/SC-028.md) |
+| [SC-029](#sc-029) | 4 | Complete device power and sharing compatibility checks | [SC-029A to SC-029D](tasks/SC-029.md) |
+| [SC-030](#sc-030) | 4 | Finish onboarding accessibility and language behavior | [SC-030A to SC-030F](tasks/SC-030.md) |
+| [SC-031](#sc-031) | 4 | Harden signed updates and release installation | [SC-031A to SC-031C](tasks/SC-031.md) |
+| [SC-032](#sc-032) | 4 | Validate encrypted backup and restore boundaries | [SC-032A to SC-032C](tasks/SC-032.md) |
+| [SC-033](#sc-033) | 4 | Run soak performance and privacy acceptance | [SC-033A to SC-033D](tasks/SC-033.md) |
+| [SC-034](#sc-034) | 4 | Assemble personal release evidence and operating guide | [SC-034A to SC-034B](tasks/SC-034.md) |
 
 ## Task cards
 
@@ -98,6 +109,8 @@ Expected owned areas: `Sidecue.sln or Sidecue.slnx`, `global.json`, `Directory.B
 
 ### SC-001
 
+**Coordination parent.** Execute one child from [SC-001 work blocks](tasks/SC-001.md). The original obligations below remain the parent completion criteria.
+
 **Implement domain contracts and deterministic replay**
 
 Phase: 0. Dependencies: SC-000. Required gates: none beyond task dependencies.
@@ -121,6 +134,8 @@ Verification and evidence:
 Expected owned areas: `src/Sidecue.Core/`, `src/Sidecue.Application/Abstractions/`, `tests/Sidecue.Replay.Tests/`, `tests/fixtures/`, `tools/replay.ps1`.
 
 ### SC-002
+
+**Coordination parent.** Execute one child from [SC-002 work blocks](tasks/SC-002.md). The original obligations below remain the parent completion criteria.
 
 **Prove overlay focus and capture exclusion**
 
@@ -147,6 +162,8 @@ Verification and evidence:
 Expected owned areas: `src/Sidecue.Windows/Windowing/`, `src/Sidecue.Desktop/Prototypes/Overlay/`, `tests/Sidecue.Windows.Tests/Windowing/`, `docs/evidence/SC-002/`.
 
 ### SC-003
+
+**Coordination parent.** Execute one child from [SC-003 work blocks](tasks/SC-003.md). The original obligations below remain the parent completion criteria.
 
 **Prove two-source capture and stream epochs**
 
@@ -175,6 +192,8 @@ Expected owned areas: `src/Sidecue.Windows/Audio/`, `tests/Sidecue.Windows.Tests
 
 ### SC-004
 
+**Coordination parent.** Execute one child from [SC-004 work blocks](tasks/SC-004.md). The original obligations below remain the parent completion criteria.
+
 **Prove encrypted database and protected keys**
 
 Phase: 0. Dependencies: SC-000. Required gates: none beyond task dependencies.
@@ -201,6 +220,8 @@ Expected owned areas: `src/Sidecue.Infrastructure/Persistence/`, `src/Sidecue.In
 
 ### SC-005
 
+**Coordination parent.** Execute one child from [SC-005 work blocks](tasks/SC-005.md). The original obligations below remain the parent completion criteria.
+
 **Prove selected-target screenshot capture**
 
 Phase: 0. Dependencies: SC-000, SC-002. Required gates: none beyond task dependencies.
@@ -226,6 +247,8 @@ Verification and evidence:
 Expected owned areas: `src/Sidecue.Windows/ScreenCapture/`, `src/Sidecue.Desktop/Prototypes/ScreenCapture/`, `tests/Sidecue.Windows.Tests/ScreenCapture/`, `docs/evidence/SC-005/`.
 
 ### SC-006
+
+**Coordination parent.** Execute one child from [SC-006 work blocks](tasks/SC-006.md). The original obligations below remain the parent completion criteria.
 
 **Prove installation and data preservation**
 
@@ -277,6 +300,8 @@ Expected owned areas: `src/Sidecue.Application/Sessions/`, `src/Sidecue.Core/Ses
 
 ### SC-008
 
+**Coordination parent.** Execute one child from [SC-008 work blocks](tasks/SC-008.md). The original obligations below remain the parent completion criteria.
+
 **Persist transcript revisions and finalized segments**
 
 Phase: 1. Dependencies: SC-001, SC-004. Required gates: none beyond task dependencies.
@@ -301,6 +326,8 @@ Verification and evidence:
 Expected owned areas: `src/Sidecue.Infrastructure/Persistence/`, `src/Sidecue.Application/Transcripts/`, `tests/Sidecue.Infrastructure.Tests/Transcripts/`, `tests/Sidecue.Replay.Tests/Transcripts/`.
 
 ### SC-009
+
+**Coordination parent.** Execute one child from [SC-009 work blocks](tasks/SC-009.md). The original obligations below remain the parent completion criteria.
 
 **Add the Deepgram streaming adapter**
 
@@ -328,6 +355,8 @@ Expected owned areas: `src/Sidecue.Infrastructure/Transcription/`, `tests/Sidecu
 
 ### SC-010
 
+**Coordination parent.** Execute one child from [SC-010 work blocks](tasks/SC-010.md). The original obligations below remain the parent completion criteria.
+
 **Connect capture to durable live transcription**
 
 Phase: 1. Dependencies: SC-003, SC-007, SC-008, SC-009. Required gates: G0.
@@ -354,6 +383,8 @@ Expected owned areas: `src/Sidecue.Application/Capture/`, `src/Sidecue.Applicati
 
 ### SC-011
 
+**Coordination parent.** Execute one child from [SC-011 work blocks](tasks/SC-011.md). The original obligations below remain the parent completion criteria.
+
 **Build diagnostics and the minimal transcript dashboard**
 
 Phase: 1. Dependencies: SC-007, SC-010. Required gates: none beyond task dependencies.
@@ -379,6 +410,8 @@ Expected owned areas: `src/Sidecue.Desktop/Views/Diagnostics/`, `src/Sidecue.Des
 
 ### SC-012
 
+**Coordination parent.** Execute one child from [SC-012 work blocks](tasks/SC-012.md). The original obligations below remain the parent completion criteria.
+
 **Recover interrupted sessions and incomplete endings**
 
 Phase: 1. Dependencies: SC-007, SC-008, SC-010. Required gates: none beyond task dependencies.
@@ -403,6 +436,8 @@ Verification and evidence:
 Expected owned areas: `src/Sidecue.Application/Recovery/`, `src/Sidecue.Infrastructure/Persistence/`, `tests/Sidecue.Infrastructure.Tests/Recovery/`, `docs/evidence/SC-012/`.
 
 ### SC-013
+
+**Coordination parent.** Execute one child from [SC-013 work blocks](tasks/SC-013.md). The original obligations below remain the parent completion criteria.
 
 **Validate a two-hour transcription session**
 
@@ -430,6 +465,8 @@ Expected owned areas: `docs/evidence/SC-013/`, `tests/Sidecue.Replay.Tests/`, `t
 
 ### SC-014
 
+**Coordination parent.** Execute one child from [SC-014 work blocks](tasks/SC-014.md). The original obligations below remain the parent completion criteria.
+
 **Build versioned profiles and bounded context snapshots**
 
 Phase: 2. Dependencies: SC-001, SC-008. Required gates: none beyond task dependencies.
@@ -453,6 +490,8 @@ Verification and evidence:
 Expected owned areas: `src/Sidecue.Application/Context/`, `src/Sidecue.Infrastructure/Profiles/`, `prompts/`, `tests/Sidecue.Application.Tests/Context/`.
 
 ### SC-015
+
+**Coordination parent.** Execute one child from [SC-015 work blocks](tasks/SC-015.md). The original obligations below remain the parent completion criteria.
 
 **Implement the streaming generation adapter**
 
@@ -503,6 +542,8 @@ Expected owned areas: `src/Sidecue.Application/Assistance/`, `tests/Sidecue.Appl
 
 ### SC-017
 
+**Coordination parent.** Execute one child from [SC-017 work blocks](tasks/SC-017.md). The original obligations below remain the parent completion criteria.
+
 **Integrate the overlay and global commands**
 
 Phase: 2. Dependencies: SC-002, SC-011, SC-016. Required gates: G0.
@@ -529,6 +570,8 @@ Expected owned areas: `src/Sidecue.Desktop/Views/Overlay/`, `src/Sidecue.Desktop
 
 ### SC-018
 
+**Coordination parent.** Execute one child from [SC-018 work blocks](tasks/SC-018.md). The original obligations below remain the parent completion criteria.
+
 **Deliver manual meeting actions and usage feedback**
 
 Phase: 2. Dependencies: SC-014, SC-016, SC-017. Required gates: none beyond task dependencies.
@@ -553,6 +596,8 @@ Verification and evidence:
 Expected owned areas: `src/Sidecue.Application/Actions/`, `src/Sidecue.Desktop/Views/Overlay/`, `prompts/actions/`, `tests/Sidecue.Application.Tests/Actions/`.
 
 ### SC-019
+
+**Coordination parent.** Execute one child from [SC-019 work blocks](tasks/SC-019.md). The original obligations below remain the parent completion criteria.
 
 **Select model defaults and validate assistance quality**
 
@@ -580,6 +625,8 @@ Expected owned areas: `docs/evidence/SC-019/`, `tests/evals/`, `prompts/`, `conf
 
 ### SC-020
 
+**Coordination parent.** Execute one child from [SC-020 work blocks](tasks/SC-020.md). The original obligations below remain the parent completion criteria.
+
 **Import text documents with stable provenance**
 
 Phase: 3. Dependencies: SC-004, SC-008. Required gates: none beyond task dependencies.
@@ -604,6 +651,8 @@ Verification and evidence:
 Expected owned areas: `src/Sidecue.Infrastructure/Documents/`, `tests/Sidecue.Infrastructure.Tests/Documents/`, `tests/fixtures/documents/`.
 
 ### SC-021
+
+**Coordination parent.** Execute one child from [SC-021 work blocks](tasks/SC-021.md). The original obligations below remain the parent completion criteria.
 
 **Create versioned embedding and keyword indexes**
 
@@ -630,6 +679,8 @@ Expected owned areas: `src/Sidecue.Infrastructure/Retrieval/Indexing/`, `src/Sid
 
 ### SC-022
 
+**Coordination parent.** Execute one child from [SC-022 work blocks](tasks/SC-022.md). The original obligations below remain the parent completion criteria.
+
 **Retrieve evidence and validate citations**
 
 Phase: 3. Dependencies: SC-014, SC-021. Required gates: none beyond task dependencies.
@@ -654,6 +705,8 @@ Verification and evidence:
 Expected owned areas: `src/Sidecue.Application/Retrieval/`, `src/Sidecue.Infrastructure/Retrieval/`, `src/Sidecue.Desktop/Views/Evidence/`, `tests/evals/retrieval/`.
 
 ### SC-023
+
+**Coordination parent.** Execute one child from [SC-023 work blocks](tasks/SC-023.md). The original obligations below remain the parent completion criteria.
 
 **Attach an approved screenshot to one request**
 
@@ -681,6 +734,8 @@ Expected owned areas: `src/Sidecue.Application/ScreenContext/`, `src/Sidecue.Des
 
 ### SC-024
 
+**Coordination parent.** Execute one child from [SC-024 work blocks](tasks/SC-024.md). The original obligations below remain the parent completion criteria.
+
 **Generate grounded meeting artifacts through durable jobs**
 
 Phase: 3. Dependencies: SC-012, SC-014, SC-015. Required gates: none beyond task dependencies.
@@ -706,6 +761,8 @@ Expected owned areas: `src/Sidecue.Application/MeetingArtifacts/`, `src/Sidecue.
 
 ### SC-025
 
+**Coordination parent.** Execute one child from [SC-025 work blocks](tasks/SC-025.md). The original obligations below remain the parent completion criteria.
+
 **Add editable notes and searchable meeting history**
 
 Phase: 3. Dependencies: SC-022, SC-024. Required gates: none beyond task dependencies.
@@ -729,6 +786,8 @@ Verification and evidence:
 Expected owned areas: `src/Sidecue.Desktop/Views/History/`, `src/Sidecue.Desktop/Views/Notes/`, `src/Sidecue.Infrastructure/Exports/`, `tests/Sidecue.Ui.Tests/History/`.
 
 ### SC-026
+
+**Coordination parent.** Execute one child from [SC-026 work blocks](tasks/SC-026.md). The original obligations below remain the parent completion criteria.
 
 **Implement retention and deletion across derived data**
 
@@ -755,6 +814,8 @@ Expected owned areas: `src/Sidecue.Application/Retention/`, `src/Sidecue.Infrast
 
 ### SC-027
 
+**Coordination parent.** Execute one child from [SC-027 work blocks](tasks/SC-027.md). The original obligations below remain the parent completion criteria.
+
 **Prepare editable follow-up drafts and complete grounded workflow**
 
 Phase: 3. Dependencies: SC-023, SC-025, SC-026. Required gates: G2.
@@ -780,6 +841,8 @@ Expected owned areas: `src/Sidecue.Application/FollowUps/`, `src/Sidecue.Desktop
 
 ### SC-028
 
+**Coordination parent.** Execute one child from [SC-028 work blocks](tasks/SC-028.md). The original obligations below remain the parent completion criteria.
+
 **Harden audio selection and speakerphone attribution**
 
 Phase: 4. Dependencies: SC-013, SC-019. Required gates: G1.
@@ -804,6 +867,8 @@ Verification and evidence:
 Expected owned areas: `src/Sidecue.Windows/Audio/`, `src/Sidecue.Application/Transcripts/`, `tests/Sidecue.Windows.Tests/Audio/`, `docs/evidence/SC-028/`.
 
 ### SC-029
+
+**Coordination parent.** Execute one child from [SC-029 work blocks](tasks/SC-029.md). The original obligations below remain the parent completion criteria.
 
 **Complete device power and sharing compatibility checks**
 
@@ -831,6 +896,8 @@ Expected owned areas: `src/Sidecue.Windows/`, `docs/evidence/SC-029/`, `tests/Si
 
 ### SC-030
 
+**Coordination parent.** Execute one child from [SC-030 work blocks](tasks/SC-030.md). The original obligations below remain the parent completion criteria.
+
 **Finish onboarding accessibility and language behavior**
 
 Phase: 4. Dependencies: SC-025, SC-027. Required gates: none beyond task dependencies.
@@ -856,6 +923,8 @@ Verification and evidence:
 Expected owned areas: `src/Sidecue.Desktop/Views/Onboarding/`, `src/Sidecue.Desktop/Resources/`, `tests/Sidecue.Ui.Tests/Accessibility/`, `docs/evidence/SC-030/`.
 
 ### SC-031
+
+**Coordination parent.** Execute one child from [SC-031 work blocks](tasks/SC-031.md). The original obligations below remain the parent completion criteria.
 
 **Harden signed updates and release installation**
 
@@ -883,6 +952,8 @@ Expected owned areas: `tools/package.ps1`, `packaging/`, `src/Sidecue.Infrastruc
 
 ### SC-032
 
+**Coordination parent.** Execute one child from [SC-032 work blocks](tasks/SC-032.md). The original obligations below remain the parent completion criteria.
+
 **Validate encrypted backup and restore boundaries**
 
 Phase: 4. Dependencies: SC-004, SC-012, SC-026, SC-031. Required gates: none beyond task dependencies.
@@ -909,6 +980,8 @@ Expected owned areas: `src/Sidecue.Infrastructure/Backups/`, `src/Sidecue.Deskto
 
 ### SC-033
 
+**Coordination parent.** Execute one child from [SC-033 work blocks](tasks/SC-033.md). The original obligations below remain the parent completion criteria.
+
 **Run soak performance and privacy acceptance**
 
 Phase: 4. Dependencies: SC-027, SC-028, SC-029, SC-030, SC-031, SC-032. Required gates: G3.
@@ -934,6 +1007,8 @@ Verification and evidence:
 Expected owned areas: `tools/diagnostics.ps1`, `tests/Sidecue.Replay.Tests/`, `tests/evals/`, `docs/evidence/SC-033/`.
 
 ### SC-034
+
+**Coordination parent.** Execute one child from [SC-034 work blocks](tasks/SC-034.md). The original obligations below remain the parent completion criteria.
 
 **Assemble personal release evidence and operating guide**
 

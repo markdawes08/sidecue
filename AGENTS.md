@@ -1,6 +1,6 @@
 # Sidecue agent instructions
 
-Build Sidecue, an original Windows meeting assistant owned by Mark Dawes. This repository begins with a reference package, not a working application. Implement the selected task and prove its behavior. Do not assume anything is implemented because a document describes it.
+Build Sidecue, an original Windows meeting assistant owned by Mark Dawes. Inspect actual code and evidence; design documents do not prove implementation. Complete the selected work block and its checks.
 
 ## Owner's standing preferences
 
@@ -8,14 +8,14 @@ Build Sidecue, an original Windows meeting assistant owned by Mark Dawes. This r
 - The user handles all staging, committing, and pushing. Do not run `git add`, `git commit`, or `git push`. For every handoff with file changes, include a suggested commit message.
 - Maintain `.gitignore`: exclude generated output, local secrets and private data; retain source, lockfiles, synthetic fixtures and sanitized evidence. Review new files before handoff.
 - Test proportionally. Run the affected behavior checks and required task acceptance checks. Once they pass, stop unless a failure, dependency change or unresolved risk warrants more. Do not add redundant tests, speculative benchmarks or unrelated full-matrix runs. Required native/release evidence still applies at its task or gate.
-- Keep work resumable by smaller models: use the selected task card, small explicit changes, exact commands/results and a concrete next action. Preparation-only requests do not authorize starting implementation.
+- One prompt means one executable leaf task, including its checks and handoff, unless the user explicitly requests more. A parent ID selects its next ready child. Preparation-only requests do not start implementation.
 
 ## Start each working session
 
-1. Read `START_HERE.md`, `docs/PROJECT_STATE.md`, and `tasks/backlog.json`.
-2. Read the selected task in `docs/IMPLEMENTATION_PLAN.md`, then its relevant architecture, contract, data, and verification documents.
+1. Read `START_HERE.md` and `docs/PROJECT_STATE.md`. Run `powershell -NoProfile -File tools/show-task.ps1` (optional `-Id SC-001A`) for the live backlog slice.
+2. Read its `instruction_file`, parent acceptance and relevant contracts. `docs/IMPLEMENTATION_PLAN.md` defines selection and completion rules.
 3. Inspect the repository, working tree, existing code, and available environment before changing files. Preserve unrelated work and follow any applicable nested instructions.
-4. Select the next dependency-ready task. If a task is already assigned, continue it. Claim ownership in the backlog before parallel work. Start with SC-000 in a fresh repository.
+4. Continue assigned work or select a dependency-ready leaf. Groups are not executable. Check external prerequisites, then claim the leaf in the backlog before parallel work.
 5. Give a short update stating the task, expected behavior, and checks. Continue within the authorized scope without requesting approval for routine implementation choices.
 
 ## Authority and change control
@@ -59,7 +59,7 @@ Keep the application build free of `agent-prompts/`, `source/`, evidence, and pr
 
 Run checks appropriate to the change. Report exact commands, environment, results, and unrun checks using `templates/TEST_EVIDENCE.md`. A successful build or mocked test does not prove native capture, hardware behavior, provider quality, or screen-share exclusion. Required checks without an appropriate environment remain pending, and dependent phase gates do not pass.
 
-Use `tasks/backlog.json` as the only task/gate status authority. Update status, evidence references, owners, and blockers there. Maintain `docs/PROJECT_STATE.md` as a short narrative handoff, without a second task checklist. Keep source snapshots immutable.
+Use `tasks/backlog.json` as the only task/gate status authority. A group is done only after all children and original acceptance have evidence; gates remain intact. Update owners/blockers there and keep `docs/PROJECT_STATE.md` a short handoff. Stop after the selected leaf; record scoped corrective work for new defects. Keep source snapshots immutable.
 
 At a stopping point, update the handoff with changed behavior, paths, test evidence, remaining uncertainty, and next task. State what is implemented separately from what is verified. A partial implementation is not done. Do not reset user changes, publish, push, purchase services, send messages, or use production data merely because a task mentions those future capabilities. Respect any explicit authorization already given.
 

@@ -2,6 +2,8 @@
 
 Use Windows 11 x64 and the exact .NET SDK in [global.json](../global.json). No provider keys, meeting data or paid services are needed for the current build and tests.
 
+To select work, run `powershell -NoProfile -File tools/show-task.ps1`. It prints one dependency-ready leaf and its parent acceptance; `-Id` narrows the selection and `-Owner` resumes assigned work. Complete that leaf and its focused checks, then hand off. See [the execution rules](IMPLEMENTATION_PLAN.md). This planning command does not require the .NET SDK or modify task status.
+
 If that SDK is not installed, this optional command downloads Microsoft's archive, checks its pinned SHA-512 checksum, and extracts it to ignored `artifacts/dotnet/`. It needs no machine-wide installation or PATH changes:
 
 ```powershell

@@ -8,6 +8,7 @@ Copy this template to an evidence record for one run or a clearly identified set
 |---|---|
 | Evidence ID | `<unique run ID>` |
 | Task ID and case IDs | `<SC task and V/CAP/AUD/WIN/PKG/SOAK cases>` |
+| Parent and coverage, if a child | `<parent ID and original acceptance/verification items covered; not a parent completion claim>` |
 | Date and time with offset | `<ISO 8601 timestamp>` |
 | Tester or automation | `<name or runner identifier>` |
 | Result | `not-run` |

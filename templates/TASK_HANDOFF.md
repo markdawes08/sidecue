@@ -1,6 +1,7 @@
 # Task handoff
 
 Task ID:
+Parent ID, if any:
 Author or agent:
 Date:
 Branch and revision or exact working-tree scope:
@@ -21,9 +22,13 @@ Link the test evidence record. Include exact commands and result summaries there
 
 Describe unfinished acceptance, blockers, temporary choices, and the next concrete action. Explain why any required gate is pending. Do not claim unrelated future features are complete.
 
+Name the exact next leaf ID and any external prerequisites. Stop at the current leaf boundary; record larger newly discovered defects as scoped corrective tasks.
+
 ## State updates
 
 Confirm the backlog was reconciled and PROJECT_STATE.md reflects the current integration state. Do not duplicate their full content here.
+
+If this is the last child, check all original parent acceptance and evidence before marking the parent done. Preserve every phase gate.
 
 ## Suggested commit message
 

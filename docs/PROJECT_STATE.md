@@ -10,13 +10,15 @@ SDK/package pins, lockfiles, recommended analyzers with warnings as errors, Powe
 
 Task and gate status belongs only in [backlog.json](../tasks/backlog.json). The latest implementation evidence is [SC-000](evidence/SC-000/2026-11-06.md), including exact source hashes, commands, corrected failures and limitations. Historical package provenance and source snapshots remain unchanged.
 
+The remaining plan has been split for bounded prompts: 32 feature-level groups contain 99 child tasks; SC-007 and SC-016 remain standalone. Original acceptance, dependencies, deferred scope and all five phase gates are preserved. Read [the execution rules](IMPLEMENTATION_PLAN.md) and [planning validation](evidence/planning/2026-11-06-task-split.md). This planning change implements no additional product behavior.
+
 ## Standing owner preferences
 
 - Leave the root README alone until the user says otherwise. Use START_HERE.md, this handoff and task documents for context.
 - The user handles all staging, committing and pushing. Include a suggested commit message when files change.
 - Maintain .gitignore. Generated output, downloaded SDKs, private data and secrets stay out of Git; source, lockfiles, synthetic fixtures and sanitized evidence stay reviewable.
 - Test the affected behavior and required task acceptance. Once relevant checks pass, expand only for a failure, dependency change or unresolved concern.
-- Keep changes bounded and handoffs concrete enough for smaller models to resume without the chat. Do not confuse a shell, build or mock test with implemented meeting features.
+- One prompt defaults to one executable leaf, its checks and handoff. A parent ID selects its next eligible child. Stop there unless the user explicitly requests more blocks. Do not confuse a completed child with parent/gate acceptance.
 
 ## Verified commands and environment
 
@@ -41,6 +43,8 @@ The Windows CI workflow is checked in for the user's review, targets windows-202
 
 ## Next concrete action
 
-Select SC-001 in the backlog and read its [task card](IMPLEMENTATION_PLAN.md#sc-001), CONTRACTS.md and the relevant verification cases. Claim it, implement the smallest typed records/interfaces and deterministic replay/fakes, then prove identity, ordering, epoch and stale-result behavior with synthetic events. Keep actual native capture, encryption and provider work in their owning tasks.
+Run `powershell -NoProfile -File tools/show-task.ps1` to select **SC-001A: identity, timing and immutable event records**. Read its [small task card](tasks/SC-001.md#sc-001a), the returned parent acceptance and the relevant CONTRACTS.md sections. Implement those records/ownership invariants and focused tests, record evidence, and stop. Interfaces belong to SC-001B; deterministic fakes/replay belong to SC-001C. Neither is included automatically in the next prompt.
+
+The task viewer is read-only. Pass `-Id` to inspect a specific leaf or select within a parent; pass `-Owner <agent-id>` to resume claimed work. Without an owner, automatic selection skips claimed tasks. Check external prerequisites and claim the selected leaf in backlog.json before work; do not assume the viewer has claimed it.
 
 Exact SQLCipher selection, provider/model pins, supported hardware/share scenarios, signed packaging and measured latency remain unresolved. No phase gate is closed by the bootstrap. Keep the personal Windows workflow ahead of hosted/team features and preserve the existing data boundaries.
