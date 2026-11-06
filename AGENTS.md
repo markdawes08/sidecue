@@ -4,6 +4,7 @@ Build Sidecue, an original Windows meeting assistant owned by Mark Dawes. This r
 
 ## Owner's standing preferences
 
+- Leave the root `README.md` alone until the user asks otherwise. Do not consult it for task context or keep it updated during routine work; use `START_HERE.md` and `docs/PROJECT_STATE.md` instead.
 - The user handles all staging, committing, and pushing. Do not run `git add`, `git commit`, or `git push`. For every handoff with file changes, include a suggested commit message.
 - Maintain `.gitignore`: exclude generated output, local secrets and private data; retain source, lockfiles, synthetic fixtures and sanitized evidence. Review new files before handoff.
 - Test proportionally. Run the affected behavior checks and required task acceptance checks. Once they pass, stop unless a failure, dependency change or unresolved risk warrants more. Do not add redundant tests, speculative benchmarks or unrelated full-matrix runs. Required native/release evidence still applies at its task or gate.

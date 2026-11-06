@@ -4,7 +4,9 @@ Updated: November 6, 2026. Package version: 1.0. Architecture baseline: 0.1.
 
 ## Current reality
 
-The reference package has been verified and extracted into the repository root. The README is now a project entry point; AGENTS.md records the owner's Git/testing preferences; ignore rules and text conventions are in place. A small PowerShell script checks documentation and backlog integrity. Historical sources and the original manifest remain unchanged. The original zip is retained locally and ignored.
+The reference package has been verified and extracted into the repository root. START_HERE.md is the project entry point; AGENTS.md records the owner's working preferences; ignore rules and text conventions are in place. A small PowerShell script checks documentation and backlog integrity. Historical sources and the original manifest remain unchanged. The original zip is retained locally and ignored.
+
+The root README was shortened at the user's request. Leave it alone until the user asks otherwise; use the working documents for context and updates.
 
 No application solution, application build/test scripts, provider integration, Windows prototype, or completed runtime test exists. This session was repository preparation only. Evidence is in [the preparation record](evidence/repository-preparation/2026-11-06.md).
 

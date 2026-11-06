@@ -1,54 +1,5 @@
 # Sidecue
 
-Sidecue is a planned Windows desktop meeting assistant: separate microphone and meeting playback capture, live transcription, concise contextual help, and editable meeting notes. The initial personal product uses C#/.NET 10, WPF/MVVM, encrypted local history, and configured Deepgram/OpenAI providers behind adapters. Cloud processing is part of this design.
+Sidecue is a Windows meeting assistant in early development. It will provide live transcription, contextual help during calls, and editable notes afterward.
 
-**Current state:** the repository is prepared for implementation. It contains requirements, contracts, task cards, fictional evaluation seeds and agent guidance. No application, build pipeline or runtime behavior has been implemented or verified.
-
-## Start working
-
-1. Read [AGENTS.md](AGENTS.md) for working rules and the owner's preferences.
-2. Read [START_HERE.md](START_HERE.md) and the short [current handoff](docs/PROJECT_STATE.md).
-3. Use [tasks/backlog.json](tasks/backlog.json) as the only task and phase-gate status source. The next implementation task is **SC-000**, the minimal solution and repeatable checks.
-4. Read its card in [IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) and the relevant contracts before editing.
-
-For a new implementation session use [START_CODING.md](agent-prompts/START_CODING.md); for later work use [CONTINUE_WORK.md](agent-prompts/CONTINUE_WORK.md); for review use [REVIEW_WORK.md](agent-prompts/REVIEW_WORK.md). These prompts are coding guidance, not product prompts.
-
-## Repository map
-
-| Path | Purpose |
-| --- | --- |
-| [docs/SCOPE_AND_REQUIREMENTS.md](docs/SCOPE_AND_REQUIREMENTS.md) | Personal Windows scope and deferred features |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/DECISIONS.md](docs/DECISIONS.md) | Five-project architecture and decisions |
-| [docs/CONTRACTS.md](docs/CONTRACTS.md), [docs/DATA_AND_RECOVERY.md](docs/DATA_AND_RECOVERY.md) | Events, control semantics, persistence and recovery |
-| [docs/SECURITY_AND_DATA_FLOW.md](docs/SECURITY_AND_DATA_FLOW.md) | Data boundaries and provider permissions |
-| [docs/VERIFICATION.md](docs/VERIFICATION.md), [docs/WINDOWS_TEST_MATRIX.md](docs/WINDOWS_TEST_MATRIX.md) | Behavior checks and native evidence required at the relevant tasks/gates |
-| [tasks/backlog.json](tasks/backlog.json), [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) | Dependencies, scope and acceptance criteria |
-| [docs/PROJECT_STATE.md](docs/PROJECT_STATE.md), [docs/evidence/](docs/evidence/README.md) | Current handoff and recorded results |
-| [fixtures/](fixtures/README.md) | Six fictional evaluation seeds; no executed product tests |
-| [source/Requirements_Baseline.txt](source/Requirements_Baseline.txt), [source/Architecture_v0.1.txt](source/Architecture_v0.1.txt) | Immutable historical inputs; current scope and decisions take precedence |
-| [templates/](templates/TASK_HANDOFF.md), [agent-prompts/](agent-prompts/CONTINUE_WORK.md) | Reusable evidence, handoff and agent instructions |
-| [tools/check-repository.ps1](tools/check-repository.ps1) | Lightweight documentation and backlog integrity check |
-
-SC-000 will create the five production projects under `src/`, test projects under `tests/`, SDK/package pins, PowerShell build/test entry points and Windows CI. Avoid creating empty feature scaffolding ahead of its task.
-
-## Checks and Git workflow
-
-Run from the repository root with PowerShell and Git installed:
-
-```powershell
-powershell -NoProfile -File tools/check-repository.ps1
-git diff --check
-git status --short
-```
-
-The repository check validates JSON, backlog structure, documentation file links and preserved source hashes. It does not run meeting fixtures, compile an app or prove native Windows behavior. Product build/test commands will be documented after SC-000 creates and verifies them.
-
-Use focused, behavior-based tests and the selected task's required checks. Broaden testing only when the change or observed failures justify it. The user handles `git add`, commits and pushes; agents supply a suggested commit message with each change handoff.
-
-[.gitignore](.gitignore) excludes build/test output, IDE state, local secrets, databases and the original delivery zip. Keep private recordings, screenshots and exports in ignored `local/`, never in fixtures or evidence. Source, pins/lockfiles, synthetic fixtures and sanitized evidence belong in Git. Ignore rules are a convenience, so inspect new files before staging.
-
-## Reference package provenance
-
-The contents of `Sidecue_Codex_Package.zip` were extracted into this repository, preserving its intended structure. The original zip remains locally available and is ignored as a duplicate. [MANIFEST.json](MANIFEST.json) and [PACKAGE_CHECKS.txt](PACKAGE_CHECKS.txt) describe the original version 1.0 delivery, dated November 6, 2026. Manifest paths are relative to the original archive's `Sidecue_Codex_Package/` directory; hashes for working documents may differ after intentional edits. Do not regenerate that historical manifest as if it were an application lockfile or live test result.
-
-Architecture baseline: 0.1. Project owner: Mark Dawes. Preparation evidence: [repository setup](docs/evidence/repository-preparation/2026-11-06.md).
+For project instructions, see [START_HERE.md](START_HERE.md).
