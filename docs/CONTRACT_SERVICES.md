@@ -2,6 +2,8 @@
 
 SC-001B defines the interfaces in `Sidecue.Application.Abstractions` and their immutable envelopes in `Sidecue.Core.Contracts`. They use record schema **1**, with no new production dependencies. Constructors reject unsupported versions and inconsistent metadata. These are the contracts needed for the first replay; no production adapter or coordinator is implemented here.
 
+[SC-001C replay](REPLAY.md) supplies deterministic test-only implementations and executable reference observations for these boundaries.
+
 ## Mapping to the specification
 
 | Conceptual contract in CONTRACTS.md | Compiled API and boundary |

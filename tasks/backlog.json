@@ -61,7 +61,7 @@
       "id": "SC-001",
       "phase": 0,
       "title": "Implement domain contracts and deterministic replay",
-      "status": "in_progress",
+      "status": "done",
       "depends_on": [
         "SC-000"
       ],
@@ -87,9 +87,13 @@
         "tools/replay.ps1"
       ],
       "requires_interactive_windows_evidence": false,
-      "evidence": [],
+      "evidence": [
+        "docs/evidence/SC-001A/2026-11-06.md",
+        "docs/evidence/SC-001B/2026-11-06.md",
+        "docs/evidence/SC-001C/2026-11-06.md"
+      ],
       "blockers": [],
-      "owner": null,
+      "owner": "codex-root",
       "task_type": "group",
       "children": [
         "SC-001A",
@@ -207,7 +211,7 @@
       "id": "SC-001C",
       "phase": 0,
       "title": "Add deterministic fakes and the first replay runner",
-      "status": "ready",
+      "status": "done",
       "task_type": "implementation",
       "parent_id": "SC-001",
       "depends_on": [
@@ -254,9 +258,11 @@
           2
         ]
       },
-      "evidence": [],
+      "evidence": [
+        "docs/evidence/SC-001C/2026-11-06.md"
+      ],
       "blockers": [],
-      "owner": null
+      "owner": "codex-root"
     },
     {
       "id": "SC-002",

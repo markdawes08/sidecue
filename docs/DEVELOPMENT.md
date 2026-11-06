@@ -20,6 +20,9 @@ powershell -NoProfile -File tools/test.ps1
 powershell -NoProfile -File tools/build.ps1
 powershell -NoProfile -File tools/test.ps1 -NoBuild
 
+# Run the synthetic meeting replay and its focused checks.
+powershell -NoProfile -File tools/replay.ps1
+
 # Build Debug and open the minimal desktop shell.
 powershell -NoProfile -File tools/run.ps1
 ```
@@ -38,6 +41,7 @@ Both build and test accept `-Configuration Debug`; Release is the default. Test 
 | `tests/Sidecue.Architecture.Tests` | Project dependency direction and pure-layer restore checks |
 | `tests/Sidecue.Core.Tests` | Identity/time, immutable event and audio ownership invariants |
 | `tests/Sidecue.Application.Tests` | Service signature boundaries and immutable request/context/store envelopes |
+| `tests/Sidecue.Replay.Tests` | Deterministic fakes, fixture runner and test-only reconciliation rules |
 | `tests/Sidecue.Desktop.Tests` | Compiled XAML, view-model binding and layout smoke check |
 
 Desktop contains a small window explaining that meeting features are not yet available. Core contains validated [contract records](CONTRACT_RECORDS.md) and [request envelopes](CONTRACT_SERVICES.md); Application defines the corresponding service interfaces. Windows and Infrastructure still establish dependency boundaries without adapters. The immutable initial view model needs no observable-property framework. Add CommunityToolkit.Mvvm when actual changing UI state requires it.

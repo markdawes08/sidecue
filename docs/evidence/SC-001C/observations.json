@@ -1,0 +1,45 @@
+{
+  "Id": "first-meeting",
+  "SessionId": "11111111-1111-1111-1111-111111111111",
+  "TimelineEpochId": "22222222-2222-2222-2222-222222222222",
+  "AnchorUtc": "2026-11-06T20:00:00.0000000\u002B00:00",
+  "FinalUtc": "2026-11-06T20:00:00.5000000\u002B00:00",
+  "TranscriptOutcomes": [
+    "new-partial:partial",
+    "reordered-partial:stale-partial",
+    "first-final:committed",
+    "replayed-final:duplicate",
+    "conflicting-id:conflict",
+    "late-partial:late-partial",
+    "same-final-new-id:duplicate",
+    "explicit-amendment:amended",
+    "known-gap:gap",
+    "utterance-ended:boundary",
+    "overlapping-remote:committed",
+    "reopened-source:committed",
+    "empty-event-id:invalid",
+    "negative-revision:invalid"
+  ],
+  "AnswerOutcomes": [
+    "request-a:requested",
+    "a-delta:accepted",
+    "request-b:requested",
+    "late-a-completion:stale",
+    "b-delta:accepted",
+    "clear-context:cleared",
+    "late-b-completion:stale",
+    "request-c:requested",
+    "c-delta:accepted",
+    "c-completion:accepted"
+  ],
+  "DurableCommits": 5,
+  "CurrentFinalCount": 3,
+  "PartialCount": 0,
+  "FramesDisposed": 6,
+  "VisibleAnswer": "Current fictional answer.",
+  "TranscriptState": [
+    "33333333-3333-3333-3333-333333333333/epoch0/55555555-5555-5555-5555-555555555555/r4/seq6|22222222-2222-2222-2222-222222222222:0-100000|671df40d8a4ca6662a6496db6ce83f9ba9cb2f7a38e5b9d55af37ebd7197b5a9",
+    "44444444-4444-4444-4444-444444444444/epoch0/66666666-6666-6666-6666-666666666666/r0/seq0|22222222-2222-2222-2222-222222222222:50000-150000|4c53a5dcd0f3e18c6a0b658d3df24e46d440c2746ef804b6080c532f338a9b9e",
+    "33333333-3333-3333-3333-333333333333/epoch1/55555555-5555-5555-5555-555555555555/r0/seq0|22222222-2222-2222-2222-222222222222:300000-400000|3fcd67ef6f8427622258ce96c6230fc64a449f3d86fa47e5ed5f0b1b23cd5c22"
+  ]
+}

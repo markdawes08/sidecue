@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "id": "first-meeting",
+  "sessionId": "11111111-1111-1111-1111-111111111111",
+  "timelineEpochId": "22222222-2222-2222-2222-222222222222",
+  "anchorUtc": "2026-11-06T20:00:00+00:00",
+  "streams": [
+    {
+      "sourceId": "33333333-3333-3333-3333-333333333333",
+      "epoch": 0,
+      "sourceKind": "microphone",
+      "startUs": 0,
+      "frameCount": 2,
+      "events": [
+        { "label": "new-partial", "kind": "partial", "eventId": "70000000-0000-0000-0000-000000000001", "sequence": 2, "segmentId": "55555555-5555-5555-5555-555555555555", "revision": 2, "startUs": 0, "endUs": 100000, "text": "Fictional launch plan", "speaker": "speaker-0" },
+        { "label": "reordered-partial", "kind": "partial", "eventId": "70000000-0000-0000-0000-000000000002", "sequence": 1, "segmentId": "55555555-5555-5555-5555-555555555555", "revision": 1, "startUs": 0, "endUs": 100000, "text": "Fictional launch", "speaker": "speaker-0" },
+        { "label": "first-final", "kind": "final", "eventId": "70000000-0000-0000-0000-000000000003", "sequence": 3, "segmentId": "55555555-5555-5555-5555-555555555555", "revision": 3, "startUs": 0, "endUs": 100000, "text": "Fictional launch is Friday.", "speaker": "speaker-0" },
+        { "label": "replayed-final", "kind": "final", "eventId": "70000000-0000-0000-0000-000000000003", "sequence": 3, "segmentId": "55555555-5555-5555-5555-555555555555", "revision": 3, "startUs": 0, "endUs": 100000, "text": "Fictional launch is Friday.", "speaker": "speaker-0" },
+        { "label": "conflicting-id", "kind": "final", "eventId": "70000000-0000-0000-0000-000000000003", "sequence": 3, "segmentId": "55555555-5555-5555-5555-555555555555", "revision": 3, "startUs": 0, "endUs": 100000, "text": "Conflicting fictional launch date.", "speaker": "speaker-0" },
+        { "label": "late-partial", "kind": "partial", "eventId": "70000000-0000-0000-0000-000000000004", "sequence": 4, "segmentId": "55555555-5555-5555-5555-555555555555", "revision": 4, "startUs": 0, "endUs": 100000, "text": "Late provisional fiction", "speaker": "speaker-0" },
+        { "label": "same-final-new-id", "kind": "final", "eventId": "70000000-0000-0000-0000-000000000005", "sequence": 5, "segmentId": "55555555-5555-5555-5555-555555555555", "revision": 3, "startUs": 0, "endUs": 100000, "text": "Fictional launch is Friday.", "speaker": "speaker-0" },
+        { "label": "explicit-amendment", "kind": "amendment", "eventId": "70000000-0000-0000-0000-000000000006", "sequence": 6, "segmentId": "55555555-5555-5555-5555-555555555555", "revision": 4, "amendsRevision": 3, "startUs": 0, "endUs": 100000, "text": "Fictional launch is Thursday.", "speaker": "speaker-0" },
+        { "label": "known-gap", "kind": "gap", "eventId": "70000000-0000-0000-0000-000000000007", "sequence": 7, "startUs": 100000, "endUs": 150000 },
+        { "label": "utterance-ended", "kind": "boundary", "eventId": "70000000-0000-0000-0000-000000000008", "sequence": 8, "startUs": 150000, "endUs": 150000 }
+      ]
+    },
+    {
+      "sourceId": "44444444-4444-4444-4444-444444444444",
+      "epoch": 0,
+      "sourceKind": "remotePlayback",
+      "startUs": 50000,
+      "frameCount": 2,
+      "events": [
+        { "label": "overlapping-remote", "kind": "final", "eventId": "70000000-0000-0000-0000-000000000009", "sequence": 0, "segmentId": "66666666-6666-6666-6666-666666666666", "revision": 0, "startUs": 50000, "endUs": 150000, "text": "Fictional review is ready.", "speaker": "speaker-0" }
+      ]
+    },
+    {
+      "sourceId": "33333333-3333-3333-3333-333333333333",
+      "epoch": 1,
+      "sourceKind": "microphone",
+      "startUs": 300000,
+      "frameCount": 2,
+      "events": [
+        { "label": "reopened-source", "kind": "final", "eventId": "70000000-0000-0000-0000-000000000003", "sequence": 0, "segmentId": "55555555-5555-5555-5555-555555555555", "revision": 0, "startUs": 300000, "endUs": 400000, "text": "Fictional reconnect confirmed.", "speaker": "speaker-0" }
+      ]
+    }
+  ],
+  "invalidEvents": [
+    { "label": "empty-event-id", "kind": "final", "sourceId": "33333333-3333-3333-3333-333333333333", "epoch": 1, "eventId": "00000000-0000-0000-0000-000000000000", "sequence": 1, "segmentId": "55555555-5555-5555-5555-555555555555", "revision": 1, "startUs": 300000, "endUs": 400000, "text": "Invalid fictional event." },
+    { "label": "negative-revision", "kind": "partial", "sourceId": "33333333-3333-3333-3333-333333333333", "epoch": 1, "eventId": "70000000-0000-0000-0000-000000000010", "sequence": 1, "segmentId": "55555555-5555-5555-5555-555555555555", "revision": -1, "startUs": 300000, "endUs": 400000, "text": "Invalid fictional revision." }
+  ],
+  "assistance": [
+    { "label": "request-a", "kind": "request", "requestId": "80000000-0000-0000-0000-000000000001", "contextEpoch": 0 },
+    { "label": "a-delta", "kind": "answer", "requestId": "80000000-0000-0000-0000-000000000001", "contextEpoch": 0, "answerKind": "delta", "sequence": 0, "text": "Obsolete fictional draft." },
+    { "label": "request-b", "kind": "request", "requestId": "80000000-0000-0000-0000-000000000002", "contextEpoch": 0 },
+    { "label": "late-a-completion", "kind": "answer", "requestId": "80000000-0000-0000-0000-000000000001", "contextEpoch": 0, "answerKind": "completed", "sequence": 1, "text": "Do not append this obsolete answer." },
+    { "label": "b-delta", "kind": "answer", "requestId": "80000000-0000-0000-0000-000000000002", "contextEpoch": 0, "answerKind": "delta", "sequence": 0, "text": "Another fictional draft." },
+    { "label": "clear-context", "kind": "clear", "contextEpoch": 1 },
+    { "label": "late-b-completion", "kind": "answer", "requestId": "80000000-0000-0000-0000-000000000002", "contextEpoch": 0, "answerKind": "completed", "sequence": 1, "text": "Do not reintroduce cleared context." },
+    { "label": "request-c", "kind": "request", "requestId": "80000000-0000-0000-0000-000000000003", "contextEpoch": 1 },
+    { "label": "c-delta", "kind": "answer", "requestId": "80000000-0000-0000-0000-000000000003", "contextEpoch": 1, "answerKind": "delta", "sequence": 0, "text": "Current fictional answer." },
+    { "label": "c-completion", "kind": "answer", "requestId": "80000000-0000-0000-0000-000000000003", "contextEpoch": 1, "answerKind": "completed", "sequence": 1, "text": "Current fictional answer." }
+  ],
+  "expected": {
+    "transcriptOutcomes": [
+      "new-partial:partial", "reordered-partial:stale-partial", "first-final:committed",
+      "replayed-final:duplicate", "conflicting-id:conflict", "late-partial:late-partial",
+      "same-final-new-id:duplicate", "explicit-amendment:amended", "known-gap:gap",
+      "utterance-ended:boundary", "overlapping-remote:committed", "reopened-source:committed",
+      "empty-event-id:invalid", "negative-revision:invalid"
+    ],
+    "answerOutcomes": [
+      "request-a:requested", "a-delta:accepted", "request-b:requested", "late-a-completion:stale",
+      "b-delta:accepted", "clear-context:cleared", "late-b-completion:stale", "request-c:requested",
+      "c-delta:accepted", "c-completion:accepted"
+    ],
+    "durableCommits": 5,
+    "currentFinalCount": 3,
+    "partialCount": 0,
+    "framesDisposed": 6,
+    "visibleAnswer": "Current fictional answer."
+  }
+}
