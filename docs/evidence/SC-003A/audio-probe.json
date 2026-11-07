@@ -1,0 +1,35 @@
+{
+  "RecordedUtc": "2026-11-07T02:37:29.731062+00:00",
+  "OperatingSystem": "Microsoft Windows 10.0.26200",
+  "Runtime": ".NET 10.0.14",
+  "Passed": true,
+  "Microphone": {
+    "Source": "Microphone",
+    "Frames": 202,
+    "Bytes": 775680,
+    "ValidIdentity": true,
+    "OrderedSequences": true,
+    "SampleRate": 48000,
+    "Channels": 2,
+    "Representation": "FloatingPoint32",
+    "QpcFrames": 202,
+    "DevicePositionFrames": 202,
+    "UncertainFrames": 202
+  },
+  "Loopback": {
+    "Source": "RemotePlayback",
+    "Frames": 202,
+    "Bytes": 712656,
+    "ValidIdentity": true,
+    "OrderedSequences": true,
+    "SampleRate": 44100,
+    "Channels": 2,
+    "Representation": "FloatingPoint32",
+    "QpcFrames": 202,
+    "DevicePositionFrames": 202,
+    "UncertainFrames": 202
+  },
+  "MicrophoneTerminal": "Stopped",
+  "LoopbackTerminal": "Stopped",
+  "FailureType": null
+}

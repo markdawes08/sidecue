@@ -14,7 +14,9 @@ public enum GapReason
     QueueOverflow,
     DeviceUnavailable,
     TransportDisconnected,
-    UnknownSendCompletion
+    UnknownSendCompletion,
+    CaptureFailure,
+    CaptureDiscontinuity
 }
 
 public enum EventErrorCategory

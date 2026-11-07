@@ -4,13 +4,13 @@ Updated: November 6, 2026. Architecture baseline: 0.1.
 
 ## Current reality
 
-Sidecue has a five-project .NET solution, a minimal WPF shell and an owned overlay prototype. The overlay has non-activating display and explicit local text-input modes, three fixed global shortcuts, visible conflict/error status and an excluded auxiliary details window. Display updates preserve mode, visibility and HWND. Hide covers both surfaces; owner destruction releases native shortcuts before WPF Closed. It explicitly says screen sharing is unverified. There is no audio capture, persistence or provider connection. Core/Application provide the existing contracts; Windows has affinity, activation-style and hotkey adapters. Infrastructure still has no adapters.
+Sidecue has a five-project .NET solution, a minimal WPF shell, an owned overlay prototype and separate Windows microphone/render-loopback capture adapters. The overlay has display and explicit local input modes, fixed global shortcuts and an excluded auxiliary details window. It explicitly says screen sharing is unverified. Audio capture is not connected to the shell, providers or persistence. Core/Application provide the contracts; Infrastructure still has no adapters.
 
 A separate test-only replay now runs a fictional meeting through controlled clock, capture, transcription, assistance and store fakes. It models revisions, duplicates, resets and stale-answer fences; these reference rules are not wired into the product.
 
 SDK/package pins, lockfiles, recommended analyzers with warnings as errors, PowerShell setup/build/test/run/probe commands and Windows CI configuration are present. The isolated overlay uses a small observable view model without a new package. Native system menus and WPF popup/tooltip surfaces are suppressed; IME/spellcheck popups are disabled for the prototype. Future surfaces must explicitly join the exclusion policy rather than assume inheritance from an owner.
 
-Task and gate status belongs only in [backlog.json](../tasks/backlog.json). Latest evidence: [SC-002C partial run](evidence/SC-002C/2026-11-06-preflight.md); implementation evidence: [SC-002B](evidence/SC-002B/2026-11-06.md); operation and restrictions: [overlay guide](OVERLAY_PROTOTYPE.md). Earlier contract/replay evidence remains linked from its ledger entry. Read the [record mapping](CONTRACT_RECORDS.md), [service mapping](CONTRACT_SERVICES.md) and [replay guide](REPLAY.md) before extending those boundaries. Historical package provenance and source snapshots remain unchanged.
+Task and gate status belongs only in [backlog.json](../tasks/backlog.json). Latest evidence: [SC-003A](evidence/SC-003A/2026-11-06.md); operation and limits: [audio guide](AUDIO_CAPTURE.md). Overlay work remains documented in [SC-002C partial evidence](evidence/SC-002C/2026-11-06-preflight.md) and the [overlay guide](OVERLAY_PROTOTYPE.md). Read the [record mapping](CONTRACT_RECORDS.md), [service mapping](CONTRACT_SERVICES.md) and [replay guide](REPLAY.md) before extending those boundaries. Historical package provenance and source snapshots remain unchanged.
 
 The plan has 32 feature-level groups containing 99 child tasks; SC-007 and SC-016 remain standalone. Original acceptance, dependencies, deferred scope and all five phase gates are preserved. Read [the execution rules](IMPLEMENTATION_PLAN.md) and [planning validation](evidence/planning/2026-11-06-task-split.md).
 
@@ -40,15 +40,20 @@ powershell -NoProfile -File tools/replay.ps1
 # Real local overlay HWND/API and lifecycle probe:
 powershell -NoProfile -File tools/probe-overlay.ps1
 
+# Brief local microphone/loopback probe, metadata only:
+powershell -NoProfile -File tools/probe-audio.ps1
+
 # Open the minimal shell after a Debug build:
 powershell -NoProfile -File tools/run.ps1
 ```
 
 Local validation used Windows 11 Home 25H2, build 26200.9711, x64, PowerShell 5.1, SDK 10.0.403 and runtime 10.0.14. The system SDK remains 10.0.301; tooling uses the verified local SDK under ignored artifacts/dotnet. No machine-wide installation or persistent PATH change was made.
 
-The locked Release build passed with zero warnings/errors. All 82 tests passed. After focused popup/failure-path refinements, the 26 affected Windows/Desktop cases passed again. The expanded native probe caught late unregister cleanup at owner closure; moving that cleanup to WM_DESTROY fixed it, and the final rebuilt probe passed. No further source changes followed that run. No package or lockfile changed.
+The locked Release build passed with zero warnings/errors. The full suite passed 95 tests; after a focused audio stop-race and gap-reason correction, the 29 affected Windows tests passed again. The final native audio probe and existing overlay probe passed. SC-003A added NAudio.Wasapi 3.3.0 and regenerated the affected lockfiles.
 
 The actual executable at 150% DPI accepted exclusion with `0x11` readback for original/recreated overlays and details. Native mode styles, input enablement, placement identity, hide/show and cleanup passed. All three shortcuts registered, a competing owner received error 1409, directed messages routed, and disposal/owner destruction released registrations. Windows declined the automated explicit foreground request; the UI displayed that result. Physical typing, key holding, another foreground application, mixed-DPI monitors and receiving streams were not verified. All three synthetic previews were inspected. No full WIN/CAP row or phase gate passed.
+
+The final SC-003A two-second probe opened both Multimedia defaults, received 202 microphone and 202 loopback packets with separate identities and ordered sequences, and stopped both. It retained only metadata; synthetic silence drove loopback and no audio file was created. Both streams preserved raw device/QPC values, but all session intervals are explicitly uncertain callback-time estimates. SC-003B must address clock mapping, normalization and gap-aware timing; SC-003C/D cover device recovery and physical scenarios. No AUD matrix row or audio gate has passed.
 
 SC-002B repository validation passed: 19 JSON files, 134 tasks, five gates, completion/coverage guards, 243 local links and both original source hashes. Whitespace checks passed and the README remained unchanged. Existing .gitignore rules cover generated output. Nothing was staged, committed or pushed.
 
@@ -62,7 +67,9 @@ The Windows CI workflow targets windows-2025 and records the actual runner image
 
 ## Next concrete action
 
-**SC-002C is blocked** until two active monitors with different scaling are available. To resume, inspect it with `powershell -NoProfile -File tools/show-task.ps1 -Id SC-002C`, confirm the environment, clear its blocker and claim it. Read its [task card](tasks/SC-002.md#sc-002c), [partial evidence](evidence/SC-002C/2026-11-06-preflight.md), [overlay guide](OVERLAY_PROTOTYPE.md) and relevant [Windows cases](WINDOWS_TEST_MATRIX.md). Finish verified text entry, a controlled streaming update against a separate foreground app, physical keyboard/hide/auxiliary behavior and mixed-DPI movement. The default task viewer skips blocked leaves and may select independent work; do not switch tasks within the prompt that encountered this blocker. Receiving-client verification remains SC-002D through SC-002F.
+The next dependency-ready leaf is **SC-003B: normalize audio with bounded queues and gap-aware timing**. Read its [task card](tasks/SC-003.md#sc-003b), [audio guide](AUDIO_CAPTURE.md), capture contracts and backlog follow-up before claiming it. Preserve source/epoch identity, explicit loss and timing uncertainty. Stop after that leaf.
+
+**SC-002C remains blocked** until two active monitors with different scaling are available. To resume, inspect it with `powershell -NoProfile -File tools/show-task.ps1 -Id SC-002C`, confirm the environment, clear its blocker and claim it. Finish verified text entry, a controlled streaming update against a separate foreground app, physical keyboard/hide/auxiliary behavior and mixed-DPI movement. The default task viewer reports blocked leaves while selecting available work. Receiving-client verification remains SC-002D through SC-002F.
 
 The task viewer is read-only. Pass `-Id` to inspect a specific leaf or select within a parent; pass `-Owner <agent-id>` to resume claimed work. Without an owner, automatic selection skips claimed tasks. Check external prerequisites and claim the selected leaf in backlog.json before work; do not assume the viewer has claimed it.
 

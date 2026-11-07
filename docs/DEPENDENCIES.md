@@ -1,12 +1,13 @@
 # Dependency record
 
-Reviewed November 6, 2026 for SC-000. The exact direct NuGet pins are in [Directory.Packages.props](../Directory.Packages.props); project lockfiles record the resolved transitive graph and content hashes. No provider, database, capture, UI styling or telemetry package has been introduced.
+Reviewed November 6, 2026 for SC-000 and SC-003A. The exact direct NuGet pins are in [Directory.Packages.props](../Directory.Packages.props); project lockfiles record the resolved transitive graph and content hashes. No provider, database, UI styling or telemetry package has been introduced.
 
 | Component | Selected version | Use and license |
 | --- | --- | --- |
 | .NET SDK | 10.0.403 | Build toolchain; official distribution includes its license and third-party notices |
 | .NET / WindowsDesktop runtime | 10.0.14 in the selected SDK | Runtime used for validation; distribution notices apply |
 | Windows SDK .NET reference pack | 10.0.26100.57, selected by SDK | Windows compile-time contracts; Microsoft distribution terms |
+| NAudio.Wasapi | 3.3.0 | Shared-mode Windows microphone and render-loopback capture; MIT |
 | Microsoft.NET.Test.Sdk | 18.11.0 | Test tooling only; MIT |
 | xunit.v3.mtp-off | 4.0.2 | xUnit tests with VSTest; Apache-2.0 |
 | xunit.runner.visualstudio | 4.0.1 | VSTest adapter; Apache-2.0 |
@@ -19,7 +20,9 @@ The installed system SDK 10.0.301/runtime 10.0.9 was behind current servicing. M
 
 Package sources and licenses: [test SDK](https://www.nuget.org/packages/Microsoft.NET.Test.Sdk/18.11.0), [xUnit package](https://www.nuget.org/packages/xunit.v3.mtp-off/4.0.2), [VSTest adapter](https://www.nuget.org/packages/xunit.runner.visualstudio/4.0.1). The [xUnit runner documentation](https://xunit.net/docs/getting-started/v3/microsoft-testing-platform) describes the VSTest-only package. This avoids introducing a second test platform for the initial suite.
 
-CommunityToolkit.Mvvm remains the selected UI framework when mutable state is introduced; adding an unused package to the static shell provides no benefit. SQLCipher, NAudio, provider packages and model pins must be reviewed in their owning tasks, not inferred from this record.
+SC-003A pins [NAudio.Wasapi 3.3.0](https://www.nuget.org/packages/NAudio.Wasapi/3.3.0), which resolves NAudio.Core 3.3.0 and System.Numerics.Tensors 9.0.0 transitively in the lockfiles. NAudio is [MIT licensed](https://github.com/naudio/NAudio/blob/v3.3.0/LICENSE); the .NET library is [MIT licensed](https://github.com/dotnet/runtime/blob/main/LICENSE.TXT). Its [recorder documentation](https://github.com/naudio/NAudio/blob/v3.3.0/Docs/WasapiRecorder.md) describes the callback-scoped audio span and native timing values. The adapter copies the callback data into its own bounded leases rather than retaining that span or writing audio files.
+
+CommunityToolkit.Mvvm remains the selected UI framework when mutable state warrants it. SQLCipher, provider packages and model pins must be reviewed in their owning tasks, not inferred from this record.
 
 ## CI inputs
 

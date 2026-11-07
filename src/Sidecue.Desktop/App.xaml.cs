@@ -1,4 +1,5 @@
 using System.Windows;
+using Sidecue.Desktop.Prototypes.Audio;
 using Sidecue.Desktop.Prototypes.Overlay;
 
 namespace Sidecue.Desktop;
@@ -10,7 +11,7 @@ public partial class App : System.Windows.Application
         base.OnStartup(e);
         if (e.Args.Length > 0)
         {
-            if (e.Args.Length != 2 || e.Args[0] != "--probe-overlay")
+            if (e.Args.Length != 2 || (e.Args[0] != "--probe-overlay" && e.Args[0] != "--probe-audio"))
             {
                 Shutdown(2);
                 return;
@@ -20,7 +21,9 @@ public partial class App : System.Windows.Application
             {
                 try
                 {
-                    var exitCode = await OverlayProbe.RunAsync(e.Args[1]);
+                    var exitCode = e.Args[0] == "--probe-overlay"
+                        ? await OverlayProbe.RunAsync(e.Args[1])
+                        : await AudioProbe.RunAsync(e.Args[1]);
                     Shutdown(exitCode);
                 }
                 catch (Exception)

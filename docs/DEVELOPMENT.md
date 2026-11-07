@@ -26,6 +26,9 @@ powershell -NoProfile -File tools/replay.ps1
 # Local interactive desktop: real overlay HWND/API and lifecycle probe.
 powershell -NoProfile -File tools/probe-overlay.ps1
 
+# Short local microphone/loopback probe; writes metadata only, never audio.
+powershell -NoProfile -File tools/probe-audio.ps1
+
 # Build Debug and open the minimal desktop shell.
 powershell -NoProfile -File tools/run.ps1
 ```
@@ -38,17 +41,17 @@ Both build and test accept `-Configuration Debug`; Release is the default. Test 
 | --- | --- |
 | `src/Sidecue.Core` | Platform-independent domain layer |
 | `src/Sidecue.Application` | Platform-independent application layer, referencing Core |
-| `src/Sidecue.Windows` | Window-affinity adapter; future audio and other Windows adapters |
+| `src/Sidecue.Windows` | Windowing and shared-mode audio capture adapters |
 | `src/Sidecue.Infrastructure` | Future storage and provider adapters |
 | `src/Sidecue.Desktop` | WPF application and composition root |
 | `tests/Sidecue.Architecture.Tests` | Project dependency direction and pure-layer restore checks |
 | `tests/Sidecue.Core.Tests` | Identity/time, immutable event and audio ownership invariants |
 | `tests/Sidecue.Application.Tests` | Service signature boundaries and immutable request/context/store envelopes |
 | `tests/Sidecue.Replay.Tests` | Deterministic fakes, fixture runner and test-only reconciliation rules |
-| `tests/Sidecue.Windows.Tests` | Injected window-affinity capability outcomes |
+| `tests/Sidecue.Windows.Tests` | Window capability and audio capture lifecycle/ownership outcomes |
 | `tests/Sidecue.Desktop.Tests` | Shell bindings, overlay modes, auxiliary policy and owned HWND/control lifecycle |
 
-Desktop contains the shell and an [overlay prototype](OVERLAY_PROTOTYPE.md); Windows supplies native affinity, activation-style and hotkey adapters. Core contains validated [contract records](CONTRACT_RECORDS.md) and [request envelopes](CONTRACT_SERVICES.md); Application defines their service interfaces. Infrastructure has no storage/provider implementation. The prototype uses a small observable view model without a new MVVM package.
+Desktop contains the shell and an [overlay prototype](OVERLAY_PROTOTYPE.md); Windows supplies native windowing and [audio capture](AUDIO_CAPTURE.md) adapters. Core contains validated [contract records](CONTRACT_RECORDS.md) and [request envelopes](CONTRACT_SERVICES.md); Application defines their service interfaces. Infrastructure has no storage/provider implementation. The prototype uses a small observable view model without a new MVVM package.
 
 ## Dependency changes
 
@@ -65,6 +68,6 @@ Review all changed `packages.lock.json` files and include them in the user's com
 
 [The Windows workflow](../.github/workflows/ci.yml) installs the pinned SDK, checks repository documents, restores locked packages, builds, runs the same tests and uploads TRX results. It uses `windows-2025` and logs the actual runner image version; that hosted image label is serviced over time. Action revisions are pinned to commits. The workflow needs only read access to source and has no production secrets or live AI calls.
 
-Run checks relevant to the change and the selected task's required acceptance. The current tests do not prove audio capture, screen-share exclusion, encryption, provider quality or release packaging. The separate local overlay probe records native capability and HWND lifecycle only; it is not run by ordinary CI. Packaging and remote-observer test commands do not exist yet.
+Run checks relevant to the change and the selected task's required acceptance. Deterministic tests do not prove hardware audio behavior, screen-share exclusion, encryption, provider quality or release packaging. The separate local overlay and audio probes exercise limited native behavior and are not run by ordinary CI. Packaging and remote-observer test commands do not exist yet.
 
 The README is intentionally left alone. Keep operational commands here and task context in [PROJECT_STATE.md](PROJECT_STATE.md).

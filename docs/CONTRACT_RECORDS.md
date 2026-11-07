@@ -1,6 +1,6 @@
 # Implemented contract records
 
-SC-001A implements values and records in [Sidecue.Core.Contracts](../src/Sidecue.Core/Contracts/IdentityValues.cs). [CONTRACTS.md](CONTRACTS.md) remains the behavioral specification. These types validate individual inputs; they do not implement capture, reconciliation, persistence or request coordination.
+SC-001A implements values and records in [Sidecue.Core.Contracts](../src/Sidecue.Core/Contracts/IdentityValues.cs). [CONTRACTS.md](CONTRACTS.md) remains the behavioral specification. These types validate individual inputs; capture behavior is implemented separately in the Windows adapter, while reconciliation, persistence and request coordination remain future work.
 
 ## Identity and time
 
@@ -16,7 +16,7 @@ SC-001A implements values and records in [Sidecue.Core.Contracts](../src/Sidecue
 
 `OwnedAudioFrame` is a disposable class, so copying a record cannot duplicate its ownership. Construction adopts the `IMemoryOwner<byte>` only after validation succeeds. On failure, the caller still owns the buffer. The payload excludes unused rented capacity. Repeated disposal releases the owner once; later payload access throws.
 
-The producer owns the frame until a successful transfer; the consumer then disposes it after use. Rejection, cancellation and exceptions require cleanup by the current owner. Previously obtained memory views cannot be revoked: do not retain one after disposal or dispose while an asynchronous send still uses it. The focused tests demonstrate caller cleanup; queues and shutdown draining remain future work.
+The producer owns the frame until a successful transfer; the consumer then disposes it after use. Rejection, cancellation and exceptions require cleanup by the current owner. Previously obtained memory views cannot be revoked: do not retain one after disposal or dispose while an asynchronous send still uses it. SC-003A adds a bounded raw capture queue and shutdown draining; normalization and gap-aware timing remain SC-003B. `GapReason.CaptureFailure` identifies unreported loss on capture failure; `CaptureDiscontinuity` identifies a native glitch without asserting that a device was unavailable.
 
 ## Event mapping
 
