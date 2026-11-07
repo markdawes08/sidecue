@@ -417,7 +417,7 @@
       "id": "SC-002C",
       "phase": 0,
       "title": "Verify local overlay focus and monitor behavior",
-      "status": "ready",
+      "status": "blocked",
       "task_type": "verification",
       "parent_id": "SC-002",
       "depends_on": [
@@ -461,8 +461,12 @@
           2
         ]
       },
-      "evidence": [],
-      "blockers": [],
+      "evidence": [
+        "docs/evidence/SC-002C/2026-11-06-preflight.md"
+      ],
+      "blockers": [
+        "Only one active monitor at 150% scaling is available; the owner cannot connect a second mixed-DPI display now."
+      ],
       "owner": null
     },
     {

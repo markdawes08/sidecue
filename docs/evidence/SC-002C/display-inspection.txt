@@ -1,0 +1,29 @@
+Timestamp=2026-11-06T20:36:02.3339987-05:00
+UserInteractive=True; Session=Console
+PerMonitorV2=True
+Monitor=\\.\DISPLAY1; Bounds=0,0..2560,1600; Primary=True; Dpi=144x144; Scale=150%; InfoOk=True; DpiHResult=0
+EnumerationSucceeded=True; ActiveMonitorCount=1
+ForegroundWindowPresent=True
+
+Name                       Status
+----                       ------
+Enhanced (101- or 102-key) OK
+Enhanced (101- or 102-key) OK
+Enhanced (101- or 102-key) OK
+
+
+
+
+DisplayVersion : 25H2
+CurrentBuild   : 26200
+UBR            : 9711
+
+
+
+
+Name                               DriverVersion
+----                               -------------
+NVIDIA GeForce RTX 4070 Laptop GPU 32.0.16.1656
+Intel(R) UHD Graphics              32.0.101.6790
+
+
