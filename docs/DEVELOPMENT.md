@@ -46,9 +46,9 @@ Both build and test accept `-Configuration Debug`; Release is the default. Test 
 | `tests/Sidecue.Application.Tests` | Service signature boundaries and immutable request/context/store envelopes |
 | `tests/Sidecue.Replay.Tests` | Deterministic fakes, fixture runner and test-only reconciliation rules |
 | `tests/Sidecue.Windows.Tests` | Injected window-affinity capability outcomes |
-| `tests/Sidecue.Desktop.Tests` | Shell bindings and owned overlay HWND/control lifecycle |
+| `tests/Sidecue.Desktop.Tests` | Shell bindings, overlay modes, auxiliary policy and owned HWND/control lifecycle |
 
-Desktop contains the shell and an [overlay prototype](OVERLAY_PROTOTYPE.md); Windows supplies its native affinity adapter. Core contains validated [contract records](CONTRACT_RECORDS.md) and [request envelopes](CONTRACT_SERVICES.md); Application defines their service interfaces. Infrastructure has no storage/provider implementation. The prototype's single capability result uses a small observable view model; a new MVVM package is unnecessary for this isolated surface.
+Desktop contains the shell and an [overlay prototype](OVERLAY_PROTOTYPE.md); Windows supplies native affinity, activation-style and hotkey adapters. Core contains validated [contract records](CONTRACT_RECORDS.md) and [request envelopes](CONTRACT_SERVICES.md); Application defines their service interfaces. Infrastructure has no storage/provider implementation. The prototype uses a small observable view model without a new MVVM package.
 
 ## Dependency changes
 

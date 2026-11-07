@@ -1,0 +1,205 @@
+{
+  "Probe": "SC-002B-local-overlay",
+  "RecordedUtc": "2026-11-06T21:27:06.6641601+00:00",
+  "OsDescription": "Microsoft Windows 10.0.26200",
+  "Runtime": ".NET 10.0.14",
+  "Is64BitProcess": true,
+  "UserInteractive": true,
+  "RemoteCaptureVerified": false,
+  "CompositionEnabled": true,
+  "CompositionHResult": 0,
+  "OwnedWindowCreated": true,
+  "FirstApply": {
+    "Status": "ApiAccepted",
+    "Reason": "None",
+    "Win32Error": null,
+    "HResult": null
+  },
+  "FirstReadback": {
+    "Succeeded": true,
+    "Affinity": 17,
+    "Win32Error": 0
+  },
+  "AllowsTransparency": false,
+  "WindowStyle": "None",
+  "DpiScaleX": 1.5,
+  "DisplayNoActivateStyle": true,
+  "UpdateAndPlacementRetainedWindow": true,
+  "InteractiveInputEnabled": true,
+  "InteractiveActivationStatus": "Windows did not give this window keyboard focus. Select the input box to type.",
+  "DisplayInputDisabledAgain": true,
+  "HideWorked": true,
+  "HideShowRetainedWindow": true,
+  "RecreatedWindowAppliedAgain": true,
+  "SecondApply": {
+    "Status": "ApiAccepted",
+    "Reason": "None",
+    "Win32Error": null,
+    "HResult": null
+  },
+  "SecondReadback": {
+    "Succeeded": true,
+    "Affinity": 17,
+    "Win32Error": 0
+  },
+  "DetailsApply": {
+    "Status": "ApiAccepted",
+    "Reason": "None",
+    "Win32Error": null,
+    "HResult": null
+  },
+  "DetailsReadback": {
+    "Succeeded": true,
+    "Affinity": 17,
+    "Win32Error": 0
+  },
+  "HideControlWorked": true,
+  "AuxiliaryHideWorked": true,
+  "HotkeyRegistrations": [
+    {
+      "Binding": {
+        "Id": 21249,
+        "Action": 0,
+        "Shortcut": "Ctrl\u002BAlt\u002BSpace",
+        "Modifiers": 16387,
+        "VirtualKey": 32
+      },
+      "Succeeded": true,
+      "Win32Error": 0
+    },
+    {
+      "Binding": {
+        "Id": 21250,
+        "Action": 1,
+        "Shortcut": "Ctrl\u002BAlt\u002BEnter",
+        "Modifiers": 16387,
+        "VirtualKey": 13
+      },
+      "Succeeded": true,
+      "Win32Error": 0
+    },
+    {
+      "Binding": {
+        "Id": 21251,
+        "Action": 2,
+        "Shortcut": "Ctrl\u002BAlt\u002BEscape",
+        "Modifiers": 16387,
+        "VirtualKey": 27
+      },
+      "Succeeded": true,
+      "Win32Error": 0
+    }
+  ],
+  "HotkeyStatusText": "Ctrl\u002BAlt\u002BSpace: show or hide the display\r\nCtrl\u002BAlt\u002BEnter: enter text mode\r\nCtrl\u002BAlt\u002BEscape: hide all overlay windows",
+  "CompetingHotkeyRegistrations": [
+    {
+      "Binding": {
+        "Id": 21249,
+        "Action": 0,
+        "Shortcut": "Ctrl\u002BAlt\u002BSpace",
+        "Modifiers": 16387,
+        "VirtualKey": 32
+      },
+      "Succeeded": false,
+      "Win32Error": 1409
+    },
+    {
+      "Binding": {
+        "Id": 21250,
+        "Action": 1,
+        "Shortcut": "Ctrl\u002BAlt\u002BEnter",
+        "Modifiers": 16387,
+        "VirtualKey": 13
+      },
+      "Succeeded": false,
+      "Win32Error": 1409
+    },
+    {
+      "Binding": {
+        "Id": 21251,
+        "Action": 2,
+        "Shortcut": "Ctrl\u002BAlt\u002BEscape",
+        "Modifiers": 16387,
+        "VirtualKey": 27
+      },
+      "Succeeded": false,
+      "Win32Error": 1409
+    }
+  ],
+  "RegisteredHotkeyMessagesRouted": true,
+  "HotkeyReleaseResults": [
+    {
+      "Binding": {
+        "Id": 21249,
+        "Action": 0,
+        "Shortcut": "Ctrl\u002BAlt\u002BSpace",
+        "Modifiers": 16387,
+        "VirtualKey": 32
+      },
+      "Succeeded": true,
+      "Win32Error": 0
+    },
+    {
+      "Binding": {
+        "Id": 21250,
+        "Action": 1,
+        "Shortcut": "Ctrl\u002BAlt\u002BEnter",
+        "Modifiers": 16387,
+        "VirtualKey": 13
+      },
+      "Succeeded": true,
+      "Win32Error": 0
+    },
+    {
+      "Binding": {
+        "Id": 21251,
+        "Action": 2,
+        "Shortcut": "Ctrl\u002BAlt\u002BEscape",
+        "Modifiers": 16387,
+        "VirtualKey": 27
+      },
+      "Succeeded": true,
+      "Win32Error": 0
+    }
+  ],
+  "HotkeysReclaimedAfterDispose": true,
+  "OwnerCloseHotkeyReleaseResults": [
+    {
+      "Binding": {
+        "Id": 21249,
+        "Action": 0,
+        "Shortcut": "Ctrl\u002BAlt\u002BSpace",
+        "Modifiers": 16387,
+        "VirtualKey": 32
+      },
+      "Succeeded": true,
+      "Win32Error": 0
+    },
+    {
+      "Binding": {
+        "Id": 21250,
+        "Action": 1,
+        "Shortcut": "Ctrl\u002BAlt\u002BEnter",
+        "Modifiers": 16387,
+        "VirtualKey": 13
+      },
+      "Succeeded": true,
+      "Win32Error": 0
+    },
+    {
+      "Binding": {
+        "Id": 21251,
+        "Action": 2,
+        "Shortcut": "Ctrl\u002BAlt\u002BEscape",
+        "Modifiers": 16387,
+        "VirtualKey": 27
+      },
+      "Succeeded": true,
+      "Win32Error": 0
+    }
+  ],
+  "OwnerCloseReleasedHotkeys": true,
+  "OwnerCloseReleasedOverlay": true,
+  "AffinityApplyCount": 3,
+  "LifecyclePassed": true
+}

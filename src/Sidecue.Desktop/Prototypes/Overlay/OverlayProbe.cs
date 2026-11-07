@@ -21,7 +21,7 @@ internal static class OverlayProbe
         Directory.CreateDirectory(outputDirectory);
         var observations = new Dictionary<string, object?>
         {
-            ["Probe"] = "SC-002A-local-overlay",
+            ["Probe"] = "SC-002B-local-overlay",
             ["RecordedUtc"] = DateTimeOffset.UtcNow,
             ["OsDescription"] = RuntimeInformation.OSDescription,
             ["Runtime"] = RuntimeInformation.FrameworkDescription,
@@ -59,6 +59,28 @@ internal static class OverlayProbe
             observations["AllowsTransparency"] = first.AllowsTransparency;
             observations["WindowStyle"] = first.WindowStyle.ToString();
             observations["DpiScaleX"] = VisualTreeHelper.GetDpi(first).DpiScaleX;
+            VerifyMode(first, interactive: false);
+            observations["DisplayNoActivateStyle"] = true;
+            host.UpdateDisplay("Synthetic answer update. No meeting or provider is connected.");
+            first.Left += 24;
+            first.Top += 16;
+            first.Width += 16;
+            await SettleAsync(first);
+            if (new WindowInteropHelper(first).Handle != firstHandle || recording.Calls != 1)
+            {
+                throw new InvalidOperationException("Display updates and placement must preserve the window lifetime.");
+            }
+            observations["UpdateAndPlacementRetainedWindow"] = true;
+            var interactive = host.ShowInteractive();
+            await SettleAsync(interactive);
+            VerifyMode(interactive, interactive: true);
+            observations["InteractiveInputEnabled"] = true;
+            observations["InteractiveActivationStatus"] = interactive.ViewModel.ActivationStatusText;
+            SavePreview(interactive, Path.Combine(outputDirectory, "input-preview.png"));
+            host.Show();
+            await SettleAsync(first);
+            VerifyMode(first, interactive: false);
+            observations["DisplayInputDisabledAgain"] = true;
             SavePreview(first, Path.Combine(outputDirectory, "overlay-preview.png"));
             host.Hide();
             if (first.IsVisible) { throw new InvalidOperationException("Hide did not hide the overlay."); }
@@ -80,12 +102,33 @@ internal static class OverlayProbe
             observations["RecreatedWindowAppliedAgain"] = true;
             observations["SecondApply"] = Describe(replacement.ViewModel.Result);
             observations["SecondReadback"] = Win32WindowAffinityApi.ReadDisplayAffinity(new WindowInteropHelper(replacement).Handle);
+            var details = host.ShowDetails();
+            await SettleAsync(details);
+            var detailsHandle = new WindowInteropHelper(details).Handle;
+            if (detailsHandle == 0 || details.Owner != replacement || recording.Calls != 3)
+            {
+                throw new InvalidOperationException("Auxiliary details must have their own owned, policy-applied HWND.");
+            }
+            observations["DetailsApply"] = Describe(details.ViewModel.Result);
+            observations["DetailsReadback"] = Win32WindowAffinityApi.ReadDisplayAffinity(detailsHandle);
+            SavePreview(details, Path.Combine(outputDirectory, "details-preview.png"));
             var hide = (Button)replacement.FindName("HideOverlayButton");
             hide.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-            if (replacement.IsVisible) { throw new InvalidOperationException("The overlay hide control failed."); }
+            if (replacement.IsVisible || details.IsVisible) { throw new InvalidOperationException("The overlay hide control failed."); }
             observations["HideControlWorked"] = true;
+            observations["AuxiliaryHideWorked"] = true;
+            VerifyHotkeys(owner, host, observations);
+            using var ownerLifetimeRegistration = new OverlayHotkeyRegistration();
+            using var ownerLifetimeKeyboard = new OverlayKeyboardController(owner, host, ownerLifetimeRegistration);
             owner.Close();
-            if (host.CurrentWindow is not null) { throw new InvalidOperationException("Owner closure did not release its overlay."); }
+            if (host.CurrentWindow is not null || host.DetailsWindow is not null) { throw new InvalidOperationException("Owner closure did not release its overlay windows."); }
+            observations["OwnerCloseHotkeyReleaseResults"] = ownerLifetimeRegistration.ReleaseResults;
+            if (ownerLifetimeRegistration.ReleaseResults.Count != ownerLifetimeRegistration.Results.Count(result => result.Succeeded) ||
+                ownerLifetimeRegistration.ReleaseResults.Any(result => !result.Succeeded))
+            {
+                throw new InvalidOperationException("Owner closure did not release its shortcut registrations.");
+            }
+            observations["OwnerCloseReleasedHotkeys"] = true;
             observations["OwnerCloseReleasedOverlay"] = true;
             observations["AffinityApplyCount"] = recording.Calls;
             observations["LifecyclePassed"] = true;
@@ -110,6 +153,76 @@ internal static class OverlayProbe
     {
         Status = result.Status.ToString(), Reason = result.Reason.ToString(), result.Win32Error, result.HResult
     };
+
+    private static void VerifyMode(OverlayWindow window, bool interactive)
+    {
+        var style = new Win32WindowStyleApi().ReadExtendedStyle(new WindowInteropHelper(window).Handle);
+        var input = (TextBox)window.FindName("PrototypeInput");
+        if (!style.Succeeded || ((style.Style & WindowActivationPolicy.NoActivateStyle) == 0) != interactive ||
+            window.ViewModel.IsInteractive != interactive || input.IsEnabled != interactive)
+        {
+            throw new InvalidOperationException("The native activation style and input mode must agree.");
+        }
+    }
+
+    private static void VerifyHotkeys(Window owner, OverlayHost host, Dictionary<string, object?> observations)
+    {
+        // These are native registrations and directed WM_HOTKEY messages, not physical key presses.
+        var registration = new OverlayHotkeyRegistration();
+        using var keyboard = new OverlayKeyboardController(owner, host, registration);
+        observations["HotkeyRegistrations"] = keyboard.Results;
+        observations["HotkeyStatusText"] = keyboard.StatusText;
+        var handle = new WindowInteropHelper(owner).Handle;
+        var competingOwner = new Window { ShowActivated = false, ShowInTaskbar = false };
+        try
+        {
+            var competingHandle = new WindowInteropHelper(competingOwner).EnsureHandle();
+            using var competing = new OverlayHotkeyRegistration();
+            var conflicts = competing.Register(competingHandle);
+            foreach (var result in keyboard.Results.Where(result => result.Succeeded))
+            {
+                if (conflicts.Single(conflict => conflict.Binding.Id == result.Binding.Id).Succeeded)
+                {
+                    throw new InvalidOperationException("A competing window unexpectedly acquired an owned shortcut.");
+                }
+                Win32HotkeyApi.SendDiagnosticNotification(handle, result.Binding.Id);
+                switch (result.Binding.Action)
+                {
+                    case OverlayHotkeyAction.ToggleDisplay:
+                        if (host.CurrentWindow?.IsVisible != true) { throw new InvalidOperationException("Show shortcut was not routed."); }
+                        break;
+                    case OverlayHotkeyAction.Interactive:
+                        if (host.CurrentWindow?.ViewModel.IsInteractive != true) { throw new InvalidOperationException("Input shortcut was not routed."); }
+                        break;
+                    case OverlayHotkeyAction.Hide:
+                        host.ShowDetails();
+                        Win32HotkeyApi.SendDiagnosticNotification(handle, result.Binding.Id);
+                        if (host.CurrentWindow?.IsVisible == true || host.DetailsWindow?.IsVisible == true)
+                        {
+                            throw new InvalidOperationException("Hide shortcut did not hide all surfaces.");
+                        }
+                        break;
+                }
+            }
+            observations["CompetingHotkeyRegistrations"] = conflicts;
+            observations["RegisteredHotkeyMessagesRouted"] = true;
+        }
+        finally { competingOwner.Close(); }
+        keyboard.Dispose();
+        observations["HotkeyReleaseResults"] = registration.ReleaseResults;
+        if (registration.ReleaseResults.Any(result => !result.Succeeded))
+        {
+            throw new InvalidOperationException("A native shortcut registration did not release.");
+        }
+        using var reclaimed = new OverlayHotkeyRegistration();
+        var reclaims = reclaimed.Register(handle);
+        if (keyboard.Results.Where(result => result.Succeeded)
+            .Any(result => !reclaims.Single(reclaim => reclaim.Binding.Id == result.Binding.Id).Succeeded))
+        {
+            throw new InvalidOperationException("A released shortcut could not be registered again.");
+        }
+        observations["HotkeysReclaimedAfterDispose"] = true;
+    }
 
     private static async Task SettleAsync(Window window)
     {

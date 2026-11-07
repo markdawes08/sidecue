@@ -1,0 +1,41 @@
+<Window x:Class="Sidecue.Desktop.Prototypes.Overlay.OverlayDetailsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Sidecue overlay details"
+        Width="420" Height="350" WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False" ShowActivated="False" Topmost="True"
+        WindowStyle="None" ResizeMode="NoResize"
+        ContextMenuService.IsEnabled="False" ToolTipService.IsEnabled="False"
+        Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"
+        Foreground="{DynamicResource {x:Static SystemColors.WindowTextBrushKey}}"
+        FontFamily="{DynamicResource {x:Static SystemFonts.MessageFontFamilyKey}}" FontSize="14">
+    <Window.Resources>
+        <Style TargetType="ScrollBar">
+            <Setter Property="ContextMenuService.IsEnabled" Value="False" />
+            <Setter Property="ToolTipService.IsEnabled" Value="False" />
+        </Style>
+    </Window.Resources>
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel>
+                <TextBlock Text="Overlay details" FontSize="22" FontWeight="SemiBold"
+                           MouseLeftButtonDown="OnMoveGripMouseDown" Cursor="SizeAll" />
+                <TextBlock Text="This auxiliary window requests its own capture exclusion."
+                           Margin="0,12,0,0" TextWrapping="Wrap" />
+                <TextBlock x:Name="CapabilityStatusText" Text="{Binding StatusText}"
+                           Margin="0,12,0,0" FontWeight="SemiBold" TextWrapping="Wrap" />
+                <TextBlock x:Name="CapabilityDetailText" Text="{Binding DetailText}"
+                           Margin="0,8,0,0" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding VerificationNotice}" Margin="0,12,0,0" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding ActivationStatusText}" Margin="0,12,0,0" TextWrapping="Wrap" />
+            </StackPanel>
+        </ScrollViewer>
+        <Button x:Name="HideAllButton" Grid.Row="1" Content="_Hide all overlays"
+                HorizontalAlignment="Right" Margin="0,16,0,0" Padding="16,8"
+                Click="OnHideClick" AutomationProperties.Name="Hide all overlays" />
+    </Grid>
+</Window>
