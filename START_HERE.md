@@ -10,6 +10,8 @@ SC-000 establishes the C# solution and deterministic test entry point. See [DEVE
 
 Add `-Owner <agent-id>` to the task viewer when resuming claimed work. Automatic selection otherwise considers only unowned leaves; an explicit ID reports an ownership conflict rather than taking another agent's task.
 
+The viewer also lists blocked leaves so they remain visible when other work is selected. Record actionable work to revisit on the relevant open task in `tasks/backlog.json`; use its `follow_ups` for specific remaining actions, `blockers` for obstacles, and `evidence` for supporting records. These details do not create separate task statuses. If no open task covers an item, add a scoped task and its required instruction card instead of relying on handoff prose.
+
 ## Minimum reading for a task
 
 | Work | Read |

@@ -34,6 +34,10 @@ function Get-UnmetDependencies($Task) {
 }
 
 $candidates = @($backlog.tasks | Where-Object { -not (Test-Group $_) })
+# Surface blocked leaves on every view so a ready task cannot hide follow-up work.
+$blockedTasks = @($candidates | Where-Object status -eq 'blocked' | Sort-Object id | ForEach-Object {
+    [ordered]@{ id = $_.id; title = $_.title; blockers = @($_.blockers) }
+})
 $requestedGroup = $null
 $selected = $null
 if ($Id) {
@@ -61,6 +65,7 @@ if (-not $selected) {
         backlog_path = $BacklogPath
         message = 'No dependency-ready leaf task. Inspect blockers and required evidence; do not bypass a gate.'
         requested_group = $(if ($requestedGroup) { $requestedGroup.id } else { $null })
+        blocked_tasks = $blockedTasks
         tasks = @($candidates | Where-Object status -ne 'done' | ForEach-Object {
             [ordered]@{ id = $_.id; status = $_.status; owner = $_.owner; unmet_dependencies = @(Get-UnmetDependencies $_); blockers = $_.blockers }
         })
@@ -82,6 +87,7 @@ $ownershipConflict = [bool]($selected.owner -and $selected.owner -ne $Owner)
     ownership_conflict = $ownershipConflict
     task = $selected
     unmet_dependencies = @(Get-UnmetDependencies $selected)
+    blocked_tasks = $blockedTasks
     parent = $(if ($parent) {
         [ordered]@{ id = $parent.id; title = $parent.title; status = $parent.status; children = $parent.children;
             acceptance = $parent.acceptance; validation = $parent.validation }

@@ -36,6 +36,13 @@ try {
     foreach ($task in $backlog.tasks) {
         if (-not $task.id -or $nodes.ContainsKey($task.id)) { throw "Missing or duplicate task ID: $($task.id)" }
         if ($task.status -notin $backlog.allowed_task_statuses) { throw "Invalid task status: $($task.id)" }
+        if ($task.PSObject.Properties['follow_ups']) {
+            if ($task.follow_ups -isnot [array]) { throw "Follow-ups must be an array: $($task.id)" }
+            if ($task.status -eq 'done' -and $task.follow_ups.Count -gt 0) { throw "Done task has unresolved follow-ups: $($task.id)" }
+            foreach ($followUp in $task.follow_ups) {
+                if ($followUp -isnot [string] -or [string]::IsNullOrWhiteSpace($followUp)) { throw "Invalid follow-up on $($task.id)" }
+            }
+        }
         foreach ($dependency in $task.depends_on) {
             if ($dependency -notin $taskIds) { throw "Unknown task dependency: $($task.id) -> $dependency" }
         }

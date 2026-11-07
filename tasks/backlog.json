@@ -464,6 +464,12 @@
       "evidence": [
         "docs/evidence/SC-002C/2026-11-06-preflight.md"
       ],
+      "follow_ups": [
+        "Obtain two active monitors at different scaling settings and verify movement, placement and the required monitor cases.",
+        "Provide a controlled synthetic display-update path and verify foreground focus is preserved in a separate application.",
+        "Verify actual text entry and physical keyboard shortcuts, including held-key behavior.",
+        "Retry the inconclusive hide check with both overlay surfaces open and exercise supported auxiliary and suppressed popup behavior."
+      ],
       "blockers": [
         "Only one active monitor at 150% scaling is available; the owner cannot connect a second mixed-DPI display now."
       ],

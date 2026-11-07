@@ -22,7 +22,7 @@ Link the test evidence record. Include exact commands and result summaries there
 
 Describe unfinished acceptance, blockers, temporary choices, and the next concrete action. Explain why any required gate is pending. Do not claim unrelated future features are complete.
 
-Name the exact next leaf ID and any external prerequisites. Stop at the current leaf boundary; record larger newly discovered defects as scoped corrective tasks.
+Name the exact next leaf ID and any external prerequisites. Record actionable follow-ups on their open task in `tasks/backlog.json`, or create a scoped task when none covers them. Include blockers, next actions and evidence; resolve or transfer them before closing their task. Stop at the current leaf boundary.
 
 ## State updates
 

@@ -19,6 +19,7 @@ The plan has 32 feature-level groups containing 99 child tasks; SC-007 and SC-01
 - Leave the root README alone until the user says otherwise. Use START_HERE.md, this handoff and task documents for context.
 - The user handles all staging, committing and pushing. Include a suggested commit message when files change.
 - Maintain .gitignore. Generated output, downloaded SDKs, private data and secrets stay out of Git; source, lockfiles, synthetic fixtures and sanitized evidence stay reviewable.
+- Keep actionable follow-ups, blockers and evidence on the relevant open task in tasks/backlog.json; create scoped tasks only for work not already covered. Resolve or transfer remaining actions before closing a task.
 - Test the affected behavior and required task acceptance. Once relevant checks pass, expand only for a failure, dependency change or unresolved concern.
 - One prompt defaults to one executable leaf, its checks and handoff. A parent ID selects its next eligible child. Stop there unless the user explicitly requests more blocks. Do not confuse a completed child with parent/gate acceptance.
 
@@ -52,6 +53,8 @@ The actual executable at 150% DPI accepted exclusion with `0x11` readback for or
 SC-002B repository validation passed: 19 JSON files, 134 tasks, five gates, completion/coverage guards, 243 local links and both original source hashes. Whitespace checks passed and the README remained unchanged. Existing .gitignore rules cover generated output. Nothing was staged, committed or pushed.
 
 The subsequent SC-002C partial run found one active 2560 x 1600 monitor at 150%; the owner cannot connect a second monitor now. On ordinary-integrity windows, injected shortcuts opened display, selected input mode and hid the overlay; a competing instance visibly reported conflicts, and details displayed its separate exclusion result. Typed text could not be read back, a shell Hide attempt with auxiliary windows open was inconclusive, and no separate foreground streaming-update test was run. The [partial record](evidence/SC-002C/2026-11-06-preflight.md) includes sanitized environment output and reproducible local helpers. No product code changed or full WIN/CAP row passed in that run.
+
+Backlog maintenance now keeps specific return actions in an optional `follow_ups` array on the relevant open task. The task viewer always reports blocked leaves alongside the next selection; the repository checker rejects completed tasks with unresolved follow-ups. SC-002C has four recorded actions and remains blocked. The [maintenance check](evidence/backlog-maintenance/2026-11-06.md) covers viewer selection and completion guard behavior.
 
 The earlier [SC-000 run](evidence/SC-000/2026-11-06.md) verified a source-only export with fresh NuGet/CLI caches. That clean-export check was not repeated; this block exercised the actual Release executable through its explicit probe mode.
 

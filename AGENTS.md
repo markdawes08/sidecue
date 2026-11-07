@@ -7,6 +7,7 @@ Build Sidecue, an original Windows meeting assistant owned by Mark Dawes. Inspec
 - Leave the root `README.md` alone until the user asks otherwise. Do not consult it for task context or keep it updated during routine work; use `START_HERE.md` and `docs/PROJECT_STATE.md` instead.
 - The user handles all staging, committing, and pushing. Do not run `git add`, `git commit`, or `git push`. For every handoff with file changes, include a suggested commit message.
 - Maintain `.gitignore`: exclude generated output, local secrets and private data; retain source, lockfiles, synthetic fixtures and sanitized evidence. Review new files before handoff.
+- Maintain `tasks/backlog.json` for work that must be revisited. Put each actionable follow-up on its existing open task or create a scoped task when none covers it; record blockers, next steps and evidence there. Keep task status authoritative, avoid duplicate or speculative tasks, and resolve or transfer follow-ups before closing their task.
 - Test proportionally. Run the affected behavior checks and required task acceptance checks. Once they pass, stop unless a failure, dependency change or unresolved risk warrants more. Do not add redundant tests, speculative benchmarks or unrelated full-matrix runs. Required native/release evidence still applies at its task or gate.
 - One prompt means one executable leaf task, including its checks and handoff, unless the user explicitly requests more. A parent ID selects its next ready child. Preparation-only requests do not start implementation.
 
