@@ -959,7 +959,7 @@
       "id": "SC-004",
       "phase": 0,
       "title": "Prove encrypted database and protected keys",
-      "status": "planned",
+      "status": "in_progress",
       "depends_on": [
         "SC-000"
       ],
@@ -1000,7 +1000,7 @@
       "id": "SC-004A",
       "phase": 0,
       "title": "Select and prove the native encrypted database build",
-      "status": "ready",
+      "status": "done",
       "task_type": "implementation",
       "parent_id": "SC-004",
       "depends_on": [
@@ -1047,7 +1047,9 @@
           2
         ]
       },
-      "evidence": [],
+      "evidence": [
+        "docs/evidence/SC-004A/2026-11-08.md"
+      ],
       "blockers": [],
       "owner": null
     },
@@ -1100,6 +1102,9 @@
         ]
       },
       "evidence": [],
+      "follow_ups": [
+        "Implement fail-closed production loading of the reviewed SQLCipher candidate, with an explicitly approved native binary identity and no system SQLite fallback; the SC-004A canary is not a production loader."
+      ],
       "blockers": [],
       "owner": null
     },
@@ -1155,6 +1160,10 @@
         ]
       },
       "evidence": [],
+      "follow_ups": [
+        "Rebuild or package the exact selected native binary in a clean Windows environment, revalidate its identity and canary, and retain required SQLCipher and OpenSSL notices in distribution materials.",
+        "Review the build-only Perl package's reported CVE-2026-15534 and update the pinned tool/recipe if needed before a clean rebuild."
+      ],
       "blockers": [],
       "owner": null
     },

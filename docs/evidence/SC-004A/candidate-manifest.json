@@ -1,0 +1,7 @@
+{
+    "CipherVersion":  "4.20.0 community",
+    "SqliteVersion":  "3.54.1",
+    "NativeSha256":  "87d07385d9b299d0a2f65ec69e7d5636bf5b8b4b873bb5b2b5a65ba2848e2a92",
+    "ProviderVersion":  "OpenSSL 3.5.9 29 Sep 2026",
+    "SourceId":  "2026-10-16 14:45:20 555e07ef33f69a0957d24d8e555b702464a131d6f1607f4c3c1e4551e8e6alt1"
+}

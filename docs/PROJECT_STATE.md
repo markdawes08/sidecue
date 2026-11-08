@@ -1,16 +1,16 @@
 # Current project context
 
-Updated: November 7, 2026. Architecture baseline: 0.1.
+Updated: November 8, 2026. Architecture baseline: 0.1.
 
 ## Current reality
 
-Sidecue has a five-project .NET solution, a minimal WPF shell, an owned overlay prototype and separate Windows microphone/render-loopback capture adapters with bounded normalization and a device recovery owner. The overlay has display and explicit local input modes, fixed global shortcuts and an excluded auxiliary details window. It explicitly says screen sharing is unverified. Audio capture is not connected to the shell, providers or persistence. Core/Application provide contracts and a sent-sample timing helper; Infrastructure still has no adapters.
+Sidecue has a five-project .NET solution, a minimal WPF shell, an owned overlay prototype and separate Windows microphone/render-loopback capture adapters with bounded normalization and a device recovery owner. The overlay has display and explicit local input modes, fixed global shortcuts and an excluded auxiliary details window. It explicitly says screen sharing is unverified. Audio capture is not connected to the shell, providers or persistence. Core/Application provide contracts and a sent-sample timing helper; Infrastructure still has no production persistence adapter. A separate canary validates a selected native SQLCipher candidate.
 
 A separate test-only replay now runs a fictional meeting through controlled clock, capture, transcription, assistance and store fakes. It models revisions, duplicates, resets and stale-answer fences; these reference rules are not wired into the product.
 
 SDK/package pins, lockfiles, recommended analyzers with warnings as errors, PowerShell setup/build/test/run/probe commands and Windows CI configuration are present. The isolated overlay uses a small observable view model without a new package. Native system menus and WPF popup/tooltip surfaces are suppressed; IME/spellcheck popups are disabled for the prototype. Future surfaces must explicitly join the exclusion policy rather than assume inheritance from an owner.
 
-Task and gate status belongs only in [backlog.json](../tasks/backlog.json). Latest evidence: [SC-003E correction](evidence/SC-003E/2026-11-07.md) and [SC-003D partial preflight](evidence/SC-003D/2026-11-07-preflight.md); operation and limits: [audio guide](AUDIO_CAPTURE.md). Overlay work remains documented in [SC-002C partial evidence](evidence/SC-002C/2026-11-06-preflight.md) and the [overlay guide](OVERLAY_PROTOTYPE.md). Read the [record mapping](CONTRACT_RECORDS.md), [service mapping](CONTRACT_SERVICES.md) and [replay guide](REPLAY.md) before extending those boundaries. Historical package provenance and source snapshots remain unchanged.
+Task and gate status belongs only in [backlog.json](../tasks/backlog.json). Latest evidence: [SC-004A native database canary](evidence/SC-004A/2026-11-08.md); audio work remains in [SC-003E correction](evidence/SC-003E/2026-11-07.md), [SC-003D partial preflight](evidence/SC-003D/2026-11-07-preflight.md) and the [audio guide](AUDIO_CAPTURE.md). Overlay work remains documented in [SC-002C partial evidence](evidence/SC-002C/2026-11-06-preflight.md) and the [overlay guide](OVERLAY_PROTOTYPE.md). Read the [record mapping](CONTRACT_RECORDS.md), [service mapping](CONTRACT_SERVICES.md) and [replay guide](REPLAY.md) before extending those boundaries. Historical package provenance and source snapshots remain unchanged.
 
 The plan has 32 feature-level groups and now includes corrective child SC-003E; SC-007 and SC-016 remain standalone. Original acceptance, dependencies, deferred scope and all five phase gates are preserved. Read [the execution rules](IMPLEMENTATION_PLAN.md) and [planning validation](evidence/planning/2026-11-06-task-split.md).
 
@@ -45,13 +45,16 @@ powershell -NoProfile -File tools/probe-audio.ps1
 powershell -NoProfile -File tools/probe-audio.ps1 -Normalize
 powershell -NoProfile -File tools/probe-audio-recovery.ps1 -Seconds 30
 
+# Encrypted database canary, after preparing the reviewed native DLL:
+powershell -NoProfile -File tools/probe-sqlcipher.ps1
+
 # Open the minimal shell after a Debug build:
 powershell -NoProfile -File tools/run.ps1
 ```
 
 Local validation used Windows 11 Home 25H2, build 26200.9711, x64, PowerShell 5.1, SDK 10.0.403 and runtime 10.0.14. The system SDK remains 10.0.301; tooling uses the verified local SDK under ignored artifacts/dotnet. No machine-wide installation or persistent PATH change was made.
 
-The latest locked Release build passed with zero warnings/errors and all 78 affected Windows tests passed. The preceding SC-003C full suite passed 144 tests. No dependencies changed.
+The latest locked Release build passed with zero warnings/errors and all 153 deterministic tests passed. The separate native database canary passed with SQLCipher 4.20.0 Community, SQLite 3.54.1 and OpenSSL 3.5.9, using the exact DLL hash in its evidence. It verified FTS5, live WAL, memory-only temp, wrong/no-key and ordinary-SQLite rejection, plus synthetic marker scans. These managed dependencies are currently used only by the canary.
 
 The actual executable at 150% DPI accepted exclusion with `0x11` readback for original/recreated overlays and details. Native mode styles, input enablement, placement identity, hide/show and cleanup passed. All three shortcuts registered, a competing owner received error 1409, directed messages routed, and disposal/owner destruction released registrations. Windows declined the automated explicit foreground request; the UI displayed that result. Physical typing, key holding, another foreground application, mixed-DPI monitors and receiving streams were not verified. All three synthetic previews were inspected. No full WIN/CAP row or phase gate passed.
 
@@ -69,7 +72,7 @@ The Windows CI workflow targets windows-2025 and records the actual runner image
 
 ## Next concrete action
 
-The next dependency-ready leaf is **SC-004A: select and prove the native encrypted database build**. Read its [task card](tasks/SC-004.md#sc-004a), data/recovery and security contracts, and confirm native distribution prerequisites before claiming it. Do not use plaintext fallback. Stop after that leaf.
+The next dependency-ready leaf is **SC-004B: protect database keys and reopen user storage**. Read its [task card](tasks/SC-004.md#sc-004b), [SC-004A evidence](evidence/SC-004A/2026-11-08.md), data/recovery and security contracts before claiming it. Implement a fail-closed production loader for an approved native binary, not a system SQLite fallback. Stop after that leaf.
 
 **SC-003D remains blocked** on physical prerequisites. The owner cannot connect a USB headset now; the headset meeting, unplug/reconnect, both default-device changes and calibrated timing reference remain in the backlog. An automated playback switch could not be performed because Windows Settings did not expose a targetable window; no default was changed. Do not ask for these actions again unless the owner is ready to resume physical verification.
 
@@ -77,4 +80,4 @@ The next dependency-ready leaf is **SC-004A: select and prove the native encrypt
 
 The task viewer is read-only. Pass `-Id` to inspect a specific leaf or select within a parent; pass `-Owner <agent-id>` to resume claimed work. Without an owner, automatic selection skips claimed tasks. Check external prerequisites and claim the selected leaf in backlog.json before work; do not assume the viewer has claimed it.
 
-Exact SQLCipher selection, provider/model pins, supported hardware/share scenarios, signed packaging and measured latency remain unresolved. No phase gate is closed by the bootstrap. Keep the personal Windows workflow ahead of hosted/team features and preserve the existing data boundaries.
+The SQLCipher candidate is source-pinned and locally tested, not yet integrated into production persistence or verified in a clean/packaged environment. A full clean invocation of the native build recipe and bit-for-bit reproducibility were not established; SC-004C tracks clean verification, distribution notices and build-only Perl review. Provider/model pins, supported hardware/share scenarios, signed packaging and measured latency remain unresolved. No phase gate is closed. Keep the personal Windows workflow ahead of hosted/team features and preserve the existing data boundaries.

@@ -1,0 +1,12 @@
+﻿{
+    "SqlCipherSourceSha256":  "a1417a5a672a2342de6ae44e08ccd68487fa3d0a43212331f4226a0d00b51b9c",
+    "OpenSslSourceSha256":  "603f5602e2eef00d77fbd429d34dcd5822bb301757a1bc9cdb24c670f1eb859a",
+    "OpenSslOptions":  "VC-WIN64A no-shared no-asm no-tests no-module no-autoload-config no-dso",
+    "SqlCipherOptions":  "/DSQLITE_API=__declspec(dllexport) /DSQLITE_HAS_CODEC /DSQLITE_TEMP_STORE=3 /DSQLITE_EXTRA_INIT=sqlcipher_extra_init /DSQLITE_EXTRA_SHUTDOWN=sqlcipher_extra_shutdown /DSQLITE_THREADSAFE=1 /DSQLCIPHER_CRYPTO_OPENSSL /DSQLITE_ENABLE_FTS5",
+    "MsvcToolset":  "14.51.36231",
+    "WindowsSdk":  "10.0.28000.0",
+    "Perl":  "5.44.0",
+    "ReusedLibcrypto":  true,
+    "LibcryptoSha256":  "4325b90187be01da046ecc245c56a607306407b3a22041aec920fa10a08384ae",
+    "NativeSha256":  "87d07385d9b299d0a2f65ec69e7d5636bf5b8b4b873bb5b2b5a65ba2848e2a92"
+}

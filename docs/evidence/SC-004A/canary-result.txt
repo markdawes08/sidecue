@@ -1,0 +1,14 @@
+﻿SC-004A recipe-produced candidate canary result (2026-11-08, Windows x64)
+Command: powershell -NoProfile -File tools/probe-sqlcipher.ps1 -NoBuild -ManifestPath <absolute reviewed candidate-recipe manifest>
+Result: exit 0.
+Native DLL loaded from candidate path and matched reviewed manifest SHA-256: 87d07385d9b299d0a2f65ec69e7d5636bf5b8b4b873bb5b2b5a65ba2848e2a92
+SQLCipher: 4.20.0 community; PRAGMA cipher_status: 1
+Crypto: openssl; OpenSSL 3.5.9 29 Sep 2026
+SQLite: 3.54.1
+SQLite source ID: 2026-10-16 14:45:20 555e07ef33f69a0957d24d8e555b702464a131d6f1607f4c3c1e4551e8e6alt1
+FTS5 and SQLITE_TEMP_STORE=3: present.
+Live database, WAL and SHM were present; WAL size was 53592 bytes.
+UTF-8, UTF-16LE and UTF-16BE scans of three live files and one post-close file found no synthetic markers (including the lowercase FTS token).
+Wrong-key and absent-key schema reads rejected; correct-key reopen and FTS query succeeded. Separate ordinary System32 Windows SQLite read-only schema read returned SQLITE_NOTADB.
+SQLCipher emitted generic HMAC/page-decryption errors during the expected wrong-key failure; no key, canary content, or private path was included in these errors.
+No production data or secrets were used. This is local candidate evidence, not a clean-system or installed-release verification.
