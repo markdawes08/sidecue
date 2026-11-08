@@ -1,0 +1,81 @@
+{
+  "RecordedUtc": "2026-11-08T04:51:43.7469938+00:00",
+  "DurationSeconds": 10,
+  "OperatingSystem": "Microsoft Windows 10.0.26200",
+  "Runtime": ".NET 10.0.14",
+  "Microphone": {
+    "Source": "Microphone",
+    "ValidIdentity": true,
+    "ValidTimeline": true,
+    "OmittedEpochEvents": 0,
+    "TerminalState": "Stopped",
+    "TerminalError": null,
+    "Epochs": [
+      {
+        "EpochNumber": 0,
+        "Frames": 97,
+        "Samples": 152800,
+        "Bytes": 305600,
+        "EstimatedFrames": 97,
+        "ValidFormat": true,
+        "OrderedSequences": true,
+        "LastSequence": 96,
+        "EarliestStartMicroseconds": 514776,
+        "LatestEndMicroseconds": 10074770,
+        "StatusEvents": 4,
+        "Failures": 0,
+        "Gaps": {
+          "CaptureDiscontinuity:Unknown": {
+            "Count": 2,
+            "ReportedDurationMicroseconds": 9994
+          }
+        },
+        "RawConsumedFormats": {
+          "48000Hz:2ch:FloatingPoint32": {
+            "Frames": 955,
+            "Samples": 458400,
+            "DurationMicroseconds": 9550000
+          }
+        }
+      }
+    ]
+  },
+  "Loopback": {
+    "Source": "RemotePlayback",
+    "ValidIdentity": true,
+    "ValidTimeline": true,
+    "OmittedEpochEvents": 0,
+    "TerminalState": "Stopped",
+    "TerminalError": null,
+    "Epochs": [
+      {
+        "EpochNumber": 0,
+        "Frames": 101,
+        "Samples": 160640,
+        "Bytes": 321280,
+        "EstimatedFrames": 101,
+        "ValidFormat": true,
+        "OrderedSequences": true,
+        "LastSequence": 100,
+        "EarliestStartMicroseconds": 37259,
+        "LatestEndMicroseconds": 10077259,
+        "StatusEvents": 4,
+        "Failures": 0,
+        "Gaps": {
+          "CaptureDiscontinuity:Unknown": {
+            "Count": 2,
+            "ReportedDurationMicroseconds": 0
+          }
+        },
+        "RawConsumedFormats": {
+          "44100Hz:2ch:FloatingPoint32": {
+            "Frames": 1004,
+            "Samples": 442764,
+            "DurationMicroseconds": 10040000
+          }
+        }
+      }
+    ]
+  },
+  "FailureType": null
+}

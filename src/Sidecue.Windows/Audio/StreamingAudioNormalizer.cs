@@ -10,6 +10,9 @@ internal sealed class StreamingAudioNormalizer : IDisposable
 {
     private const int TargetRate = 16_000;
     private const int MaximumInputFrames = 2_048;
+    // Device position provides sample order, not an exact session clock. Stop
+    // extrapolating if it diverges materially from the callback estimate.
+    private const long MaximumEstimateDivergenceMicroseconds = 100_000;
     private readonly CaptureRequest _request;
     private readonly int _chunkSamples;
     private readonly Action<OwnedAudioFrame> _emit;
@@ -21,13 +24,13 @@ internal sealed class StreamingAudioNormalizer : IDisposable
     private TimelinePosition? _lastInputEnd;
     private TimelinePosition? _lastOutputEnd;
     private RawClockPosition? _lastDevicePosition;
+    private RawClockPosition? _segmentDevicePosition;
     private int _lastInputSampleCount;
     private bool _lastDevicePositionTrusted;
     private long _lastInputSequence = -1;
     private long _emittedSamples;
     private long _outputSequence;
     private int _pendingCount;
-    private bool _allZero = true;
     private bool _boundaryPending;
     private AudioFrameAttributes _segmentFlags;
     private bool _disposed;
@@ -71,6 +74,15 @@ internal sealed class StreamingAudioNormalizer : IDisposable
         var trustedDevicePosition = metadata.DevicePosition is { } currentDevice &&
             currentDevice.TicksPerSecond == format.SampleRate &&
             (metadata.Flags & AudioFrameAttributes.TimestampError) == 0;
+        // A missing or invalid position breaks the evidence chain back to the
+        // segment anchor; later positions alone cannot repair that chain.
+        if (!trustedDevicePosition) { _segmentDevicePosition = null; }
+        if (_lastInputSequence >= 0 && trustedDevicePosition != _lastDevicePositionTrusted)
+        {
+            // Fence loss and restoration of device-position evidence so a
+            // later contiguous pair gets a fresh, explicitly uncertain anchor.
+            discontinuity = true;
+        }
         var canCompareDevice = trustedDevicePosition && _lastDevicePositionTrusted && _lastDevicePosition is not null &&
             _inputFormat == format;
         if (canCompareDevice &&
@@ -78,12 +90,39 @@ internal sealed class StreamingAudioNormalizer : IDisposable
         {
             discontinuity = true;
         }
+
+        var inputStart = metadata.Interval.Start;
+        var inputEnd = metadata.Interval.End;
+        if (!discontinuity && canCompareDevice && _segmentStart is not null && _segmentDevicePosition is not null &&
+            (metadata.Flags & AudioFrameAttributes.SessionTimestampEstimated) != 0)
+        {
+            // Contiguous native device positions establish sample order, not an
+            // exact correlation with the session clock. Keep the first session
+            // estimate as an anchor and derive later positions from frame count.
+            // This avoids accumulating callback jitter and remains Estimated.
+            var framesFromAnchor = (Int128)metadata.DevicePosition!.Ticks - _segmentDevicePosition.Ticks;
+            var projectedStart = (Int128)_segmentStart.Offset.Value + framesFromAnchor * 1_000_000 / format.SampleRate;
+            var projectedEnd = (Int128)_segmentStart.Offset.Value + (framesFromAnchor + metadata.SampleCount) * 1_000_000 / format.SampleRate;
+            var difference = projectedStart - metadata.Interval.Start.Offset.Value;
+            if (framesFromAnchor < 0 || projectedStart < 0 || projectedEnd > long.MaxValue ||
+                Int128.Abs(difference) > MaximumEstimateDivergenceMicroseconds)
+            {
+                // A device count cannot justify an indefinitely drifting
+                // correlation. Treat the disagreement as a boundary.
+                discontinuity = true;
+            }
+            else
+            {
+                inputStart = new TimelinePosition(metadata.Interval.TimelineEpoch, new SessionOffset((long)projectedStart));
+                inputEnd = new TimelinePosition(metadata.Interval.TimelineEpoch, new SessionOffset((long)projectedEnd));
+            }
+        }
         var uncertain = ((metadata.Flags | _segmentFlags) &
             (AudioFrameAttributes.TimestampError | AudioFrameAttributes.SessionTimestampEstimated)) != 0;
         // Only matching device-frame positions justify tolerating small clock
         // alignment jitter; otherwise even a small hole remains uncertain loss.
         var tolerance = uncertain && canCompareDevice && !discontinuity ? 1_000 : 1;
-        if (_lastInputEnd is not null && metadata.Interval.Start.Offset.Value < _lastInputEnd.Offset.Value - tolerance)
+        if (_lastInputEnd is not null && inputStart.Offset.Value < _lastInputEnd.Offset.Value - tolerance)
         {
             if ((metadata.Flags & AudioFrameAttributes.SessionTimestampEstimated) != 0)
             {
@@ -92,9 +131,9 @@ internal sealed class StreamingAudioNormalizer : IDisposable
                 // into previously emitted audio. Report and discard it instead.
                 var previousEnd = _lastInputEnd;
                 CloseSegment();
-                var lossEnd = metadata.Interval.End.Offset.Value > previousEnd.Offset.Value ? metadata.Interval.End : previousEnd;
+                var lossEnd = inputEnd.Offset.Value > previousEnd.Offset.Value ? inputEnd : previousEnd;
                 _gap(new CaptureGap(_request.Version, _request.Source,
-                    new TimelineInterval(metadata.Interval.Start, lossEnd), GapReason.CaptureDiscontinuity, TimingCertainty.Unknown));
+                    new TimelineInterval(inputStart, lossEnd), GapReason.CaptureDiscontinuity, TimingCertainty.Unknown));
                 _boundaryPending = true;
                 _lastInputSequence = metadata.Sequence.Value;
                 _lastInputEnd = lossEnd;
@@ -105,7 +144,7 @@ internal sealed class StreamingAudioNormalizer : IDisposable
             }
             throw new InvalidOperationException("Overlapping source time cannot be normalized without inventing a timeline.");
         }
-        if (_lastInputEnd is not null && metadata.Interval.Start.Offset.Value - _lastInputEnd.Offset.Value > tolerance)
+        if (_lastInputEnd is not null && inputStart.Offset.Value - _lastInputEnd.Offset.Value > tolerance)
         {
             // Even a correlated clock is an estimate. Material disagreement is a
             // boundary, not evidence that the interval in between was captured.
@@ -115,21 +154,22 @@ internal sealed class StreamingAudioNormalizer : IDisposable
         {
             var previousEnd = _lastInputEnd;
             CloseSegment();
-            if (_lastOutputEnd is not null && metadata.Interval.Start.Offset.Value < _lastOutputEnd.Offset.Value)
+            if (_lastOutputEnd is not null && inputStart.Offset.Value < _lastOutputEnd.Offset.Value)
             {
                 throw new InvalidOperationException("A new segment would overlap normalized output.");
             }
-            var gapStart = previousEnd is not null && previousEnd.Offset.Value <= metadata.Interval.Start.Offset.Value
-                ? previousEnd : metadata.Interval.Start;
+            var gapStart = previousEnd is not null && previousEnd.Offset.Value <= inputStart.Offset.Value
+                ? previousEnd : inputStart;
             _gap(new CaptureGap(_request.Version, _request.Source,
-                new TimelineInterval(gapStart, metadata.Interval.Start), GapReason.CaptureDiscontinuity, TimingCertainty.Unknown));
+                new TimelineInterval(gapStart, inputStart), GapReason.CaptureDiscontinuity, TimingCertainty.Unknown));
             _boundaryPending = true;
         }
 
         if (_resampler is null)
         {
             _inputFormat = format;
-            _segmentStart = metadata.Interval.Start;
+            _segmentStart = inputStart;
+            _segmentDevicePosition = trustedDevicePosition ? metadata.DevicePosition : null;
             _emittedSamples = 0;
             _segmentFlags = AudioFrameAttributes.None;
             _resampler = new WdlResampler();
@@ -140,7 +180,7 @@ internal sealed class StreamingAudioNormalizer : IDisposable
         }
         _segmentFlags |= metadata.Flags & ~(AudioFrameAttributes.Silence | AudioFrameAttributes.Discontinuity);
         _lastInputSequence = metadata.Sequence.Value;
-        _lastInputEnd = metadata.Interval.End;
+        _lastInputEnd = inputEnd;
         _lastDevicePosition = metadata.DevicePosition;
         _lastDevicePositionTrusted = trustedDevicePosition;
         _lastInputSampleCount = metadata.SampleCount;
@@ -173,7 +213,6 @@ internal sealed class StreamingAudioNormalizer : IDisposable
                     value = Math.Clamp(value, -1f, 1f);
                     short sample = value <= -1f ? short.MinValue : (short)Math.Round(value * short.MaxValue);
                     _pending[_pendingCount++] = sample;
-                    _allZero &= sample == 0;
                     if (_pendingCount == _chunkSamples && PendingIsCovered()) { EmitPending(); }
                 }
             }
@@ -191,22 +230,34 @@ internal sealed class StreamingAudioNormalizer : IDisposable
     private void CloseSegment()
     {
         if (_resampler is null || _segmentStart is null) { return; }
+        var unsupportedPending = false;
         if (_pendingCount != 0)
         {
             if (PendingIsCovered()) { EmitPending(); }
             else
             {
-                // Never assign output samples to unsupported source time.
+                // Retain the supported prefix rather than losing an entire
+                // chunk when only its last samples exceed the known support.
+                var projectedEnd = PositionAt(checked(_emittedSamples + _pendingCount));
+                var supportedCount = _pendingCount;
+                while (supportedCount > 0 && _lastInputEnd is not null &&
+                    (Int128)PositionAt(checked(_emittedSamples + supportedCount)).Offset.Value > (Int128)_lastInputEnd.Offset.Value + 1)
+                {
+                    supportedCount--;
+                }
+                if (supportedCount > 0) { EmitPending(supportedCount); }
+                var projectedStart = PositionAt(_emittedSamples);
+                // The unsupported part is reported as an uncertain envelope;
+                // its source-time placement is not claimed to be exact.
+                _gap(new CaptureGap(_request.Version, _request.Source,
+                    new TimelineInterval(projectedStart, projectedEnd), GapReason.CaptureFailure, TimingCertainty.Unknown));
                 Array.Clear(_pending, 0, _pendingCount);
                 _pendingCount = 0;
-                _allZero = true;
-                var boundary = _lastInputEnd ?? _segmentStart;
-                _gap(new CaptureGap(_request.Version, _request.Source,
-                    new TimelineInterval(boundary, boundary), GapReason.CaptureFailure, TimingCertainty.Unknown));
+                unsupportedPending = true;
             }
         }
         var representedEnd = PositionAt(_emittedSamples);
-        if (_lastInputEnd is not null && representedEnd.Offset.Value < _lastInputEnd.Offset.Value)
+        if (!unsupportedPending && _lastInputEnd is not null && representedEnd.Offset.Value < _lastInputEnd.Offset.Value)
         {
             // Do not fabricate filter-tail samples when there is no subsequent input.
             _gap(new CaptureGap(_request.Version, _request.Source,
@@ -216,32 +267,38 @@ internal sealed class StreamingAudioNormalizer : IDisposable
         _resampler = null;
         _inputFormat = null;
         _segmentStart = null;
+        _segmentDevicePosition = null;
         _segmentFlags = AudioFrameAttributes.None;
     }
 
-    private void EmitPending()
+    private void EmitPending() => EmitPending(_pendingCount);
+
+    private void EmitPending(int count)
     {
-        var owner = new ClearedArrayOwner(_pendingCount * 2);
+        var owner = new ClearedArrayOwner(count * 2);
         try
         {
-            for (var index = 0; index < _pendingCount; index++)
+            bool allZero = true;
+            for (var index = 0; index < count; index++)
             {
                 BinaryPrimitives.WriteInt16LittleEndian(owner.Memory.Span.Slice(index * 2, 2), _pending[index]);
+                allZero &= _pending[index] == 0;
             }
             var start = PositionAt(_emittedSamples);
-            var end = PositionAt(checked(_emittedSamples + _pendingCount));
-            var flags = _segmentFlags | (_allZero ? AudioFrameAttributes.Silence : AudioFrameAttributes.None) |
+            var end = PositionAt(checked(_emittedSamples + count));
+            var flags = _segmentFlags | (allZero ? AudioFrameAttributes.Silence : AudioFrameAttributes.None) |
                 (_boundaryPending ? AudioFrameAttributes.Discontinuity : AudioFrameAttributes.None);
             var metadata = new AudioFrameMetadata(_request.Version, _request.Source,
                 new FrameSequence(_outputSequence++), new TimelineInterval(start, end),
-                new AudioFormat(TargetRate, 1, AudioSampleRepresentation.Pcm16, AudioByteOrder.LittleEndian), _pendingCount, flags);
-            var frame = new OwnedAudioFrame(metadata, owner, _pendingCount * 2);
+                new AudioFormat(TargetRate, 1, AudioSampleRepresentation.Pcm16, AudioByteOrder.LittleEndian), count, flags);
+            var frame = new OwnedAudioFrame(metadata, owner, count * 2);
             owner = null!;
-            _emittedSamples += _pendingCount;
+            _emittedSamples += count;
             _lastOutputEnd = end;
-            Array.Clear(_pending, 0, _pendingCount);
-            _pendingCount = 0;
-            _allZero = true;
+            var remaining = _pendingCount - count;
+            if (remaining > 0) { _pending.AsSpan(count, remaining).CopyTo(_pending); }
+            Array.Clear(_pending, remaining, _pendingCount - remaining);
+            _pendingCount = remaining;
             _boundaryPending = false;
             try { _emit(frame); }
             catch { frame.Dispose(); throw; }

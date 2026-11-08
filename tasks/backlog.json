@@ -842,7 +842,7 @@
       "id": "SC-003E",
       "phase": 0,
       "title": "Correct normalized loopback loss under timestamp jitter",
-      "status": "planned",
+      "status": "done",
       "task_type": "implementation",
       "parent_id": "SC-003",
       "depends_on": [
@@ -881,7 +881,8 @@
         "validation": [1, 3]
       },
       "evidence": [
-        "docs/evidence/SC-003D/2026-11-07-preflight.md"
+        "docs/evidence/SC-003D/2026-11-07-preflight.md",
+        "docs/evidence/SC-003E/2026-11-07.md"
       ],
       "blockers": [],
       "owner": null
@@ -940,16 +941,16 @@
       },
       "evidence": [
         "docs/evidence/SC-003B/2026-11-06.md",
-        "docs/evidence/SC-003D/2026-11-07-preflight.md"
+        "docs/evidence/SC-003D/2026-11-07-preflight.md",
+        "docs/evidence/SC-003E/2026-11-07.md"
       ],
       "follow_ups": [
         "Investigate loopback QPC timestamps that appeared ahead of callback time using a controlled physical timing reference; retain uncertainty unless the mapping is supported by evidence.",
-        "After SC-003E, rerun the affected normalized loopback baseline and measure gap frequency and impact during physical capture scenarios.",
+        "Measure normalized loopback gap frequency and impact during physical capture scenarios, using the SC-003E local baseline for comparison.",
         "Run the synthetic headset meeting and USB headset unplug/reconnect test, recording stream epochs, gaps and resource release.",
         "Verify default playback and microphone device changes and restore the user's original settings."
       ],
       "blockers": [
-        "SC-003E must address the normalized loopback output shortfall observed in the baseline.",
         "No USB headset with microphone is currently connected; the owner cannot connect one now. A second microphone and controlled physical timing reference are also not established."
       ],
       "owner": null

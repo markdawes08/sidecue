@@ -1,0 +1,2 @@
+7a7ac23cf43b5eac8b31a959b8540fa65c1ad4a545d382551161a27746f6dcb9  src/Sidecue.Windows/Audio/StreamingAudioNormalizer.cs
+2aa90fe3fc87d3e5a6901fc3467ac88a4eda17ef33f937d21858de09779005e6  tests/Sidecue.Windows.Tests/Audio/AudioTimingContinuityTests.cs
