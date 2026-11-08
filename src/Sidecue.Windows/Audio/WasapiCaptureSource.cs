@@ -70,6 +70,7 @@ public sealed class WasapiCaptureSource : IAudioCaptureSource
         private readonly IAudioCaptureBackend _backend;
         private readonly MemoryPool<byte> _pool;
         private readonly AudioFormat _format;
+        private readonly RawClockPosition? _qpcAtOrigin;
         private readonly Channel<OwnedAudioFrame> _frames = Channel.CreateUnbounded<OwnedAudioFrame>(
             new UnboundedChannelOptions { SingleReader = false, SingleWriter = false, AllowSynchronousContinuations = false });
         private readonly Channel<CaptureStatusEvent> _statuses = Channel.CreateBounded<CaptureStatusEvent>(
@@ -81,6 +82,7 @@ public sealed class WasapiCaptureSource : IAudioCaptureSource
         private long _queuedBytes;
         private long _queuedDuration;
         private long _sequence;
+        private ulong? _lastMappedQpc;
         private int _failureHasUnreportedLoss;
         private int _failureGapReason = -1;
         private int _accepting = 1;
@@ -98,6 +100,9 @@ public sealed class WasapiCaptureSource : IAudioCaptureSource
             _backend = backend;
             _pool = pool;
             _format = backend.Format;
+            // This relation is opt-in. An arbitrary ISessionClock is not
+            // assumed to use QPC or to advance at its rate.
+            _qpcAtOrigin = (clock as IQpcSessionClock)?.QpcAtOrigin;
         }
 
         public CaptureStatusEvent? TerminalStatus => Volatile.Read(ref _terminalStatus);
@@ -200,23 +205,35 @@ public sealed class WasapiCaptureSource : IAudioCaptureSource
 
                 var position = GetPosition();
                 long duration = checked((long)(((Int128)sampleCount * 1_000_000) / _format.SampleRate));
-                // The contract does not expose a mapping from QPC to the injected
-                // session clock. Preserve QPC separately and label this estimate.
-                long end = position.Offset.Value;
-                if (end < checked(_request.ClockAnchor.Origin.Offset.Value + duration))
+                TimelineInterval interval;
+                if (QpcPacketMapper.TryMap(_request.ClockAnchor, _qpcAtOrigin, position, qpc100Nanoseconds,
+                    duration, flags, _lastMappedQpc, out var mapped))
                 {
-                    // A packet before the declared timeline origin cannot be
-                    // represented without inventing a future timestamp.
-                    RememberFailureGap(GapReason.CaptureFailure);
-                    Fail(EventErrorCategory.Unknown);
-                    return;
+                    interval = mapped!;
+                    _lastMappedQpc = qpc100Nanoseconds;
                 }
-                var startPosition = new TimelinePosition(position.TimelineEpoch, new SessionOffset(end - duration));
-                var endPosition = new TimelinePosition(position.TimelineEpoch, new SessionOffset(end));
-                var interval = new TimelineInterval(startPosition, endPosition);
+                else
+                {
+                    // A clock without an explicit correlation or a bad native timestamp
+                    // falls back to callback time, labeled as a session estimate.
+                    long end = position.Offset.Value;
+                    if (end < checked(_request.ClockAnchor.Origin.Offset.Value + duration))
+                    {
+                        // Do not invent a future timestamp for a pre-origin packet.
+                        RememberFailureGap(GapReason.CaptureFailure);
+                        Fail(EventErrorCategory.Unknown);
+                        return;
+                    }
+                    interval = new TimelineInterval(
+                        new TimelinePosition(position.TimelineEpoch, new SessionOffset(end - duration)),
+                        position);
+                }
+                var startPosition = interval.Start;
                 var deviceClock = devicePosition <= long.MaxValue ? new RawClockPosition((long)devicePosition, _format.SampleRate) : null;
                 var qpcClock = qpc100Nanoseconds <= long.MaxValue ? new RawClockPosition((long)qpc100Nanoseconds, QpcTicksPerSecond) : null;
-                flags |= AudioFrameAttributes.TimestampError;
+                // The native flag stays independent: an estimate does not itself
+                // mean WASAPI reported a timestamp error.
+                flags |= AudioFrameAttributes.SessionTimestampEstimated;
                 var metadata = new AudioFrameMetadata(_request.Version, _request.Source,
                     new FrameSequence(_sequence++), interval, _format, sampleCount, flags, deviceClock, qpcClock);
 

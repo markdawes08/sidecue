@@ -29,6 +29,9 @@ powershell -NoProfile -File tools/probe-overlay.ps1
 # Short local microphone/loopback probe; writes metadata only, never audio.
 powershell -NoProfile -File tools/probe-audio.ps1
 
+# Exercise both capture sources through the normalization worker.
+powershell -NoProfile -File tools/probe-audio.ps1 -Normalize
+
 # Build Debug and open the minimal desktop shell.
 powershell -NoProfile -File tools/run.ps1
 ```
@@ -40,15 +43,15 @@ Both build and test accept `-Configuration Debug`; Release is the default. Test 
 | Project | Purpose |
 | --- | --- |
 | `src/Sidecue.Core` | Platform-independent domain layer |
-| `src/Sidecue.Application` | Platform-independent application layer, referencing Core |
-| `src/Sidecue.Windows` | Windowing and shared-mode audio capture adapters |
+| `src/Sidecue.Application` | Platform-independent application layer and bounded sent-sample timing helper, referencing Core |
+| `src/Sidecue.Windows` | Windowing, shared-mode audio capture and normalization adapters |
 | `src/Sidecue.Infrastructure` | Future storage and provider adapters |
 | `src/Sidecue.Desktop` | WPF application and composition root |
 | `tests/Sidecue.Architecture.Tests` | Project dependency direction and pure-layer restore checks |
 | `tests/Sidecue.Core.Tests` | Identity/time, immutable event and audio ownership invariants |
 | `tests/Sidecue.Application.Tests` | Service signature boundaries and immutable request/context/store envelopes |
 | `tests/Sidecue.Replay.Tests` | Deterministic fakes, fixture runner and test-only reconciliation rules |
-| `tests/Sidecue.Windows.Tests` | Window capability and audio capture lifecycle/ownership outcomes |
+| `tests/Sidecue.Windows.Tests` | Window capability, audio capture and normalization outcomes |
 | `tests/Sidecue.Desktop.Tests` | Shell bindings, overlay modes, auxiliary policy and owned HWND/control lifecycle |
 
 Desktop contains the shell and an [overlay prototype](OVERLAY_PROTOTYPE.md); Windows supplies native windowing and [audio capture](AUDIO_CAPTURE.md) adapters. Core contains validated [contract records](CONTRACT_RECORDS.md) and [request envelopes](CONTRACT_SERVICES.md); Application defines their service interfaces. Infrastructure has no storage/provider implementation. The prototype uses a small observable view model without a new MVVM package.

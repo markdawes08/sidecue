@@ -6,7 +6,9 @@ public enum AudioFrameAttributes
     None = 0,
     Silence = 1,
     Discontinuity = 2,
-    TimestampError = 4
+    TimestampError = 4,
+    /// <summary>The session interval is an estimate, independently of the native timestamp flag.</summary>
+    SessionTimestampEstimated = 8
 }
 
 /// <summary>Immutable audio identity and timing; sample count is per channel.</summary>
@@ -28,7 +30,8 @@ public sealed record AudioFrameMetadata
         ArgumentNullException.ThrowIfNull(interval);
         ArgumentNullException.ThrowIfNull(format);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(sampleCount);
-        const AudioFrameAttributes knownFlags = AudioFrameAttributes.Silence | AudioFrameAttributes.Discontinuity | AudioFrameAttributes.TimestampError;
+        const AudioFrameAttributes knownFlags = AudioFrameAttributes.Silence | AudioFrameAttributes.Discontinuity |
+            AudioFrameAttributes.TimestampError | AudioFrameAttributes.SessionTimestampEstimated;
         if ((flags & ~knownFlags) != 0)
         {
             throw new ArgumentOutOfRangeException(nameof(flags));

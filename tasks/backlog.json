@@ -731,7 +731,7 @@
       "id": "SC-003B",
       "phase": 0,
       "title": "Normalize audio with bounded queues and gap-aware timing",
-      "status": "ready",
+      "status": "done",
       "task_type": "implementation",
       "parent_id": "SC-003",
       "depends_on": [
@@ -776,9 +776,8 @@
           3
         ]
       },
-      "evidence": [],
-      "follow_ups": [
-        "Establish and verify an explicit mapping between native QPC packet timing and the session clock; preserve uncertainty where that mapping is unavailable."
+      "evidence": [
+        "docs/evidence/SC-003B/2026-11-06.md"
       ],
       "blockers": [],
       "owner": null
@@ -887,7 +886,13 @@
           2
         ]
       },
-      "evidence": [],
+      "evidence": [
+        "docs/evidence/SC-003B/2026-11-06.md"
+      ],
+      "follow_ups": [
+        "Investigate loopback QPC timestamps that appeared ahead of callback time using a controlled physical timing reference; retain uncertainty unless the mapping is supported by evidence.",
+        "Measure normalized loopback gap frequency and impact during the physical capture scenarios; record scoped corrective work if loss or timing behavior is unacceptable."
+      ],
       "blockers": [],
       "owner": null
     },

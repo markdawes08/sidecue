@@ -1,0 +1,62 @@
+{
+  "RecordedUtc": "2026-11-07T03:26:28.998005+00:00",
+  "Mode": "normalized",
+  "OperatingSystem": "Microsoft Windows 10.0.26200",
+  "Runtime": ".NET 10.0.14",
+  "Passed": false,
+  "RawTimingApplicable": false,
+  "QpcStartConsistencyObserved": null,
+  "Microphone": {
+    "Source": "Microphone",
+    "Frames": 21,
+    "Bytes": 64960,
+    "ValidIdentity": true,
+    "OrderedSequences": true,
+    "FormatConsistent": true,
+    "SampleRate": 16000,
+    "Channels": 1,
+    "Representation": "Pcm16",
+    "QpcFrames": 0,
+    "DevicePositionFrames": 0,
+    "UncertainFrames": 21,
+    "NativeTimestampErrors": 0,
+    "QpcStartMatches": 0,
+    "QpcBeforeOrigin": 0,
+    "MinimumQpcStartDeltaMicroseconds": null,
+    "MaximumQpcStartDeltaMicroseconds": null
+  },
+  "Loopback": {
+    "Source": "RemotePlayback",
+    "Frames": 15,
+    "Bytes": 48000,
+    "ValidIdentity": true,
+    "OrderedSequences": true,
+    "FormatConsistent": true,
+    "SampleRate": 16000,
+    "Channels": 1,
+    "Representation": "Pcm16",
+    "QpcFrames": 0,
+    "DevicePositionFrames": 0,
+    "UncertainFrames": 15,
+    "NativeTimestampErrors": 0,
+    "QpcStartMatches": 0,
+    "QpcBeforeOrigin": 0,
+    "MinimumQpcStartDeltaMicroseconds": null,
+    "MaximumQpcStartDeltaMicroseconds": null
+  },
+  "MicrophoneStatuses": {
+    "Events": 3,
+    "Gaps": 1,
+    "UncertainGaps": 1,
+    "Failures": 0
+  },
+  "LoopbackStatuses": {
+    "Events": 5,
+    "Gaps": 4,
+    "UncertainGaps": 4,
+    "Failures": 1
+  },
+  "MicrophoneTerminal": "Stopped",
+  "LoopbackTerminal": "Failed",
+  "FailureType": null
+}

@@ -47,6 +47,8 @@ The session clock supplies `TimelineEpochId`, an anchor, and elapsed offsets. A 
 
 Capture begins in the device format. A normalization worker produces initial provider frames as mono 16 kHz PCM16 with approximately 100 ms payloads. The microphone and remote source stay independent. No early mixdown across sources.
 
+The Windows implementation labels session timestamps estimated whether they are mapped from a validated native QPC timestamp or fall back to callback time. The native timestamp-error flag remains distinct. Normalized frames retain session timing and source identity, while raw packet device/QPC positions remain on the raw frames. See [the audio guide](AUDIO_CAPTURE.md) for the implemented limits and verification scope.
+
 The capture producer owns a buffer until it successfully transfers the frame into a queue. The consumer then owns it and must dispose it exactly once after use. Queue rejection, drop-oldest handling, cancellation, exceptions, and shutdown draining must all dispose abandoned frames. Any downstream operation retaining samples beyond the call must explicitly take ownership or copy them. Returning an array to a pool while a WebSocket send still references it is forbidden.
 
 Bound audio queues by buffered duration/bytes, initially about two seconds per source. Do not block a capture callback. On overflow, remove oldest unsent audio, dispose it, and emit a coalesced `CaptureGap` with the dropped interval. Do not use a queue drop mode that loses the only opportunity to dispose or account for a frame.
@@ -86,6 +88,8 @@ interface IStreamingTranscriber
 `TranscriptionRequest` contains source/epoch identity, language, format, provider configuration reference, and explicit stream-start mapping to the session clock. It does not contain a UI object. The provider adapter owns the network connection and bounded shutdown/drain behavior.
 
 Provider timestamps describe the audio actually transmitted, not necessarily continuous captured time. Maintain an ordered sent-sample-to-session interval map per source/stream epoch using each normalized frame's sample count and original session interval. Convert provider offsets through this map. A start offset alone is insufficient after dropped audio. For example, after sending captured seconds 0 to 1, dropping 1 to 2, and sending 2 to 3, provider offset 1.25 maps to session offset 2.25. Queue overflow must not shift all later transcript timestamps backward.
+
+The Application `SentSampleMap` implements this bounded mapping without a provider or Windows dependency. Its owner records confirmed sends, serializes access, and selects a maximum interval count; capacity exhaustion is an explicit failure. An uncertain send seals the map and remains unknown rather than advancing confirmed samples.
 
 If an event spans a discontinuity, retain the supported source interval list and explicit timing certainty; use word-level timestamps to split references when available. Do not manufacture exact timing through a missing interval. Unknown send completion on disconnect creates an uncertainty marker and new connection epoch. An alternative adapter may restart at each discontinuity with a new epoch, but must document and test that policy without replaying old audio silently.
 

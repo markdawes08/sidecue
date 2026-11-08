@@ -8,7 +8,7 @@ SC-001A implements values and records in [Sidecue.Core.Contracts](../src/Sidecue
 - Stream epochs, sequences, revisions, commit versions and context epochs are distinct nonnegative, zero-based values. Their future owners must enforce uniqueness, increasing values and checked increments across events.
 - `ContractVersion.Current` is schema **1**, independent of architecture baseline **0.1**. Audio metadata, capture gaps and event headers reject default or unsupported versions. Future wire decoders must validate before constructing records.
 - `UtcTimestamp` normalizes calendar/history values to UTC. `TimelinePosition` combines a `TimelineEpochId` with a `SessionOffset` in integer microseconds. `TimelineInterval` is half-open, ordered and confined to one epoch; zero-length intervals are allowed. Device changes may advance the stream epoch without changing the timeline epoch.
-- Optional `RawClockPosition` values on audio metadata preserve device/QPC ticks with their frequency. Conversion and clock anchoring belong at the Windows boundary; raw values with different frequencies must not be compared directly.
+- Optional `RawClockPosition` values on raw audio metadata preserve device/QPC ticks with their frequency. Conversion and clock anchoring belong at the Windows boundary; raw values with different frequencies must not be compared directly. `SessionTimestampEstimated` marks an estimated session interval separately from the native `TimestampError` flag. Normalized frames do not carry raw packet clock positions.
 
 ## Audio ownership
 
@@ -16,7 +16,7 @@ SC-001A implements values and records in [Sidecue.Core.Contracts](../src/Sidecue
 
 `OwnedAudioFrame` is a disposable class, so copying a record cannot duplicate its ownership. Construction adopts the `IMemoryOwner<byte>` only after validation succeeds. On failure, the caller still owns the buffer. The payload excludes unused rented capacity. Repeated disposal releases the owner once; later payload access throws.
 
-The producer owns the frame until a successful transfer; the consumer then disposes it after use. Rejection, cancellation and exceptions require cleanup by the current owner. Previously obtained memory views cannot be revoked: do not retain one after disposal or dispose while an asynchronous send still uses it. SC-003A adds a bounded raw capture queue and shutdown draining; normalization and gap-aware timing remain SC-003B. `GapReason.CaptureFailure` identifies unreported loss on capture failure; `CaptureDiscontinuity` identifies a native glitch without asserting that a device was unavailable.
+The producer owns the frame until a successful transfer; the consumer then disposes it after use. Rejection, cancellation and exceptions require cleanup by the current owner. Previously obtained memory views cannot be revoked: do not retain one after disposal or dispose while an asynchronous send still uses it. The raw capture and normalization queues are independently bounded and dispose abandoned frames. `GapReason.CaptureFailure` identifies unreported loss on capture failure; `CaptureDiscontinuity` identifies uncertain capture boundaries without asserting that a device was unavailable.
 
 ## Event mapping
 

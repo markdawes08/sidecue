@@ -1,6 +1,6 @@
 # Initial service and request contracts
 
-SC-001B defines the interfaces in `Sidecue.Application.Abstractions` and their immutable envelopes in `Sidecue.Core.Contracts`. They use record schema **1**, with no new production dependencies. Constructors reject unsupported versions and inconsistent metadata. These are the contracts needed for the first replay; no production adapter or coordinator is implemented here.
+SC-001B defines the interfaces in `Sidecue.Application.Abstractions` and their immutable envelopes in `Sidecue.Core.Contracts`. They use record schema **1**. Constructors reject unsupported versions and inconsistent metadata. Windows capture and normalization adapters exist separately; provider adapters and the session coordinator remain future work.
 
 [SC-001C replay](REPLAY.md) supplies deterministic test-only implementations and executable reference observations for these boundaries.
 
@@ -21,9 +21,11 @@ The broader signatures in [CONTRACTS.md](CONTRACTS.md) remain the target specifi
 
 [CaptureRequest](../src/Sidecue.Core/Contracts/CaptureContracts.cs) freezes source identity, clock anchor, opaque selection and both duration/byte queue limits. The anchor replaces the conceptual live clock reference so Core does not depend on an Application interface. The adapter binds it to the injected `ISessionClock` and rejects a different anchor. Windows owns selector resolution; the selector is not a native handle, process ID or credential.
 
-Open cancellation covers opening. The controller owns the returned run, even if enumeration never starts. Frame enumeration has one consumer: each yielded frame transfers ownership; the run owns untransferred buffers. Stop is idempotent; cancellation cannot undo its stop request. Disposal must release resources even after cancelled Stop or abandoned enumeration. The interface comments specify these obligations, but only future adapter tests can prove them.
+Open cancellation covers opening. The controller owns the returned run, even if enumeration never starts. Frame enumeration has one consumer: each yielded frame transfers ownership; the run owns untransferred buffers. Stop is idempotent; cancellation cannot undo its stop request. Disposal must release resources even after cancelled Stop or abandoned enumeration. The Windows capture and normalization implementations exercise these obligations through focused tests and limited local probes; this does not prove every device or shutdown scenario.
 
 Status events carry source/timeline identity, safe error categories and optional validated gaps. `TranscriptionRequest` pins language, format, source epoch, provider configuration reference and stream-start position. The transcriber must validate received frames, dispose them after use and maintain sent-sample mapping through gaps. A start offset alone is insufficient after dropped audio.
+
+`Sidecue.Application.Timing.SentSampleMap` is the provider-independent helper for this mapping. Record a frame only after its send is confirmed. An uncertain send does not advance confirmed time and seals the map, so a new connection epoch requires a new map. The owner serializes access and supplies an interval capacity; reaching that capacity fails explicitly instead of discarding provenance. The helper is not a transport implementation.
 
 ## Commands and frozen context
 
