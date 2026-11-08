@@ -26,8 +26,12 @@ powershell -NoProfile -File tools/probe-audio.ps1
 powershell -NoProfile -File tools/probe-audio.ps1 -NoBuild
 # Exercise normalization using the same local endpoints:
 powershell -NoProfile -File tools/probe-audio.ps1 -Normalize
+# Bounded recovery diagnostic; change endpoints manually during the window:
+powershell -NoProfile -File tools/probe-audio-recovery.ps1 -Seconds 30
 ```
 
 The probe opens both default endpoints briefly, renders synthetic silence to the selected Multimedia output, counts frames and disposes every lease. It does not write, log or upload audio samples. The metadata-only result is written under ignored `artifacts/audio-probe/audio-probe.json`, or `artifacts/audio-normalization-probe/audio-probe.json` with `-Normalize`. It reports frame counts, source/sequence checks, sample formats, clock metadata applicability and uncertainty, gaps and terminal states. Normalized frames do not carry raw device/QPC positions; those belong to the original packets. A nonzero exit indicates a failed probe; inspect the reported failure type where available rather than assuming a device or permission is available.
 
 The probe may transiently access the microphone and system playback mix in memory. It does not prove speech quality, source isolation in a meeting, device-change recovery or any full audio compatibility case. See [SC-003B evidence](evidence/SC-003B/2026-11-06.md) for the actual run.
+
+The recovery diagnostic records bounded per-source and per-epoch counts, normalized output samples, raw samples delivered to normalization, status and uncertain gaps. It plays synthetic silence and never changes Windows defaults. Reported gap durations may overlap; their sum is not a measurement of lost audio. A successful diagnostic process does not mean a physical transition occurred or a compatibility case passed. See [SC-003D preflight](evidence/SC-003D/2026-11-07-preflight.md) for the observed loopback shortfall and pending physical checks.

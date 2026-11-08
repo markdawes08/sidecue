@@ -1,0 +1,75 @@
+{
+  "RecordedUtc": "2026-11-08T00:38:44.678132+00:00",
+  "DurationSeconds": 10,
+  "OperatingSystem": "Microsoft Windows 10.0.26200",
+  "Runtime": ".NET 10.0.14",
+  "Microphone": {
+    "Source": "Microphone",
+    "ValidIdentity": true,
+    "ValidTimeline": true,
+    "OmittedEpochEvents": 0,
+    "TerminalState": "Stopped",
+    "TerminalError": null,
+    "Epochs": [
+      {
+        "EpochNumber": 0,
+        "Frames": 96,
+        "Samples": 152160,
+        "Bytes": 304320,
+        "EstimatedFrames": 96,
+        "ValidFormat": true,
+        "OrderedSequences": true,
+        "LastSequence": 95,
+        "EarliestStartMicroseconds": 504809,
+        "LatestEndMicroseconds": 10024820,
+        "StatusEvents": 6,
+        "Failures": 0,
+        "Gaps": {
+          "CaptureDiscontinuity:Unknown": {
+            "Count": 3,
+            "ReportedDurationMicroseconds": 49974
+          },
+          "CaptureFailure:Unknown": {
+            "Count": 1,
+            "ReportedDurationMicroseconds": 0
+          }
+        }
+      }
+    ]
+  },
+  "Loopback": {
+    "Source": "RemotePlayback",
+    "ValidIdentity": true,
+    "ValidTimeline": true,
+    "OmittedEpochEvents": 0,
+    "TerminalState": "Stopped",
+    "TerminalError": null,
+    "Epochs": [
+      {
+        "EpochNumber": 0,
+        "Frames": 101,
+        "Samples": 146720,
+        "Bytes": 293440,
+        "EstimatedFrames": 101,
+        "ValidFormat": true,
+        "OrderedSequences": true,
+        "LastSequence": 100,
+        "EarliestStartMicroseconds": 29143,
+        "LatestEndMicroseconds": 10057940,
+        "StatusEvents": 62,
+        "Failures": 0,
+        "Gaps": {
+          "CaptureDiscontinuity:Unknown": {
+            "Count": 49,
+            "ReportedDurationMicroseconds": 888033
+          },
+          "CaptureFailure:Unknown": {
+            "Count": 11,
+            "ReportedDurationMicroseconds": 0
+          }
+        }
+      }
+    ]
+  },
+  "FailureType": null
+}

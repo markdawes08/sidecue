@@ -12,7 +12,7 @@ public partial class App : System.Windows.Application
         if (e.Args.Length > 0)
         {
             if (e.Args.Length != 2 || (e.Args[0] != "--probe-overlay" && e.Args[0] != "--probe-audio" &&
-                e.Args[0] != "--probe-audio-normalized"))
+                e.Args[0] != "--probe-audio-normalized" && e.Args[0] != "--probe-audio-recovery"))
             {
                 Shutdown(2);
                 return;
@@ -24,7 +24,9 @@ public partial class App : System.Windows.Application
                 {
                     var exitCode = e.Args[0] == "--probe-overlay"
                         ? await OverlayProbe.RunAsync(e.Args[1])
-                        : await AudioProbe.RunAsync(e.Args[1], e.Args[0] == "--probe-audio-normalized");
+                        : e.Args[0] == "--probe-audio-recovery"
+                            ? await AudioRecoveryProbe.RunAsync(e.Args[1])
+                            : await AudioProbe.RunAsync(e.Args[1], e.Args[0] == "--probe-audio-normalized");
                     Shutdown(exitCode);
                 }
                 catch (Exception)

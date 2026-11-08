@@ -10,9 +10,9 @@ A separate test-only replay now runs a fictional meeting through controlled cloc
 
 SDK/package pins, lockfiles, recommended analyzers with warnings as errors, PowerShell setup/build/test/run/probe commands and Windows CI configuration are present. The isolated overlay uses a small observable view model without a new package. Native system menus and WPF popup/tooltip surfaces are suppressed; IME/spellcheck popups are disabled for the prototype. Future surfaces must explicitly join the exclusion policy rather than assume inheritance from an owner.
 
-Task and gate status belongs only in [backlog.json](../tasks/backlog.json). Latest evidence: [SC-003C](evidence/SC-003C/2026-11-07.md); operation and limits: [audio guide](AUDIO_CAPTURE.md). Overlay work remains documented in [SC-002C partial evidence](evidence/SC-002C/2026-11-06-preflight.md) and the [overlay guide](OVERLAY_PROTOTYPE.md). Read the [record mapping](CONTRACT_RECORDS.md), [service mapping](CONTRACT_SERVICES.md) and [replay guide](REPLAY.md) before extending those boundaries. Historical package provenance and source snapshots remain unchanged.
+Task and gate status belongs only in [backlog.json](../tasks/backlog.json). Latest evidence: [SC-003D partial preflight](evidence/SC-003D/2026-11-07-preflight.md); operation and limits: [audio guide](AUDIO_CAPTURE.md). Overlay work remains documented in [SC-002C partial evidence](evidence/SC-002C/2026-11-06-preflight.md) and the [overlay guide](OVERLAY_PROTOTYPE.md). Read the [record mapping](CONTRACT_RECORDS.md), [service mapping](CONTRACT_SERVICES.md) and [replay guide](REPLAY.md) before extending those boundaries. Historical package provenance and source snapshots remain unchanged.
 
-The plan has 32 feature-level groups containing 99 child tasks; SC-007 and SC-016 remain standalone. Original acceptance, dependencies, deferred scope and all five phase gates are preserved. Read [the execution rules](IMPLEMENTATION_PLAN.md) and [planning validation](evidence/planning/2026-11-06-task-split.md).
+The plan has 32 feature-level groups and now includes corrective child SC-003E; SC-007 and SC-016 remain standalone. Original acceptance, dependencies, deferred scope and all five phase gates are preserved. Read [the execution rules](IMPLEMENTATION_PLAN.md) and [planning validation](evidence/planning/2026-11-06-task-split.md).
 
 ## Standing owner preferences
 
@@ -43,6 +43,7 @@ powershell -NoProfile -File tools/probe-overlay.ps1
 # Brief local microphone/loopback probe, metadata only:
 powershell -NoProfile -File tools/probe-audio.ps1
 powershell -NoProfile -File tools/probe-audio.ps1 -Normalize
+powershell -NoProfile -File tools/probe-audio-recovery.ps1 -Seconds 30
 
 # Open the minimal shell after a Debug build:
 powershell -NoProfile -File tools/run.ps1
@@ -50,11 +51,11 @@ powershell -NoProfile -File tools/run.ps1
 
 Local validation used Windows 11 Home 25H2, build 26200.9711, x64, PowerShell 5.1, SDK 10.0.403 and runtime 10.0.14. The system SDK remains 10.0.301; tooling uses the verified local SDK under ignored artifacts/dotnet. No machine-wide installation or persistent PATH change was made.
 
-The latest locked Release build passed with zero warnings/errors and all 144 tests passed, including 69 Windows tests. The local raw audio probe and native endpoint-monitor registration/disposal smoke passed. No dependencies changed in SC-003C.
+The latest locked Release build passed with zero warnings/errors; the 11 affected Desktop tests passed after the diagnostic was added. The previous SC-003C full suite passed 144 tests, including 69 Windows tests. The new recovery diagnostic ran locally; its observations and limitations are in the preflight evidence. No dependencies changed.
 
 The actual executable at 150% DPI accepted exclusion with `0x11` readback for original/recreated overlays and details. Native mode styles, input enablement, placement identity, hide/show and cleanup passed. All three shortcuts registered, a competing owner received error 1409, directed messages routed, and disposal/owner destruction released registrations. Windows declined the automated explicit foreground request; the UI displayed that result. Physical typing, key holding, another foreground application, mixed-DPI monitors and receiving streams were not verified. All three synthetic previews were inspected. No full WIN/CAP row or phase gate passed.
 
-The recovery owner detects relevant Multimedia-default notifications and device failures, reopens the explicit system-default source with a new stream epoch, and preserves uncertain gaps. Synthetic tests cover retry limits, races and deferred cleanup; physical device changes are unverified. A native operation that never returns cannot be guaranteed to release resources after the bounded wait. SC-003B normalizes both sources and maps confirmed sends across gaps. All session intervals remain estimated. Local loopback QPC timestamps appeared ahead of callback time and used the estimated fallback; the earlier normalized run reported 15 uncertain loopback gaps. SC-003D tracks physical timing and gap impact. No AUD matrix row or audio gate has passed.
+The recovery owner detects Multimedia-default notifications and device failures, reopens with a new stream epoch, and preserves uncertain gaps. Physical device changes remain unverified. In a 10-second stationary silent-signal preflight, loopback normalization consumed 10.030 seconds of raw samples but delivered 9.370 seconds of output, with 47 uncertain discontinuities and seven zero-length uncertain failure gaps. This is a 660 ms sample-duration shortfall, not an exact physical gap or a measurement of lost speech. Corrective child SC-003E precedes the SC-003D rerun. All session intervals remain estimated; loopback QPC alignment also needs a physical reference. No AUD row or audio gate has passed.
 
 SC-002B repository validation passed: 19 JSON files, 134 tasks, five gates, completion/coverage guards, 243 local links and both original source hashes. Whitespace checks passed and the README remained unchanged. Existing .gitignore rules cover generated output. Nothing was staged, committed or pushed.
 
@@ -68,7 +69,9 @@ The Windows CI workflow targets windows-2025 and records the actual runner image
 
 ## Next concrete action
 
-The next dependency-ready leaf is **SC-003D: verify real two-source capture and device transitions**. Read its [task card](tasks/SC-003.md#sc-003d), [audio guide](AUDIO_CAPTURE.md), existing follow-ups and physical test prerequisites before claiming it. Verify access to an interactive Windows session, a USB headset and synthetic playback; availability has not been established. Preserve source/epoch identity, explicit loss and timing uncertainty. Stop after that leaf.
+The next dependency-ready leaf is **SC-003E: correct normalized loopback loss under timestamp jitter**. Read its [task card](tasks/SC-003.md#sc-003e) and [failed baseline evidence](evidence/SC-003D/2026-11-07-preflight.md). Use focused deterministic sample accounting, retain honest uncertainty and do not fabricate audio. Stop after that leaf.
+
+**SC-003D remains blocked** pending SC-003E and physical prerequisites. The owner cannot connect a USB headset now; the headset meeting, unplug/reconnect, both default-device changes and calibrated timing reference remain in the backlog. An automated playback switch could not be performed because Windows Settings did not expose a targetable window; no default was changed. Do not ask for these actions again unless the owner is ready to resume physical verification.
 
 **SC-002C remains blocked** until two active monitors with different scaling are available. To resume, inspect it with `powershell -NoProfile -File tools/show-task.ps1 -Id SC-002C`, confirm the environment, clear its blocker and claim it. Finish verified text entry, a controlled streaming update against a separate foreground app, physical keyboard/hide/auxiliary behavior and mixed-DPI movement. The default task viewer reports blocked leaves while selecting available work. Receiving-client verification remains SC-002D through SC-002F.
 

@@ -1,0 +1,89 @@
+{
+  "RecordedUtc": "2026-11-08T00:40:45.6926783+00:00",
+  "DurationSeconds": 10,
+  "OperatingSystem": "Microsoft Windows 10.0.26200",
+  "Runtime": ".NET 10.0.14",
+  "Microphone": {
+    "Source": "Microphone",
+    "ValidIdentity": true,
+    "ValidTimeline": true,
+    "OmittedEpochEvents": 0,
+    "TerminalState": "Stopped",
+    "TerminalError": null,
+    "Epochs": [
+      {
+        "EpochNumber": 0,
+        "Frames": 96,
+        "Samples": 152160,
+        "Bytes": 304320,
+        "EstimatedFrames": 96,
+        "ValidFormat": true,
+        "OrderedSequences": true,
+        "LastSequence": 95,
+        "EarliestStartMicroseconds": 504384,
+        "LatestEndMicroseconds": 10024359,
+        "StatusEvents": 7,
+        "Failures": 0,
+        "Gaps": {
+          "CaptureDiscontinuity:Unknown": {
+            "Count": 4,
+            "ReportedDurationMicroseconds": 49956
+          },
+          "CaptureFailure:Unknown": {
+            "Count": 1,
+            "ReportedDurationMicroseconds": 0
+          }
+        },
+        "RawConsumedFormats": {
+          "48000Hz:2ch:FloatingPoint32": {
+            "Frames": 955,
+            "Samples": 458400,
+            "DurationMicroseconds": 9550000
+          }
+        }
+      }
+    ]
+  },
+  "Loopback": {
+    "Source": "RemotePlayback",
+    "ValidIdentity": true,
+    "ValidTimeline": true,
+    "OmittedEpochEvents": 0,
+    "TerminalState": "Stopped",
+    "TerminalError": null,
+    "Epochs": [
+      {
+        "EpochNumber": 0,
+        "Frames": 104,
+        "Samples": 149920,
+        "Bytes": 299840,
+        "EstimatedFrames": 104,
+        "ValidFormat": true,
+        "OrderedSequences": true,
+        "LastSequence": 103,
+        "EarliestStartMicroseconds": 35504,
+        "LatestEndMicroseconds": 10044644,
+        "StatusEvents": 56,
+        "Failures": 0,
+        "Gaps": {
+          "CaptureDiscontinuity:Unknown": {
+            "Count": 47,
+            "ReportedDurationMicroseconds": 681261
+          },
+          "CaptureFailure:Unknown": {
+            "Count": 7,
+            "ReportedDurationMicroseconds": 0
+          }
+        },
+        "RawConsumedFormats": {
+          "44100Hz:2ch:FloatingPoint32": {
+            "Frames": 1003,
+            "Samples": 442323,
+            "DurationMicroseconds": 10030000
+          }
+        }
+      }
+    ]
+  },
+  "FailureType": null
+}

@@ -1,0 +1,3 @@
+4c9a03ead1e12fef128aaa57822fe9ebaf75381cb0496777995e09213a52d1c1  src/Sidecue.Desktop/App.xaml.cs
+44027f1d61e8274a4e23b2be110d54b87eee47a87f04f01d8e7431a5dd368408  src/Sidecue.Desktop/Prototypes/Audio/AudioRecoveryProbe.cs
+35659252facedb430b4842055c685b5f1d547fbe117a630a4e1302a4dd00bba6  tools/probe-audio-recovery.ps1
