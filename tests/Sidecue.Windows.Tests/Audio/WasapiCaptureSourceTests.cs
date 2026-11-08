@@ -1,4 +1,5 @@
 using System.Buffers;
+using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using Sidecue.Application.Abstractions;
 using Sidecue.Core.Contracts;
@@ -63,6 +64,37 @@ public sealed class WasapiCaptureSourceTests
         Assert.DoesNotContain(statuses, status => status.State == CaptureState.Live);
         Assert.Equal(1, backend.DisposeCount);
         Assert.False(backend.CleanupDuringStart);
+    }
+
+    [Theory]
+    [InlineData(unchecked((int)0x88890004), EventErrorCategory.DeviceUnavailable)]
+    [InlineData(unchecked((int)0x88890026), EventErrorCategory.DeviceUnavailable)]
+    [InlineData(unchecked((int)0x88890010), EventErrorCategory.DeviceUnavailable)]
+    [InlineData(unchecked((int)0x80070490), EventErrorCategory.DeviceUnavailable)]
+    [InlineData(unchecked((int)0x80070005), EventErrorCategory.PermissionDenied)]
+    [InlineData(unchecked((int)0x80004005), EventErrorCategory.Unknown)]
+    public async Task NativeStoppedErrorUsesExplicitRecoveryCategory(int errorCode, EventErrorCategory expected)
+    {
+        var clock = new FakeClock();
+        var backend = new FakeBackend();
+        var source = new WasapiCaptureSource(clock, new FakeFactory { Backend = backend });
+        await using var run = await source.OpenAsync(Request(clock), CancellationToken.None);
+        backend.StopUnexpectedly(new CoreAudioException("synthetic error", errorCode));
+        await run.StopAsync(CaptureStopReason.End, CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(3), TestContext.Current.CancellationToken);
+        Assert.Equal(CaptureState.Failed, run.TerminalStatus?.State);
+        Assert.Equal(expected, run.TerminalStatus?.Error);
+    }
+
+    [Fact]
+    public async Task UnexplainedBackendStopIsNotAssumedToBeDeviceInvalidation()
+    {
+        var clock = new FakeClock();
+        var backend = new FakeBackend();
+        var source = new WasapiCaptureSource(clock, new FakeFactory { Backend = backend });
+        await using var run = await source.OpenAsync(Request(clock), CancellationToken.None);
+        backend.StopUnexpectedly(null);
+        await run.StopAsync(CaptureStopReason.End, CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(3), TestContext.Current.CancellationToken);
+        Assert.Equal(EventErrorCategory.Unknown, run.TerminalStatus?.Error);
     }
 
     [Fact]
@@ -408,6 +440,7 @@ public sealed class WasapiCaptureSourceTests
             finally { Volatile.Write(ref _starting, 0); }
         }
         public void RequestStop() { CleanupDuringStart |= Volatile.Read(ref _starting) != 0; StopCount++; _stopped?.Invoke(null); }
+        public void StopUnexpectedly(Exception? error) => (_stopped ?? throw new InvalidOperationException("Capture was not started."))(error);
         public void Dispose() { CleanupDuringStart |= Volatile.Read(ref _starting) != 0; OnDispose?.Invoke(); DisposeCount++; GC.SuppressFinalize(this); }
         public void Deliver(byte[] data, int sampleCount, AudioFrameAttributes flags, ulong position, ulong qpc) =>
             (_packet ?? throw new InvalidOperationException("Capture was not started."))(data, sampleCount, flags, position, qpc);

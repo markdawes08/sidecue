@@ -27,6 +27,16 @@ public sealed class WasapiCaptureSource : IAudioCaptureSource
         _pool = pool;
     }
 
+    internal static EventErrorCategory ClassifyBackendError(Exception exception) => exception switch
+    {
+        UnauthorizedAccessException => EventErrorCategory.PermissionDenied,
+        COMException { HResult: unchecked((int)0x80070005) } => EventErrorCategory.PermissionDenied,
+        // WASAPI device/resources invalidated, audio service stopped, or no default endpoint.
+        COMException { HResult: unchecked((int)0x88890004) or unchecked((int)0x88890026) or unchecked((int)0x88890010) or unchecked((int)0x80070490) }
+            => EventErrorCategory.DeviceUnavailable,
+        _ => EventErrorCategory.Unknown
+    };
+
     public async Task<IAudioCaptureRun> OpenAsync(CaptureRequest request, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -352,14 +362,8 @@ public sealed class WasapiCaptureSource : IAudioCaptureSource
         private void OnBackendStopped(Exception? error)
         {
             if (error is not null) { Fail(ClassifyBackendError(error)); }
-            else if (Volatile.Read(ref _cleanupStarted) == 0) { Fail(EventErrorCategory.DeviceUnavailable); }
+            else if (Volatile.Read(ref _cleanupStarted) == 0) { Fail(EventErrorCategory.Unknown); }
         }
-
-        private static EventErrorCategory ClassifyBackendError(Exception exception) =>
-            exception is UnauthorizedAccessException ||
-            exception is COMException { HResult: unchecked((int)0x80070005) }
-                ? EventErrorCategory.PermissionDenied
-                : EventErrorCategory.DeviceUnavailable;
 
         private void Fail(EventErrorCategory error, CaptureGap? gap = null)
         {

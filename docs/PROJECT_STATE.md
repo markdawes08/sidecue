@@ -1,16 +1,16 @@
 # Current project context
 
-Updated: November 6, 2026. Architecture baseline: 0.1.
+Updated: November 7, 2026. Architecture baseline: 0.1.
 
 ## Current reality
 
-Sidecue has a five-project .NET solution, a minimal WPF shell, an owned overlay prototype and separate Windows microphone/render-loopback capture adapters with bounded normalization. The overlay has display and explicit local input modes, fixed global shortcuts and an excluded auxiliary details window. It explicitly says screen sharing is unverified. Audio capture is not connected to the shell, providers or persistence. Core/Application provide contracts and a sent-sample timing helper; Infrastructure still has no adapters.
+Sidecue has a five-project .NET solution, a minimal WPF shell, an owned overlay prototype and separate Windows microphone/render-loopback capture adapters with bounded normalization and a device recovery owner. The overlay has display and explicit local input modes, fixed global shortcuts and an excluded auxiliary details window. It explicitly says screen sharing is unverified. Audio capture is not connected to the shell, providers or persistence. Core/Application provide contracts and a sent-sample timing helper; Infrastructure still has no adapters.
 
 A separate test-only replay now runs a fictional meeting through controlled clock, capture, transcription, assistance and store fakes. It models revisions, duplicates, resets and stale-answer fences; these reference rules are not wired into the product.
 
 SDK/package pins, lockfiles, recommended analyzers with warnings as errors, PowerShell setup/build/test/run/probe commands and Windows CI configuration are present. The isolated overlay uses a small observable view model without a new package. Native system menus and WPF popup/tooltip surfaces are suppressed; IME/spellcheck popups are disabled for the prototype. Future surfaces must explicitly join the exclusion policy rather than assume inheritance from an owner.
 
-Task and gate status belongs only in [backlog.json](../tasks/backlog.json). Latest evidence: [SC-003B](evidence/SC-003B/2026-11-06.md); operation and limits: [audio guide](AUDIO_CAPTURE.md). Overlay work remains documented in [SC-002C partial evidence](evidence/SC-002C/2026-11-06-preflight.md) and the [overlay guide](OVERLAY_PROTOTYPE.md). Read the [record mapping](CONTRACT_RECORDS.md), [service mapping](CONTRACT_SERVICES.md) and [replay guide](REPLAY.md) before extending those boundaries. Historical package provenance and source snapshots remain unchanged.
+Task and gate status belongs only in [backlog.json](../tasks/backlog.json). Latest evidence: [SC-003C](evidence/SC-003C/2026-11-07.md); operation and limits: [audio guide](AUDIO_CAPTURE.md). Overlay work remains documented in [SC-002C partial evidence](evidence/SC-002C/2026-11-06-preflight.md) and the [overlay guide](OVERLAY_PROTOTYPE.md). Read the [record mapping](CONTRACT_RECORDS.md), [service mapping](CONTRACT_SERVICES.md) and [replay guide](REPLAY.md) before extending those boundaries. Historical package provenance and source snapshots remain unchanged.
 
 The plan has 32 feature-level groups containing 99 child tasks; SC-007 and SC-016 remain standalone. Original acceptance, dependencies, deferred scope and all five phase gates are preserved. Read [the execution rules](IMPLEMENTATION_PLAN.md) and [planning validation](evidence/planning/2026-11-06-task-split.md).
 
@@ -50,11 +50,11 @@ powershell -NoProfile -File tools/run.ps1
 
 Local validation used Windows 11 Home 25H2, build 26200.9711, x64, PowerShell 5.1, SDK 10.0.403 and runtime 10.0.14. The system SDK remains 10.0.301; tooling uses the verified local SDK under ignored artifacts/dotnet. No machine-wide installation or persistent PATH change was made.
 
-The latest locked Release build passed with zero warnings/errors. The full suite passed 120 tests; after a normalized-loopback correction, 46 affected Windows tests passed. The local raw and normalized audio probes and existing overlay probe passed. No dependencies changed in SC-003B.
+The latest locked Release build passed with zero warnings/errors and all 144 tests passed, including 69 Windows tests. The local raw audio probe and native endpoint-monitor registration/disposal smoke passed. No dependencies changed in SC-003C.
 
 The actual executable at 150% DPI accepted exclusion with `0x11` readback for original/recreated overlays and details. Native mode styles, input enablement, placement identity, hide/show and cleanup passed. All three shortcuts registered, a competing owner received error 1409, directed messages routed, and disposal/owner destruction released registrations. Windows declined the automated explicit foreground request; the UI displayed that result. Physical typing, key holding, another foreground application, mixed-DPI monitors and receiving streams were not verified. All three synthetic previews were inspected. No full WIN/CAP row or phase gate passed.
 
-SC-003B normalizes both sources to mono 16 kHz PCM16 on workers with bounded queues and explicit loss; a provider-independent helper maps confirmed sends across dropped intervals. The short normalized probe stopped both sources successfully and retained only metadata. All session intervals remain estimated. Local loopback QPC timestamps appeared ahead of callback time and used the estimated fallback; the normalized run reported 15 uncertain loopback gaps. SC-003D tracks physical timing and gap impact, while SC-003C covers device recovery. No AUD matrix row or audio gate has passed.
+The recovery owner detects relevant Multimedia-default notifications and device failures, reopens the explicit system-default source with a new stream epoch, and preserves uncertain gaps. Synthetic tests cover retry limits, races and deferred cleanup; physical device changes are unverified. A native operation that never returns cannot be guaranteed to release resources after the bounded wait. SC-003B normalizes both sources and maps confirmed sends across gaps. All session intervals remain estimated. Local loopback QPC timestamps appeared ahead of callback time and used the estimated fallback; the earlier normalized run reported 15 uncertain loopback gaps. SC-003D tracks physical timing and gap impact. No AUD matrix row or audio gate has passed.
 
 SC-002B repository validation passed: 19 JSON files, 134 tasks, five gates, completion/coverage guards, 243 local links and both original source hashes. Whitespace checks passed and the README remained unchanged. Existing .gitignore rules cover generated output. Nothing was staged, committed or pushed.
 
@@ -68,7 +68,7 @@ The Windows CI workflow targets windows-2025 and records the actual runner image
 
 ## Next concrete action
 
-The next dependency-ready leaf is **SC-003C: recover invalidated audio devices with explicit epochs**. Read its [task card](tasks/SC-003.md#sc-003c), [audio guide](AUDIO_CAPTURE.md) and capture contracts before claiming it. Preserve source/epoch identity, explicit loss and timing uncertainty. Stop after that leaf.
+The next dependency-ready leaf is **SC-003D: verify real two-source capture and device transitions**. Read its [task card](tasks/SC-003.md#sc-003d), [audio guide](AUDIO_CAPTURE.md), existing follow-ups and physical test prerequisites before claiming it. Verify access to an interactive Windows session, a USB headset and synthetic playback; availability has not been established. Preserve source/epoch identity, explicit loss and timing uncertainty. Stop after that leaf.
 
 **SC-002C remains blocked** until two active monitors with different scaling are available. To resume, inspect it with `powershell -NoProfile -File tools/show-task.ps1 -Id SC-002C`, confirm the environment, clear its blocker and claim it. Finish verified text entry, a controlled streaming update against a separate foreground app, physical keyboard/hide/auxiliary behavior and mixed-DPI movement. The default task viewer reports blocked leaves while selecting available work. Receiving-client verification remains SC-002D through SC-002F.
 

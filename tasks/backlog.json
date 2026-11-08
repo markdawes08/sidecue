@@ -786,7 +786,7 @@
       "id": "SC-003C",
       "phase": 0,
       "title": "Recover invalidated audio devices with explicit epochs",
-      "status": "planned",
+      "status": "done",
       "task_type": "implementation",
       "parent_id": "SC-003",
       "depends_on": [
@@ -831,7 +831,9 @@
           3
         ]
       },
-      "evidence": [],
+      "evidence": [
+        "docs/evidence/SC-003C/2026-11-07.md"
+      ],
       "blockers": [],
       "owner": null
     },
