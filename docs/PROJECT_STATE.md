@@ -1,6 +1,6 @@
 # Current project context
 
-Updated: November 9, 2026. Architecture baseline: 0.1. Task and gate status lives only in [backlog.json](../tasks/backlog.json).
+Updated: November 10, 2026. Architecture baseline: 0.1. Task and gate status lives only in [backlog.json](../tasks/backlog.json).
 
 Sidecue currently has a minimal WPF shell, an overlay prototype, separate Windows microphone and playback capture adapters, and a synthetic contract replay. Audio, providers and persistence are not connected to the shell. Overlay screen sharing and physical audio behavior are not fully verified.
 
@@ -8,8 +8,10 @@ SC-004B adds an infrastructure storage adapter: a random key protected with curr
 
 The [SC-004B evidence](evidence/SC-004B/2026-11-09.md) records a same-user process restart, concurrent live-WAL reopen, protected permissions, invalid keys, interrupted initialization, modified native DLL rejection and synthetic plaintext scans. The locked Release build and 153 existing tests passed; the focused probe passed after the final loader guard. Earlier [SC-004A evidence](evidence/SC-004A/2026-11-08.md) records the native candidate and canary. These results do not establish clean-VM, packaged-binary or portable-recovery behavior.
 
+The [SC-004C local preflight](evidence/SC-004C/2026-11-10-preflight.md) adds a repeatable synthetic durability probe. Abrupt child-process termination immediately before/after write and migration commits passed recovery, FTS and integrity checks on the current Windows profile. A disposable clean Windows environment was not established, so the leaf remains blocked; its [clean-run procedure](evidence/SC-004C/clean-environment.md) and remaining actions are recorded. The native rebuild recipe is disabled pending a verified Windows Perl toolchain patched for CVE-2026-15534. The reviewed existing DLL remains available for hash-checked testing.
+
 Read [the execution rules](IMPLEMENTATION_PLAN.md), the relevant [task card](tasks/SC-004.md), [data and recovery contracts](DATA_AND_RECOVERY.md) and [security data flow](SECURITY_AND_DATA_FLOW.md) before extending storage. [Dependencies](DEPENDENCIES.md) records package versions, licenses and the native build. Prior [audio](AUDIO_CAPTURE.md), [overlay](OVERLAY_PROTOTYPE.md), [contract](CONTRACT_RECORDS.md) and [replay](REPLAY.md) evidence remains available.
 
-Run `powershell -NoProfile -File tools/show-task.ps1` for the next eligible leaf and blocked work. The next storage leaf is SC-004C, which requires a disposable clean Windows environment and retains exact-binary, durability, distribution and native-directory trust checks. Verify its prerequisites before claiming; do not treat this handoff as a gate pass. SC-002C remains blocked on mixed-scaling monitors and SC-003D on physical audio hardware and calibration. The owner's required actions remain on those backlog entries.
+Run `powershell -NoProfile -File tools/show-task.ps1` for the next eligible leaf and blocked work. The viewer currently selects SC-007, the meeting lifecycle; inspect its contracts and prerequisites before claiming it. SC-004C requires a disposable clean Windows environment before its remaining exact-binary and durability checks can run. SC-006A/B retain actual package notices, installed-directory protection and exclusive startup-provider ownership before storage is wired into the app. SC-002C remains blocked on mixed-scaling monitors and SC-003D on physical audio hardware and calibration. The owner's required actions remain on those backlog entries; no phase gate is passed by this preflight.
 
 The owner handles staging, committing and pushing. Leave the root README alone until asked. Keep private data and generated artifacts ignored, preserve sanitized evidence and lockfiles, test the affected behavior proportionally, and stop after one executable leaf per prompt.

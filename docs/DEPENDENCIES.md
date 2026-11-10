@@ -37,6 +37,8 @@ Zetetic identifies SQLite 3.54.1 as the [4.20.0 baseline](https://github.com/sql
 
 The infrastructure adapter pins the reviewed DLL's SHA-256 and validates its loaded path and runtime identity before installing the provider. Startup must own SQLitePCL provider initialization, and deployment must supply the DLL from a directory protected from untrusted modification. The native DLL is generated under ignored `artifacts/`; it is not yet packaged. Each distinct binary must be reviewed and validated before its identity is accepted. A pinned source recipe does not prove byte-for-byte reproducibility across machines. SC-004C retains clean-Windows and reviewed-distribution verification, and the eventual release must test the exact binary it ships or match it to the tested artifact. Never substitute system SQLite if the reviewed SQLCipher build is absent. The adapter is not a transcript schema or release package.
 
+The native rebuild recipe is disabled pending a verified patched Windows Perl toolchain. The build-only Perl 5.44.0-3 used for the candidate is listed as affected by [CVE-2026-15534](https://lists.security.metacpan.org/cve-announce/msg/42536248/), and the recipe cannot verify the two upstream fixes. Perl is not part of the resulting DLL; this does not establish that the original build was unaffected. Do not re-enable the recipe merely because an executable reports the same version. SC-004C tracks a reviewed toolchain and revalidation of any distinct rebuild.
+
 ## CI inputs
 
 The [workflow](../.github/workflows/ci.yml) pins these official, MIT-licensed Actions:

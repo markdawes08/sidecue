@@ -1112,7 +1112,7 @@
       "id": "SC-004C",
       "phase": 0,
       "title": "Verify encrypted durability and clean-environment loading",
-      "status": "planned",
+        "status": "blocked",
       "task_type": "verification",
       "parent_id": "SC-004",
       "depends_on": [
@@ -1133,7 +1133,7 @@
         "Interrupt write/migration boundaries, reopen and check integrity; record clean-environment correct/wrong-key/FTS results and loaded native versions."
       ],
       "owned_areas": [
-        "tests/Sidecue.Infrastructure.Tests/Encryption/",
+          "tests/Sidecue.DurabilityProbe/",
         "docs/evidence/SC-004C/"
       ],
       "out_of_scope": [
@@ -1159,14 +1159,18 @@
           2
         ]
       },
-      "evidence": [],
+        "evidence": [
+          "docs/evidence/SC-004C/2026-11-10-preflight.md"
+        ],
       "follow_ups": [
-        "Rebuild or package the exact selected native binary in a clean Windows environment, revalidate its identity and canary, and retain required SQLCipher and OpenSSL notices in distribution materials.",
-          "Review the build-only Perl package's reported CVE-2026-15534 and update the pinned tool/recipe if needed before a clean rebuild.",
-          "Verify and enforce the native library's protected deployment directory and single-owner SQLite provider initialization before wiring storage into the application; pathname checks alone do not prevent a concurrent directory substitution."
+          "Provide a disposable clean Windows x64 VM/profile and follow docs/evidence/SC-004C/clean-environment.md to repeat native identity, key, FTS, artifact-scan and durability checks with the exact reviewed binary.",
+          "Before a native rebuild, select and verify a patched Windows Perl toolchain addressing CVE-2026-15534 and update the disabled recipe; revalidate each distinct rebuilt binary.",
+          "Verify the clean test's DLL directory is protected, and retain the exact-binary, distribution-notice, installed-directory and exclusive startup-provider checks on SC-006A/B before application wiring."
       ],
-      "blockers": [],
-      "owner": null
+        "blockers": [
+          "No disposable clean Windows x64 VM or profile is currently established for the required clean-environment verification."
+        ],
+        "owner": null
     },
     {
       "id": "SC-005",
@@ -1462,8 +1466,12 @@
           2
         ]
       },
-      "evidence": [],
-      "blockers": [],
+        "evidence": [],
+        "follow_ups": [
+          "Include SQLCipher and OpenSSL notices and verify the exact installed DLL and its directory are protected from untrusted modification; source-tree ACLs do not prove package security.",
+          "If a native rebuild is needed, select and verify a Windows Perl toolchain patched for CVE-2026-15534, update the disabled recipe, and review and test the exact resulting DLL."
+        ],
+        "blockers": [],
       "owner": null
     },
     {
@@ -1517,8 +1525,11 @@
           2
         ]
       },
-      "evidence": [],
-      "blockers": [],
+        "evidence": [],
+        "follow_ups": [
+          "Before wiring storage into startup, enforce exclusive SQLitePCL provider initialization and load the reviewed DLL from the verified protected installation directory."
+        ],
+        "blockers": [],
       "owner": null
     },
     {

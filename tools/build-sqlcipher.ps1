@@ -4,6 +4,10 @@ Builds a Windows x64 SQLCipher Community candidate from pinned vendor sources.
 Requires MSVC 14.51.36231, Windows SDK 10.0.28000.0 and native Windows Perl 5.44.0.
 All downloads and outputs remain under ignored artifacts/sqlcipher-native.
 
+Rebuilds are currently disabled: the pinned Perl 5.44.0 is affected by
+CVE-2026-15534 and this recipe cannot verify the required upstream patches.
+Re-enable only after selecting and verifying a patched Windows toolchain.
+
 -ReuseLibcrypto is a diagnostic shortcut for an already reviewed build. It
 requires the expected static library SHA-256 and does not prove a clean build.
 Run the separate encrypted canary on the exact resulting DLL before use.
@@ -17,6 +21,11 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+# A self-reported Perl version does not establish that both security fixes are
+# present. Fail before downloading, extracting, compiling or replacing a DLL.
+throw 'Native rebuild disabled: select and verify a patched Perl toolchain for CVE-2026-15534, then update this recipe.'
+
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $nativeRoot = Join-Path $repoRoot 'artifacts\sqlcipher-native'
 $sqlArchive = Join-Path $nativeRoot 'sqlcipher-4.20.0.zip'
