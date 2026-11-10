@@ -33,6 +33,8 @@ Desktop.ini
 *.pfx
 *.p12
 *.key
+*.key.creating
+*.key.missing
 *.pem
 /.secrets/
 /secrets/
@@ -43,6 +45,7 @@ Desktop.ini
 /.scratch/
 *.db
 *.db-*
+*.db.saved
 *.sqlite
 *.sqlite-*
 *.sqlite3

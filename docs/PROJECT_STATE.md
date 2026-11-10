@@ -1,83 +1,15 @@
 # Current project context
 
-Updated: November 8, 2026. Architecture baseline: 0.1.
+Updated: November 9, 2026. Architecture baseline: 0.1. Task and gate status lives only in [backlog.json](../tasks/backlog.json).
 
-## Current reality
+Sidecue currently has a minimal WPF shell, an overlay prototype, separate Windows microphone and playback capture adapters, and a synthetic contract replay. Audio, providers and persistence are not connected to the shell. Overlay screen sharing and physical audio behavior are not fully verified.
 
-Sidecue has a five-project .NET solution, a minimal WPF shell, an owned overlay prototype and separate Windows microphone/render-loopback capture adapters with bounded normalization and a device recovery owner. The overlay has display and explicit local input modes, fixed global shortcuts and an excluded auxiliary details window. It explicitly says screen sharing is unverified. Audio capture is not connected to the shell, providers or persistence. Core/Application provide contracts and a sent-sample timing helper; Infrastructure still has no production persistence adapter. A separate canary validates a selected native SQLCipher candidate.
+SC-004B adds an infrastructure storage adapter: a random key protected with current-user DPAPI, user-restricted storage under `%LocalAppData%/SidecueData`, explicit recovery failures and an identity-checked SQLCipher loader. There is no transcript schema, packaged native DLL, installer or application wiring. Startup must own SQLitePCL initialization, and deployment must protect the native library's containing directories from untrusted modification. The local candidate remains in ignored build artifacts; system SQLite is not a fallback.
 
-A separate test-only replay now runs a fictional meeting through controlled clock, capture, transcription, assistance and store fakes. It models revisions, duplicates, resets and stale-answer fences; these reference rules are not wired into the product.
+The [SC-004B evidence](evidence/SC-004B/2026-11-09.md) records a same-user process restart, concurrent live-WAL reopen, protected permissions, invalid keys, interrupted initialization, modified native DLL rejection and synthetic plaintext scans. The locked Release build and 153 existing tests passed; the focused probe passed after the final loader guard. Earlier [SC-004A evidence](evidence/SC-004A/2026-11-08.md) records the native candidate and canary. These results do not establish clean-VM, packaged-binary or portable-recovery behavior.
 
-SDK/package pins, lockfiles, recommended analyzers with warnings as errors, PowerShell setup/build/test/run/probe commands and Windows CI configuration are present. The isolated overlay uses a small observable view model without a new package. Native system menus and WPF popup/tooltip surfaces are suppressed; IME/spellcheck popups are disabled for the prototype. Future surfaces must explicitly join the exclusion policy rather than assume inheritance from an owner.
+Read [the execution rules](IMPLEMENTATION_PLAN.md), the relevant [task card](tasks/SC-004.md), [data and recovery contracts](DATA_AND_RECOVERY.md) and [security data flow](SECURITY_AND_DATA_FLOW.md) before extending storage. [Dependencies](DEPENDENCIES.md) records package versions, licenses and the native build. Prior [audio](AUDIO_CAPTURE.md), [overlay](OVERLAY_PROTOTYPE.md), [contract](CONTRACT_RECORDS.md) and [replay](REPLAY.md) evidence remains available.
 
-Task and gate status belongs only in [backlog.json](../tasks/backlog.json). Latest evidence: [SC-004A native database canary](evidence/SC-004A/2026-11-08.md); audio work remains in [SC-003E correction](evidence/SC-003E/2026-11-07.md), [SC-003D partial preflight](evidence/SC-003D/2026-11-07-preflight.md) and the [audio guide](AUDIO_CAPTURE.md). Overlay work remains documented in [SC-002C partial evidence](evidence/SC-002C/2026-11-06-preflight.md) and the [overlay guide](OVERLAY_PROTOTYPE.md). Read the [record mapping](CONTRACT_RECORDS.md), [service mapping](CONTRACT_SERVICES.md) and [replay guide](REPLAY.md) before extending those boundaries. Historical package provenance and source snapshots remain unchanged.
+Run `powershell -NoProfile -File tools/show-task.ps1` for the next eligible leaf and blocked work. The next storage leaf is SC-004C, which requires a disposable clean Windows environment and retains exact-binary, durability, distribution and native-directory trust checks. Verify its prerequisites before claiming; do not treat this handoff as a gate pass. SC-002C remains blocked on mixed-scaling monitors and SC-003D on physical audio hardware and calibration. The owner's required actions remain on those backlog entries.
 
-The plan has 32 feature-level groups and now includes corrective child SC-003E; SC-007 and SC-016 remain standalone. Original acceptance, dependencies, deferred scope and all five phase gates are preserved. Read [the execution rules](IMPLEMENTATION_PLAN.md) and [planning validation](evidence/planning/2026-11-06-task-split.md).
-
-## Standing owner preferences
-
-- Leave the root README alone until the user says otherwise. Use START_HERE.md, this handoff and task documents for context.
-- The user handles all staging, committing and pushing. Include a suggested commit message when files change.
-- Maintain .gitignore. Generated output, downloaded SDKs, private data and secrets stay out of Git; source, lockfiles, synthetic fixtures and sanitized evidence stay reviewable.
-- Keep actionable follow-ups, blockers and evidence on the relevant open task in tasks/backlog.json; create scoped tasks only for work not already covered. Resolve or transfer remaining actions before closing a task.
-- Test the affected behavior and required task acceptance. Once relevant checks pass, expand only for a failure, dependency change or unresolved concern.
-- One prompt defaults to one executable leaf, its checks and handoff. A parent ID selects its next eligible child. Stop there unless the user explicitly requests more blocks. Do not confuse a completed child with parent/gate acceptance.
-
-## Verified commands and environment
-
-See [DEVELOPMENT.md](DEVELOPMENT.md) for setup, commands and dependency updates; see [DEPENDENCIES.md](DEPENDENCIES.md) for official sources and version/license notes.
-
-```powershell
-# Optional, if the exact SDK is not on PATH:
-powershell -NoProfile -File tools/setup-sdk.ps1
-
-# Locked restore, Release build and deterministic tests:
-powershell -NoProfile -File tools/test.ps1
-
-# Synthetic contract replay and normalized observations:
-powershell -NoProfile -File tools/replay.ps1
-
-# Real local overlay HWND/API and lifecycle probe:
-powershell -NoProfile -File tools/probe-overlay.ps1
-
-# Brief local microphone/loopback probe, metadata only:
-powershell -NoProfile -File tools/probe-audio.ps1
-powershell -NoProfile -File tools/probe-audio.ps1 -Normalize
-powershell -NoProfile -File tools/probe-audio-recovery.ps1 -Seconds 30
-
-# Encrypted database canary, after preparing the reviewed native DLL:
-powershell -NoProfile -File tools/probe-sqlcipher.ps1
-
-# Open the minimal shell after a Debug build:
-powershell -NoProfile -File tools/run.ps1
-```
-
-Local validation used Windows 11 Home 25H2, build 26200.9711, x64, PowerShell 5.1, SDK 10.0.403 and runtime 10.0.14. The system SDK remains 10.0.301; tooling uses the verified local SDK under ignored artifacts/dotnet. No machine-wide installation or persistent PATH change was made.
-
-The latest locked Release build passed with zero warnings/errors and all 153 deterministic tests passed. The separate native database canary passed with SQLCipher 4.20.0 Community, SQLite 3.54.1 and OpenSSL 3.5.9, using the exact DLL hash in its evidence. It verified FTS5, live WAL, memory-only temp, wrong/no-key and ordinary-SQLite rejection, plus synthetic marker scans. These managed dependencies are currently used only by the canary.
-
-The actual executable at 150% DPI accepted exclusion with `0x11` readback for original/recreated overlays and details. Native mode styles, input enablement, placement identity, hide/show and cleanup passed. All three shortcuts registered, a competing owner received error 1409, directed messages routed, and disposal/owner destruction released registrations. Windows declined the automated explicit foreground request; the UI displayed that result. Physical typing, key holding, another foreground application, mixed-DPI monitors and receiving streams were not verified. All three synthetic previews were inspected. No full WIN/CAP row or phase gate passed.
-
-The recovery owner detects Multimedia-default notifications and device failures, reopens with a new stream epoch, and preserves uncertain gaps. Physical device changes remain unverified. SC-003E uses contiguous trusted device positions to keep estimated output timing stable across callback jitter and preserves supported pending samples. The earlier local silent baseline consumed 10.030 seconds of loopback input and delivered 9.370 seconds; the post-correction run consumed and delivered 10.040 seconds. This comparison does not establish speech quality or physical alignment. All session intervals remain estimated; SC-003D retains physical verification. No AUD row or audio gate has passed.
-
-SC-002B repository validation passed: 19 JSON files, 134 tasks, five gates, completion/coverage guards, 243 local links and both original source hashes. Whitespace checks passed and the README remained unchanged. Existing .gitignore rules cover generated output. Nothing was staged, committed or pushed.
-
-The subsequent SC-002C partial run found one active 2560 x 1600 monitor at 150%; the owner cannot connect a second monitor now. On ordinary-integrity windows, injected shortcuts opened display, selected input mode and hid the overlay; a competing instance visibly reported conflicts, and details displayed its separate exclusion result. Typed text could not be read back, a shell Hide attempt with auxiliary windows open was inconclusive, and no separate foreground streaming-update test was run. The [partial record](evidence/SC-002C/2026-11-06-preflight.md) includes sanitized environment output and reproducible local helpers. No product code changed or full WIN/CAP row passed in that run.
-
-Backlog maintenance now keeps specific return actions in an optional `follow_ups` array on the relevant open task. The task viewer always reports blocked leaves alongside the next selection; the repository checker rejects completed tasks with unresolved follow-ups. SC-002C has four recorded actions and remains blocked. The [maintenance check](evidence/backlog-maintenance/2026-11-06.md) covers viewer selection and completion guard behavior.
-
-The earlier [SC-000 run](evidence/SC-000/2026-11-06.md) verified a source-only export with fresh NuGet/CLI caches. That clean-export check was not repeated; this block exercised the actual Release executable through its explicit probe mode.
-
-The Windows CI workflow targets windows-2025 and records the actual runner image. Hosted execution was not run or inspected in this block. The earlier clean source export was local, not a fresh OS installation.
-
-## Next concrete action
-
-The next dependency-ready leaf is **SC-004B: protect database keys and reopen user storage**. Read its [task card](tasks/SC-004.md#sc-004b), [SC-004A evidence](evidence/SC-004A/2026-11-08.md), data/recovery and security contracts before claiming it. Implement a fail-closed production loader for an approved native binary, not a system SQLite fallback. Stop after that leaf.
-
-**SC-003D remains blocked** on physical prerequisites. The owner cannot connect a USB headset now; the headset meeting, unplug/reconnect, both default-device changes and calibrated timing reference remain in the backlog. An automated playback switch could not be performed because Windows Settings did not expose a targetable window; no default was changed. Do not ask for these actions again unless the owner is ready to resume physical verification.
-
-**SC-002C remains blocked** until two active monitors with different scaling are available. To resume, inspect it with `powershell -NoProfile -File tools/show-task.ps1 -Id SC-002C`, confirm the environment, clear its blocker and claim it. Finish verified text entry, a controlled streaming update against a separate foreground app, physical keyboard/hide/auxiliary behavior and mixed-DPI movement. The default task viewer reports blocked leaves while selecting available work. Receiving-client verification remains SC-002D through SC-002F.
-
-The task viewer is read-only. Pass `-Id` to inspect a specific leaf or select within a parent; pass `-Owner <agent-id>` to resume claimed work. Without an owner, automatic selection skips claimed tasks. Check external prerequisites and claim the selected leaf in backlog.json before work; do not assume the viewer has claimed it.
-
-The SQLCipher candidate is source-pinned and locally tested, not yet integrated into production persistence or verified in a clean/packaged environment. A full clean invocation of the native build recipe and bit-for-bit reproducibility were not established; SC-004C tracks clean verification, distribution notices and build-only Perl review. Provider/model pins, supported hardware/share scenarios, signed packaging and measured latency remain unresolved. No phase gate is closed. Keep the personal Windows workflow ahead of hosted/team features and preserve the existing data boundaries.
+The owner handles staging, committing and pushing. Leave the root README alone until asked. Keep private data and generated artifacts ignored, preserve sanitized evidence and lockfiles, test the affected behavior proportionally, and stop after one executable leaf per prompt.

@@ -1057,7 +1057,7 @@
       "id": "SC-004B",
       "phase": 0,
       "title": "Protect database keys and reopen user storage",
-      "status": "planned",
+        "status": "done",
       "task_type": "implementation",
       "parent_id": "SC-004",
       "depends_on": [
@@ -1080,7 +1080,7 @@
       "owned_areas": [
         "src/Sidecue.Infrastructure/Security/",
         "src/Sidecue.Infrastructure/Persistence/",
-        "tests/Sidecue.Infrastructure.Tests/Encryption/"
+          "tests/Sidecue.StorageProbe/"
       ],
       "out_of_scope": [
         "No portable recovery, backup product, transcript schema or install/uninstall implementation."
@@ -1101,12 +1101,12 @@
           1
         ]
       },
-      "evidence": [],
-      "follow_ups": [
-        "Implement fail-closed production loading of the reviewed SQLCipher candidate, with an explicitly approved native binary identity and no system SQLite fallback; the SC-004A canary is not a production loader."
-      ],
+        "evidence": [
+          "docs/evidence/SC-004B/2026-11-09.md"
+        ],
+        "follow_ups": [],
       "blockers": [],
-      "owner": null
+        "owner": null
     },
     {
       "id": "SC-004C",
@@ -1162,7 +1162,8 @@
       "evidence": [],
       "follow_ups": [
         "Rebuild or package the exact selected native binary in a clean Windows environment, revalidate its identity and canary, and retain required SQLCipher and OpenSSL notices in distribution materials.",
-        "Review the build-only Perl package's reported CVE-2026-15534 and update the pinned tool/recipe if needed before a clean rebuild."
+          "Review the build-only Perl package's reported CVE-2026-15534 and update the pinned tool/recipe if needed before a clean rebuild.",
+          "Verify and enforce the native library's protected deployment directory and single-owner SQLite provider initialization before wiring storage into the application; pathname checks alone do not prevent a concurrent directory substitution."
       ],
       "blockers": [],
       "owner": null

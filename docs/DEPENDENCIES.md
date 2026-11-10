@@ -1,6 +1,6 @@
 # Dependency record
 
-Reviewed November 8, 2026 for SC-004A. The exact direct NuGet pins are in [Directory.Packages.props](../Directory.Packages.props); project lockfiles record the resolved transitive graph and content hashes. The database packages below are used by the canary, not yet by a production store. No cloud provider, UI styling or telemetry package has been introduced.
+Reviewed November 9, 2026 for SC-004B. The exact direct NuGet pins are in [Directory.Packages.props](../Directory.Packages.props); project lockfiles record the resolved transitive graph and content hashes. No cloud provider, UI styling or telemetry package has been introduced.
 
 | Component | Selected version | Use and license |
 | --- | --- | --- |
@@ -8,8 +8,9 @@ Reviewed November 8, 2026 for SC-004A. The exact direct NuGet pins are in [Direc
 | .NET / WindowsDesktop runtime | 10.0.14 in the selected SDK | Runtime used for validation; distribution notices apply |
 | Windows SDK .NET reference pack | 10.0.26100.57, selected by SDK | Windows compile-time contracts; Microsoft distribution terms |
 | NAudio.Wasapi | 3.3.0 | Shared-mode Windows microphone and render-loopback capture; MIT |
-| Microsoft.Data.Sqlite.Core | 10.0.14 | Managed SQLite driver for the encrypted database canary; MIT |
-| SQLitePCLRaw.provider.dynamic_cdecl | 3.0.5 | Explicit native provider for the canary; Apache-2.0 |
+| Microsoft.Data.Sqlite.Core | 10.0.14 | Managed SQLite driver for the encrypted storage adapter and canary; MIT |
+| SQLitePCLRaw.provider.dynamic_cdecl | 3.0.5 | Explicit native provider for encrypted storage; Apache-2.0 |
+| System.Security.Cryptography.ProtectedData | 10.0.14 | Windows current-user DPAPI key protection; MIT |
 | Microsoft.NET.Test.Sdk | 18.11.0 | Test tooling only; MIT |
 | xunit.v3.mtp-off | 4.0.2 | xUnit tests with VSTest; Apache-2.0 |
 | xunit.runner.visualstudio | 4.0.1 | VSTest adapter; Apache-2.0 |
@@ -22,6 +23,8 @@ The installed system SDK 10.0.301/runtime 10.0.9 was behind current servicing. M
 
 Package sources and licenses: [test SDK](https://www.nuget.org/packages/Microsoft.NET.Test.Sdk/18.11.0), [xUnit package](https://www.nuget.org/packages/xunit.v3.mtp-off/4.0.2), [VSTest adapter](https://www.nuget.org/packages/xunit.runner.visualstudio/4.0.1). The [xUnit runner documentation](https://xunit.net/docs/getting-started/v3/microsoft-testing-platform) describes the VSTest-only package. This avoids introducing a second test platform for the initial suite.
 
+The [ProtectedData package](https://www.nuget.org/packages/System.Security.Cryptography.ProtectedData/10.0.14) provides Windows DPAPI access. Its `CurrentUser` scope binds protected keys to the user's Windows profile; it is not portable key recovery or database encryption by itself.
+
 SC-003A pins [NAudio.Wasapi 3.3.0](https://www.nuget.org/packages/NAudio.Wasapi/3.3.0), which resolves NAudio.Core 3.3.0 and System.Numerics.Tensors 9.0.0 transitively in the lockfiles. NAudio is [MIT licensed](https://github.com/naudio/NAudio/blob/v3.3.0/LICENSE); the .NET library is [MIT licensed](https://github.com/dotnet/runtime/blob/main/LICENSE.TXT). Its [recorder documentation](https://github.com/naudio/NAudio/blob/v3.3.0/Docs/WasapiRecorder.md) describes the callback-scoped audio span and native timing values. The adapter copies the callback data into its own bounded leases rather than retaining that span or writing audio files.
 
 CommunityToolkit.Mvvm remains the selected UI framework when mutable state warrants it. Cloud provider packages and model pins must be reviewed in their owning tasks, not inferred from this record.
@@ -32,7 +35,7 @@ SC-004A evaluates a **Sidecue-built SQLCipher Community 4.20.0** x64 DLL against
 
 Zetetic identifies SQLite 3.54.1 as the [4.20.0 baseline](https://github.com/sqlcipher/sqlcipher/releases/tag/v4.20.0). SQLite documents the [WAL-reset corruption fix](https://sqlite.org/wal.html#the_wal_reset_bug) in 3.51.3 and later. The canary checks the actual loaded `sqlite_version()` and `sqlite_source_id()`, SQLCipher version, crypto provider, encryption status, FTS5 and `SQLITE_TEMP_STORE=3`. A reported version is interpreted together with the pinned source and actual binary hash; a NuGet package name or a connection-string password does not prove encryption. The older unofficial `SQLitePCLRaw.bundle_e_sqlcipher` 2.1.11 is [deprecated and unmaintained](https://www.nuget.org/packages/SQLitePCLRaw.bundle_e_sqlcipher/2.1.11) and was not selected.
 
-The native recipe and canary are development proof tools, not an implemented transcript store or release package. The native DLL is generated under ignored `artifacts/`; each distinct binary must be identified by hash and validated. A pinned source recipe does not by itself prove byte-for-byte reproducibility across machines. SC-004C retains clean-Windows and reviewed-distribution verification, and the eventual release must test the exact binary it ships or match it to the tested artifact. The canary's explicit path and hash checks are not a production DLL-loading security boundary. Never substitute system SQLite if the reviewed SQLCipher build is absent.
+The infrastructure adapter pins the reviewed DLL's SHA-256 and validates its loaded path and runtime identity before installing the provider. Startup must own SQLitePCL provider initialization, and deployment must supply the DLL from a directory protected from untrusted modification. The native DLL is generated under ignored `artifacts/`; it is not yet packaged. Each distinct binary must be reviewed and validated before its identity is accepted. A pinned source recipe does not prove byte-for-byte reproducibility across machines. SC-004C retains clean-Windows and reviewed-distribution verification, and the eventual release must test the exact binary it ships or match it to the tested artifact. Never substitute system SQLite if the reviewed SQLCipher build is absent. The adapter is not a transcript schema or release package.
 
 ## CI inputs
 
