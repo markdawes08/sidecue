@@ -1,6 +1,6 @@
 # Initial service and request contracts
 
-SC-001B defines the interfaces in `Sidecue.Application.Abstractions` and their immutable envelopes in `Sidecue.Core.Contracts`. They use record schema **1**. Constructors reject unsupported versions and inconsistent metadata. Windows capture and normalization adapters exist separately; provider adapters and the session coordinator remain future work.
+SC-001B defines the interfaces in `Sidecue.Application.Abstractions` and their immutable envelopes in `Sidecue.Core.Contracts`. They use record schema **1**. Constructors reject unsupported versions and inconsistent metadata. SC-007 adds a session lifecycle coordinator and its effect boundary; Windows capture and normalization adapters exist separately. No production composition connects the lifecycle to capture, transcription, persistence, generation or UI yet.
 
 [SC-001C replay](REPLAY.md) supplies deterministic test-only implementations and executable reference observations for these boundaries.
 
@@ -31,13 +31,15 @@ Status events carry source/timeline identity, safe error categories and optional
 
 ## Commands and frozen context
 
-[PauseListening, HideOverlay, ClearAssistantContext and EndSession](../src/Sidecue.Core/Contracts/SessionCommands.cs) are distinct versioned command types. They carry a session ID but perform no effects. Their XML comments preserve the documented semantics; the future controller allocates new context epochs and fences requests.
+[PauseListening, HideOverlay, ClearAssistantContext and EndSession](../src/Sidecue.Core/Contracts/SessionCommands.cs) are distinct versioned command types. They carry a session ID but perform no effects. [SessionLifecycleCoordinator](../src/Sidecue.Application/Sessions/SessionLifecycleCoordinator.cs) owns one session, exposes distinct operations, records context boundaries and fences foreground requests. It requires [ISessionLifecycleEffects](../src/Sidecue.Application/Sessions/SessionLifecycleContracts.cs) to persist the initial session, fence capture and uploads, stop/drain, atomically finalize and enqueue the summary, and clear derived context without deleting saved history. These are integration obligations, not implementations of the store, provider or native capture pipeline. SC-008 and SC-010 own the durable and capture/transcription implementations.
+
+The lifecycle effect's `FenceCapture` and capture-lease activation must be synchronous, nonblocking atomic gates with no I/O or callbacks. The finalization invocation must only enqueue work without blocking or callbacks, and recovery fencing must prevent an already queued finalization from committing. Real adapters must satisfy and test those rules before wiring them in. The present Windows `IAudioCaptureSource` opens active runs, so it cannot simply be passed as the inert lifecycle lease. A late, non-cooperative open is fenced and disposed if it returns; at most one unresolved late open is retained and new opens are rejected until safe cleanup. The coordinator rejects reused request IDs and explicitly fails after 4,096 foreground IDs in one session rather than retaining an unbounded set.
 
 [AssistRequest](../src/Sidecue.Core/Contracts/AssistanceContracts.cs) fixes the answer fence, profile version, action/question, exact transcript cutoff, clear boundary, output profile, language and token budgets. `ContextSnapshot` retains that request and pins provider, model, configuration version and evaluated capability version. Configuration references contain identifiers only; adapters resolve protected credentials privately.
 
 The initial snapshot accepts only this session's transcript after its clear boundary. It copies ordered finalized evidence/citation entries, an optional separately labelled partial revision and omission counts. It rejects foreign sessions/timelines, evidence newer than the cutoff, pre-boundary intervals and duplicate citation IDs. A segment spanning the clear boundary must be omitted until a later assembler can safely split supported evidence. Collection order is preserved; the assembler owns deterministic selection/order and token counting.
 
-The assembler must use the exact cutoff or fail. Constructors cannot prove database provenance, token-budget compliance or citation grounding. Rolling summaries, document/index scope and approved images have no representation in this subset and are added in their planned tasks. Every generated event must preserve the snapshot fence; the future coordinator still rejects stale output after cooperative cancellation.
+The assembler must use the exact cutoff or fail. Constructors cannot prove database provenance, token-budget compliance or citation grounding. Rolling summaries, document/index scope and approved images have no representation in this subset and are added in their planned tasks. Every generated event must preserve the snapshot fence. The lifecycle provides current-fence checks and rejects stale completion; future generation/UI integration must check the fence at its serialized publication boundary, not rely on a prior check followed by an unsynchronized UI update.
 
 ## Durable evidence
 

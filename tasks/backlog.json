@@ -1591,7 +1591,7 @@
       "id": "SC-007",
       "phase": 1,
       "title": "Implement the meeting lifecycle",
-      "status": "planned",
+      "status": "done",
       "depends_on": [
         "SC-001"
       ],
@@ -1615,7 +1615,9 @@
         "tests/Sidecue.Application.Tests/Sessions/"
       ],
       "requires_interactive_windows_evidence": false,
-      "evidence": [],
+      "evidence": [
+        "docs/evidence/SC-007/2026-11-10.md"
+      ],
       "blockers": [],
       "owner": null,
       "task_type": "implementation",
@@ -2137,6 +2139,9 @@
         ]
       },
       "evidence": [],
+      "follow_ups": [
+        "Adapt the active-opening Windows capture run to the lifecycle's inert lease and synchronous nonblocking capture/upload fence; verify pause/end races using the composed pipeline."
+      ],
       "blockers": [],
       "owner": null
     },
@@ -2195,6 +2200,9 @@
         ]
       },
       "evidence": [],
+      "follow_ups": [
+        "Implement and verify the lifecycle recovery fence across acquisition, uploads and queued durable finalization, including failure while a lease stop is already pending."
+      ],
       "blockers": [],
       "owner": null
     },
@@ -2551,6 +2559,9 @@
         ]
       },
       "evidence": [],
+      "follow_ups": [
+        "Bound or resolve an ambiguous durable-start operation and verify interruption recovery; a non-cooperative start can currently delay End while capture remains fenced."
+      ],
       "blockers": [],
       "owner": null
     },
@@ -3260,6 +3271,9 @@
       ],
       "requires_interactive_windows_evidence": false,
       "evidence": [],
+      "follow_ups": [
+        "Check session, epoch and request fences at the serialized publication boundary; a prior IsCurrent check followed by an unsynchronized UI update is insufficient."
+      ],
       "blockers": [],
       "owner": null,
       "task_type": "implementation",

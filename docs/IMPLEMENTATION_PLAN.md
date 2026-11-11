@@ -538,6 +538,7 @@ Acceptance:
 Verification and evidence:
 
 - Race tests interleave start, clear, cancellation, completion and out-of-order deltas across two sessions.
+- Check the session, context and request fence at the serialized publication boundary. A prior `IsCurrent` check followed by an unsynchronized UI update is insufficient.
 
 Expected owned areas: `src/Sidecue.Application/Assistance/`, `tests/Sidecue.Application.Tests/Assistance/`.
 
