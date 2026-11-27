@@ -66,7 +66,7 @@ Each required variant needs its own evidence record. A row passes only when its 
 | WIN-04 | Move overlay across 100/150/200 percent scaling and unplug a monitor | Readable bounds and placement survive; off-screen window recovers to a valid display | not-run |
 | WIN-05 | Choose between equal-resolution monitors | Selected native identity controls capture; no dimension-based or first-monitor substitution | not-run |
 | WIN-06 | Select a screenshot target, cancel, confirm, resize, and close target | Only the confirmed valid request sends pixels; preview is exact; resource use returns to baseline | not-run |
-| WIN-07 | Capture HDR and SDR content, then simulate device loss | Preview conversion is usable; resource loss is handled visibly without stale frames | not-run |
+| WIN-07 | Exercise SDR and HDR display modes, then simulate device loss | SDR produces a usable preview. In the SDR-only prototype, an active HDR or Advanced Color display produces a visible unsupported-mode message and no preview. Device loss is visible and releases the attempt without stale frames. | not-run |
 | WIN-08 | Hide/show overlay, clear context, and start another session | Session/capture/epoch behavior matches each control; old answer events cannot leak across contexts | not-run |
 | WIN-09 | Lock/unlock, sleep/wake, and end the user session | State/gaps are explicit; no orphan capture after application termination | not-run |
 | WIN-10 | Fill disk or block database writes while speech continues | RecoveryRequired and unsaved-text indication appear before the bounded buffer is exhausted | not-run |

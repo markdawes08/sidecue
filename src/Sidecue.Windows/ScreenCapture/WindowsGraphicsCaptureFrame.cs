@@ -1,7 +1,5 @@
 using System.Buffers;
-using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
 using Windows.Graphics;
 using Windows.Graphics.Capture;
 using Windows.Graphics.DirectX;
@@ -15,130 +13,166 @@ internal static class WindowsGraphicsCaptureFrame
     private static readonly TimeSpan CaptureTimeout = TimeSpan.FromSeconds(5);
 
     internal static Task<OwnedScreenshotFrame> CaptureAsync(GraphicsCaptureItem item, CancellationToken cancellationToken) =>
-        Task.Run(() => CaptureCoreAsync(item, cancellationToken), cancellationToken);
+        Task.Run(() => ScreenshotCaptureAttempt.RunAsync(() => CaptureRun.Open(item), WindowsDisplayColor.GetActiveMode,
+            CaptureTimeout, cancellationToken), cancellationToken);
 
-    private static async Task<OwnedScreenshotFrame> CaptureCoreAsync(
-        GraphicsCaptureItem item, CancellationToken cancellationToken)
+    private sealed class CaptureRun(GraphicsCaptureItem item) : IScreenshotCaptureRun
     {
-        using var captureDeadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        captureDeadline.CancelAfter(CaptureTimeout);
-        CancellationToken captureToken = captureDeadline.Token;
-        var ready = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        int targetClosed = 0;
-        TypedEventHandler<GraphicsCaptureItem, object> onClosed = (_, _) =>
+        private readonly TaskCompletionSource _ready = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private IDirect3DDevice? _device;
+        private Direct3D11CaptureFramePool? _pool;
+        private GraphicsCaptureSession? _session;
+        private SizeInt32 _size;
+        private int _byteCount;
+        private int _targetClosed;
+        private bool _observingTarget;
+        private bool _observingFrames;
+        private bool _disposed;
+
+        public bool TargetClosed => Volatile.Read(ref _targetClosed) != 0;
+
+        internal static CaptureRun Open(GraphicsCaptureItem item)
         {
-            Interlocked.Exchange(ref targetClosed, 1);
-            ready.TrySetResult();
-        };
-        OwnedScreenshotFrame? result = null;
-        bool transferred = false;
-        try
-        {
-            item.Closed += onClosed;
+            var run = new CaptureRun(item);
             try
             {
-                SizeInt32 size = item.Size;
-                int byteCount = ValidateSize(size);
-                using IDirect3DDevice device = WindowsCaptureDevice.Create();
-                using Direct3D11CaptureFramePool pool = Direct3D11CaptureFramePool.CreateFreeThreaded(
-                    device, DirectXPixelFormat.B8G8R8A8UIntNormalized, 1, size);
-                using GraphicsCaptureSession session = pool.CreateCaptureSession(item);
-                TypedEventHandler<Direct3D11CaptureFramePool, object> onFrameArrived = (_, _) => ready.TrySetResult();
-                pool.FrameArrived += onFrameArrived;
-                try
+                run.Initialize();
+                return run;
+            }
+            catch
+            {
+                try { run.Dispose(); }
+                catch (Exception)
                 {
-                    captureToken.ThrowIfCancellationRequested();
-                    session.StartCapture();
-                    await ready.Task.WaitAsync(captureToken).ConfigureAwait(false);
-                    ThrowIfTargetClosed(Volatile.Read(ref targetClosed));
-                    captureToken.ThrowIfCancellationRequested();
+                    // Preserve the acquisition error. Dispose attempts every release even if one fails.
+                }
+                throw;
+            }
+        }
 
-                    using Direct3D11CaptureFrame frame = pool.TryGetNextFrame() ??
-                        throw new ScreenshotCaptureException(ScreenshotCaptureFailure.CaptureFailed);
-                    using IDirect3DSurface surface = frame.Surface;
-                    VerifyFrameSizeAndFormat(size, frame.ContentSize, surface.Description);
+        private void Initialize()
+        {
+            item.Closed += OnTargetClosed;
+            _observingTarget = true;
+            _size = item.Size;
+            _byteCount = ValidateSize(_size);
+            ThrowIfTargetClosed();
 
+            _device = WindowsCaptureDevice.Create();
+            _pool = Direct3D11CaptureFramePool.CreateFreeThreaded(
+                _device, DirectXPixelFormat.B8G8R8A8UIntNormalized, 1, _size);
+            _session = _pool.CreateCaptureSession(item);
+            _pool.FrameArrived += OnFrameArrived;
+            _observingFrames = true;
+        }
+
+        public async Task<OwnedScreenshotFrame> ReadFrameAsync(CancellationToken cancellationToken)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfTargetClosed();
+            _session!.StartCapture();
+            await _ready.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfTargetClosed();
+
+            OwnedScreenshotFrame? result = null;
+            try
+            {
+                using (Direct3D11CaptureFrame frame = _pool!.TryGetNextFrame() ??
+                    throw new ScreenshotCaptureException(ScreenshotCaptureFailure.CaptureFailed))
+                using (IDirect3DSurface surface = frame.Surface)
+                {
+                    ScreenshotCaptureAttempt.ValidateFrame(_size, frame.ContentSize, surface.Description);
                     using SoftwareBitmap bitmap = await SoftwareBitmap.CreateCopyFromSurfaceAsync(surface, BitmapAlphaMode.Straight)
-                        .AsTask(captureToken).ConfigureAwait(false);
-                    if (bitmap.BitmapPixelFormat != BitmapPixelFormat.Bgra8 || bitmap.PixelWidth != size.Width ||
-                        bitmap.PixelHeight != size.Height)
+                        .AsTask(cancellationToken).ConfigureAwait(false);
+                    if (bitmap.PixelWidth != _size.Width || bitmap.PixelHeight != _size.Height)
                     {
-                        throw new ScreenshotCaptureException(ScreenshotCaptureFailure.CaptureFailed);
+                        throw new ScreenshotCaptureException(ScreenshotCaptureFailure.SizeChanged);
+                    }
+                    if (bitmap.BitmapPixelFormat != BitmapPixelFormat.Bgra8)
+                    {
+                        throw new ScreenshotCaptureException(ScreenshotCaptureFailure.UnsupportedFormat);
                     }
 
-                    var owner = new PixelBuffer(byteCount);
-                    result = new OwnedScreenshotFrame(size.Width, size.Height, owner);
+                    var owner = new PixelBuffer(_byteCount);
+                    result = new OwnedScreenshotFrame(_size.Width, _size.Height, owner);
                     bitmap.CopyToBuffer(owner.Bytes.AsBuffer());
                 }
-                finally
+
+                return result;
+            }
+            catch
+            {
+                result?.Dispose();
+                throw;
+            }
+        }
+
+        private void OnFrameArrived(Direct3D11CaptureFramePool sender, object args) => _ready.TrySetResult();
+
+        private void OnTargetClosed(GraphicsCaptureItem sender, object args)
+        {
+            Interlocked.Exchange(ref _targetClosed, 1);
+            _ready.TrySetResult();
+        }
+
+        private void ThrowIfTargetClosed()
+        {
+            if (TargetClosed)
+            {
+                throw new ScreenshotCaptureException(ScreenshotCaptureFailure.TargetClosed);
+            }
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+            _disposed = true;
+            GC.SuppressFinalize(this);
+
+            try
+            {
+                using IDirect3DDevice? device = _device;
+                using Direct3D11CaptureFramePool? pool = _pool;
+                using GraphicsCaptureSession? session = _session;
+                _device = null;
+                _pool = null;
+                _session = null;
+
+                if (_observingFrames && pool is not null)
                 {
-                    pool.FrameArrived -= onFrameArrived;
+                    pool.FrameArrived -= OnFrameArrived;
                 }
             }
             finally
             {
-                item.Closed -= onClosed;
+                // Keep observing target closure until the capture resources have finished closing.
+                if (_observingTarget)
+                {
+                    item.Closed -= OnTargetClosed;
+                }
             }
+        }
 
-            ThrowIfTargetClosed(Volatile.Read(ref targetClosed));
-            captureToken.ThrowIfCancellationRequested();
-            transferred = true;
-            return result;
-        }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        private static int ValidateSize(SizeInt32 size)
         {
-            throw new ScreenshotCaptureException(ScreenshotCaptureFailure.TimedOut);
-        }
-        catch (Exception exception) when (exception is ExternalException or UnauthorizedAccessException or InvalidOperationException)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            ThrowIfTargetClosed(Volatile.Read(ref targetClosed));
-            throw new ScreenshotCaptureException(ScreenshotCaptureFailure.CaptureFailed);
-        }
-        finally
-        {
-            if (!transferred)
+            if (size.Width <= 0 || size.Height <= 0)
             {
-                result?.Dispose();
+                throw new ScreenshotCaptureException(ScreenshotCaptureFailure.TargetClosed);
             }
-        }
-    }
 
-    private static void VerifyFrameSizeAndFormat(SizeInt32 size, SizeInt32 content, Direct3DSurfaceDescription description)
-    {
-        if (content.Width != size.Width || content.Height != size.Height ||
-            description.Width != size.Width || description.Height != size.Height)
-        {
-            throw new ScreenshotCaptureException(ScreenshotCaptureFailure.SizeChanged);
-        }
-        if (description.Format != DirectXPixelFormat.B8G8R8A8UIntNormalized)
-        {
-            throw new ScreenshotCaptureException(ScreenshotCaptureFailure.Unsupported);
-        }
-    }
-
-    private static int ValidateSize(SizeInt32 size)
-    {
-        if (size.Width <= 0 || size.Height <= 0)
-        {
-            throw new ScreenshotCaptureException(ScreenshotCaptureFailure.TargetClosed);
-        }
-
-        try
-        {
-            return OwnedScreenshotFrame.GetByteCount(size.Width, size.Height);
-        }
-        catch (ArgumentOutOfRangeException)
-        {
-            throw new ScreenshotCaptureException(ScreenshotCaptureFailure.ImageTooLarge);
-        }
-    }
-
-    private static void ThrowIfTargetClosed(int targetClosed)
-    {
-        if (targetClosed != 0)
-        {
-            throw new ScreenshotCaptureException(ScreenshotCaptureFailure.TargetClosed);
+            try
+            {
+                return OwnedScreenshotFrame.GetByteCount(size.Width, size.Height);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                throw new ScreenshotCaptureException(ScreenshotCaptureFailure.ImageTooLarge);
+            }
         }
     }
 
