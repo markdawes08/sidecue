@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Security.Cryptography;
 using Microsoft.Data.Sqlite;
+using Sidecue.Core.Contracts;
 using Sidecue.Infrastructure.Persistence;
 using Sidecue.Infrastructure.Security;
 using Xunit;
@@ -18,11 +19,11 @@ public sealed class TranscriptSchemaTests
         using var database = new TestDatabase();
         using (SqliteConnection connection = database.Store.CreateNewTranscriptStore(TestAppVersion, cancellationToken))
         {
-            Assert.Equal("2", Scalar(connection, "SELECT count(*) FROM schema_versions;"));
-            Assert.Equal("7", Scalar(connection, """
+            Assert.Equal("3", Scalar(connection, "SELECT count(*) FROM schema_versions;"));
+            Assert.Equal("8", Scalar(connection, """
                 SELECT count(*) FROM sqlite_schema WHERE type = 'table' AND name IN (
                     'sessions', 'timeline_epochs', 'audio_streams', 'transcript_events',
-                    'transcript_segments', 'transcript_segment_revisions', 'transcript_gaps'
+                    'transcript_segments', 'transcript_segment_revisions', 'transcript_gaps', 'transcript_event_aliases'
                 );
                 """));
         }
@@ -30,7 +31,7 @@ public sealed class TranscriptSchemaTests
         using SqliteConnection reopened = database.Store.OpenExistingTranscriptStore(TestAppVersion, cancellationToken);
         Assert.Throws<EncryptedDatabaseException>(() =>
             SchemaMigrator.Apply(reopened, [TranscriptSchema.Migrations[0]], TestAppVersion, cancellationToken));
-        Assert.Equal("2", Scalar(reopened, "SELECT count(*) FROM schema_versions;"));
+        Assert.Equal("3", Scalar(reopened, "SELECT count(*) FROM schema_versions;"));
         Assert.Equal("1", Scalar(reopened, "PRAGMA cipher_status;"));
         Assert.Equal("wal", Scalar(reopened, "PRAGMA journal_mode;"));
         Assert.Equal("1", Scalar(reopened, "PRAGMA foreign_keys;"));
@@ -38,7 +39,7 @@ public sealed class TranscriptSchemaTests
     }
 
     [SqlCipherFact]
-    public void UpgradePreservesScopedIdentityAndSourceIntervalsAcrossReopen()
+    public async Task UpgradePreservesScopedIdentityAndSourceIntervalsAcrossReopen()
     {
         const string ranges = "[[100,200],[300,400]]";
         const string finalText = "Synthetic finalized transcript";
@@ -70,8 +71,9 @@ public sealed class TranscriptSchemaTests
                 ("$otherTimeline", otherTimelineId), ("$anchorUtc", anchorUtc));
         }
 
-        using (SqliteConnection upgraded = database.Store.OpenExistingTranscriptStore(TestAppVersion, cancellationToken))
+        using (SqliteConnection upgraded = database.Store.OpenExisting())
         {
+            SchemaMigrator.Apply(upgraded, TranscriptSchema.Migrations[..2], TestAppVersion, cancellationToken);
             Assert.Equal(firstChecksum, Scalar(upgraded, "SELECT hex(checksum) FROM schema_versions WHERE version = 1;"));
             Assert.Equal("0.1.0-first-version", Scalar(upgraded, "SELECT app_version FROM schema_versions WHERE version = 1;"));
             Assert.Equal(TestAppVersion, Scalar(upgraded, "SELECT app_version FROM schema_versions WHERE version = 2;"));
@@ -114,6 +116,7 @@ public sealed class TranscriptSchemaTests
         }
 
         using SqliteConnection reopened = database.Store.OpenExistingTranscriptStore(TestAppVersion, cancellationToken);
+        Assert.Equal("3", Scalar(reopened, "SELECT count(*) FROM schema_versions;"));
         Assert.Equal("1", Scalar(reopened, """
             SELECT count(*) FROM transcript_gaps g
             JOIN transcript_events e USING (session_id, source_id, stream_epoch, event_id, kind)
@@ -143,6 +146,16 @@ public sealed class TranscriptSchemaTests
         Assert.Equal(1L, revision.GetInt64(8));
         Assert.Equal(2L, revision.GetInt64(9));
         Assert.False(revision.Read());
+
+        await using SqliteSessionStore store = await SqliteSessionStore.OpenAsync(
+            database.Store, TestAppVersion, createNew: false, cancellationToken);
+        SessionSnapshot snapshot = await store.ReadSessionAsync(new SessionId(new Guid(sessionId, bigEndian: true)), cancellationToken);
+        FinalSegment restoredFinal = Assert.IsType<FinalSegment>(snapshot.Entries[0].Write.Event);
+        Assert.Equal(new SegmentId(new Guid(segmentId, bigEndian: true)), restoredFinal.SegmentId);
+        TranscriptGap restoredGap = Assert.IsType<TranscriptGap>(snapshot.Entries[1].Write.Event);
+        Assert.Equal(TimingCertainty.Unknown, restoredGap.Certainty);
+        Assert.Equal(500L, restoredGap.Interval.Start.Offset.Value);
+        Assert.Equal(0L, restoredGap.Interval.DurationMicroseconds);
     }
 
     [SqlCipherFact]
@@ -177,7 +190,7 @@ public sealed class TranscriptSchemaTests
         }
 
         using SqliteConnection upgraded = database.Store.OpenExistingTranscriptStore(TestAppVersion, cancellationToken);
-        Assert.Equal("2", Scalar(upgraded, "SELECT count(*) FROM schema_versions;"));
+        Assert.Equal("3", Scalar(upgraded, "SELECT count(*) FROM schema_versions;"));
         Assert.Equal("1", Scalar(upgraded, "SELECT count(*) FROM sqlite_schema WHERE name = 'transcript_events';"));
     }
 

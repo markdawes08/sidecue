@@ -1728,7 +1728,7 @@
       "id": "SC-008B",
       "phase": 1,
       "title": "Write finalized transcript revisions idempotently",
-      "status": "planned",
+      "status": "done",
       "task_type": "implementation",
       "parent_id": "SC-008",
       "depends_on": [
@@ -1775,9 +1775,8 @@
           1
         ]
       },
-      "evidence": [],
-      "follow_ups": [
-        "Persist optional normalized word speaker spans with their source and epoch scope, and include them in the transcript payload fingerprint and reopen checks."
+      "evidence": [
+        "docs/evidence/SC-008B/2026-11-27.md"
       ],
       "blockers": [],
       "owner": null

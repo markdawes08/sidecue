@@ -137,6 +137,26 @@ internal static class TranscriptSchema
             FOREIGN KEY (session_id, source_id, stream_epoch, event_id, kind)
                 REFERENCES transcript_events (session_id, source_id, stream_epoch, event_id, kind)
         ) STRICT;
+        """,
+        """
+        ALTER TABLE transcript_segments ADD COLUMN source_segment_id BLOB
+            CHECK (length(source_segment_id) = 16 AND source_segment_id <> zeroblob(16));
+        CREATE UNIQUE INDEX transcript_segments_by_source_id
+            ON transcript_segments (session_id, source_id, stream_epoch, coalesce(source_segment_id, id));
+
+        CREATE TABLE transcript_event_aliases (
+            session_id BLOB NOT NULL,
+            source_id BLOB NOT NULL,
+            stream_epoch INTEGER NOT NULL,
+            event_id BLOB NOT NULL CHECK (length(event_id) = 16 AND event_id <> zeroblob(16)),
+            canonical_event_id BLOB NOT NULL CHECK (canonical_event_id <> event_id),
+            payload_hash BLOB NOT NULL CHECK (length(payload_hash) = 32),
+            PRIMARY KEY (session_id, source_id, stream_epoch, event_id),
+            FOREIGN KEY (session_id, source_id, stream_epoch, canonical_event_id)
+                REFERENCES transcript_events (session_id, source_id, stream_epoch, event_id)
+        ) STRICT;
+        CREATE INDEX transcript_event_aliases_by_canonical
+            ON transcript_event_aliases (session_id, source_id, stream_epoch, canonical_event_id);
         """
     ];
 

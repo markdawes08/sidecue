@@ -46,7 +46,7 @@ Both build and test accept `-Configuration Debug`; Release is the default. Test 
 
 The Deepgram probe uses an installed Windows English desktop speech voice. For an authorized live run, load a scoped test key into the current PowerShell process as `SIDECUE_DEEPGRAM_TEST_KEY`. Set `SIDECUE_DEEPGRAM_MODEL` and `SIDECUE_DEEPGRAM_MODEL_VERSION` to the intended model and pinned version. Run `powershell -NoProfile -File tools/probe-deepgram.ps1 -Live`. Use a local secret manager or secure prompt and clear the test key from the process afterward. The probe reports requested settings and counts of normalized events for each source.
 
-The transcript schema integration tests use disposable encrypted databases. Set the absolute path to the reviewed SQLCipher DLL for this test run. With the variable unset, ordinary CI skips these native cases.
+The transcript storage integration tests use disposable encrypted databases. Set the absolute path to the reviewed SQLCipher DLL for this test run. With the variable unset, ordinary CI skips these native cases.
 
 ```powershell
 powershell -NoProfile -File tools/build.ps1
@@ -54,7 +54,7 @@ powershell -NoProfile -File tools/build.ps1
 $env:SIDECUE_SQLCIPHER_NATIVE_PATH = (Resolve-Path artifacts/sqlcipher-native/sqlcipher.dll).Path
 try {
     Invoke-SidecueDotnet @('test', 'tests/Sidecue.Infrastructure.Tests', '-c', 'Release',
-        '--no-build', '--no-restore', '--filter', 'FullyQualifiedName~TranscriptSchemaTests')
+        '--no-build', '--no-restore', '--filter', 'FullyQualifiedName~Sidecue.Infrastructure.Tests.Transcripts')
 } finally {
     Remove-Item Env:SIDECUE_SQLCIPHER_NATIVE_PATH
 }

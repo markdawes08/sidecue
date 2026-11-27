@@ -13,9 +13,11 @@ public interface ISessionStore
     /// <summary>Commit a final revision or gap and return its durable outcome.</summary>
     /// <remarks>
     /// The source and event ID are the idempotency key. An identical retry returns
-    /// NoOp with the original assigned commit version; conflicting content must be
-    /// reported as a protocol conflict. Cancellation can race with commit. A caller
-    /// receiving an ambiguous failure must reread state or retry the same identity,
+    /// NoOp with the original assigned commit version. An equivalent replay of an
+    /// immutable revision may bind a new event ID to the same commit. Conflicting
+    /// content for a bound ID must be reported as a protocol conflict.
+    /// Cancellation can race with commit. A caller receiving an ambiguous failure
+    /// must reread state or retry the same identity,
     /// rather than assuming cancellation rolled back the transaction.
     /// </remarks>
     Task<CommitReceipt> CommitTranscriptAsync(TranscriptWrite write, CancellationToken ct);
