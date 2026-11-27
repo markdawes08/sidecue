@@ -29,7 +29,7 @@ SC-008A and then SC-008B may use that exact binary for local development and foc
 
 Adopted November 27, 2026. SC-002B established the local window policy and SC-002G exercised real foreground retention with a synthetic target. SC-005D can use synthetic pixels to prove preview consent and frame ownership. The selected-target prototype and resource handling can then be developed locally against the implemented window policy. [Window policy evidence](evidence/SC-002B/2026-11-06.md) · [Foreground evidence](evidence/SC-002G/2026-11-27.md)
 
-SC-005C still requires all of SC-002 and the physical screenshot matrix. SC-005 cannot close until that evidence exists. If overlay verification changes the window policy, repeat the affected preview and picker checks with the corrected policy. Request-scoped screenshot integration still belongs to SC-023 and its existing prerequisites.
+SC-005E exercises picker dismissal from the local prototype on one display. SC-005C still requires all of SC-002 and the physical screenshot matrix. SC-005 cannot close until that evidence exists. If overlay verification changes the window policy, repeat the affected preview and picker checks with the corrected policy. Request-scoped screenshot integration still belongs to SC-023 and its existing prerequisites.
 
 ## Selections to resolve during implementation
 
