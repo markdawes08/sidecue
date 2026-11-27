@@ -55,6 +55,10 @@ Foreign keys prevent orphaned segments, artifacts, and chunks. Cascades must be 
 
 Add a persistent provider-event dedup table only if revision uniqueness cannot provide the needed idempotency. Do not store every high-frequency partial event indefinitely. Provider IDs may collide across reconnects, so uniqueness includes the normalized source and epoch.
 
+The transcript schema shares one `transcript_events` table between final revisions and gaps. It enforces unique event identity within a session, source and stream epoch, and unique commit versions within a session. Revision and gap rows reference the matching event kind. A segment's current final revision must exist when the transaction commits, and an amendment must refer to an earlier revision of that segment.
+
+GUID columns use 16 bytes in network byte order (`Guid.ToByteArray(bigEndian: true)`). UTC columns store .NET UTC ticks. All timeline offsets are integer microseconds scoped to a timeline epoch. A revision stores its supported intervals as an ordered JSON array of `[start, end]` pairs so gaps between intervals survive round trips. The event row holds the timeline and outer bounds. Speaker labels are scoped to the event's source and stream epoch.
+
 ## Write discipline and evidence snapshots
 
 The database writer serializes write commands and acknowledges only after commit. It does not accept unlimited pending work. A successful queue insertion is not a Saved indication. UI state distinguishes pending, committed, and unsaved text.
@@ -151,6 +155,8 @@ Store generated note drafts and user edits as separate versions with parent refe
 ## Migrations, updates, and backups
 
 Migrations are ordered, checksummed, and tested from each supported prior schema. Run them before capture, with a verified backup where required. Use transactions for changes that support them and explicit recovery for changes that do not. Do not edit an already-shipped migration to repair a later database.
+
+The encrypted transcript store applies pending migrations in one write transaction before returning a connection. Version 1 creates session, timeline and stream storage. Version 2 adds committed transcript events, segments, revisions and gaps. `schema_versions` records the ordered SQL checksums, UTC application time and app version in the same transaction. Startup rejects a history with unknown versions, missing steps or changed checksums.
 
 An older application must refuse to write an unsupported newer schema. Installer rollback is not automatically database rollback. Declare the compatible schema range and test the selected update/recovery path before release.
 

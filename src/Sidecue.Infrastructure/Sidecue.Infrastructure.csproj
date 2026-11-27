@@ -10,6 +10,7 @@
     <PackageReference Include="System.Security.Cryptography.ProtectedData" />
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Sidecue.Infrastructure.Tests" />
     <ProjectReference Include="../Sidecue.Application/Sidecue.Application.csproj" />
     <ProjectReference Include="../Sidecue.Core/Sidecue.Core.csproj" />
   </ItemGroup>

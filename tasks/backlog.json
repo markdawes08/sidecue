@@ -1163,12 +1163,12 @@
           "docs/evidence/SC-004C/2026-11-10-preflight.md"
         ],
       "follow_ups": [
-          "Provide a disposable clean Windows x64 VM/profile and follow docs/evidence/SC-004C/clean-environment.md to repeat native identity, key, FTS, artifact-scan and durability checks with the exact reviewed binary.",
+          "When a disposable clean Windows x64 PC or VM is available, follow docs/evidence/SC-004C/clean-environment.md to repeat native identity, key, FTS, artifact-scan and durability checks with the exact reviewed binary. The test can run on another machine.",
           "Before a native rebuild, select and verify a patched Windows Perl toolchain addressing CVE-2026-15534 and update the disabled recipe; revalidate each distinct rebuilt binary.",
           "Verify the clean test's DLL directory is protected, and retain the exact-binary, distribution-notice, installed-directory and exclusive startup-provider checks on SC-006A/B before application wiring."
       ],
         "blockers": [
-          "No disposable clean Windows x64 VM or profile is currently established for the required clean-environment verification."
+          "The development PC lacks space for a local Windows VM. A clean Windows x64 test environment is still needed for this verification."
         ],
         "owner": null
     },
@@ -1633,7 +1633,7 @@
       "id": "SC-008",
       "phase": 1,
       "title": "Persist transcript revisions and finalized segments",
-      "status": "planned",
+      "status": "in_progress",
       "depends_on": [
         "SC-001",
         "SC-004B"
@@ -1675,7 +1675,7 @@
       "id": "SC-008A",
       "phase": 1,
       "title": "Add the encrypted transcript schema and migrations",
-      "status": "planned",
+      "status": "done",
       "task_type": "implementation",
       "parent_id": "SC-008",
       "depends_on": [
@@ -1718,7 +1718,9 @@
           2
         ]
       },
-      "evidence": [],
+      "evidence": [
+        "docs/evidence/SC-008A/2026-11-27.md"
+      ],
       "blockers": [],
       "owner": null
     },

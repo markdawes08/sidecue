@@ -46,6 +46,20 @@ Both build and test accept `-Configuration Debug`; Release is the default. Test 
 
 The Deepgram probe uses an installed Windows English desktop speech voice. For an authorized live run, load a scoped test key into the current PowerShell process as `SIDECUE_DEEPGRAM_TEST_KEY`. Set `SIDECUE_DEEPGRAM_MODEL` and `SIDECUE_DEEPGRAM_MODEL_VERSION` to the intended model and pinned version. Run `powershell -NoProfile -File tools/probe-deepgram.ps1 -Live`. Use a local secret manager or secure prompt and clear the test key from the process afterward. The probe reports requested settings and counts of normalized events for each source.
 
+The transcript schema integration tests use disposable encrypted databases. Set the absolute path to the reviewed SQLCipher DLL for this test run. With the variable unset, ordinary CI skips these native cases.
+
+```powershell
+powershell -NoProfile -File tools/build.ps1
+. .\tools\common.ps1
+$env:SIDECUE_SQLCIPHER_NATIVE_PATH = (Resolve-Path artifacts/sqlcipher-native/sqlcipher.dll).Path
+try {
+    Invoke-SidecueDotnet @('test', 'tests/Sidecue.Infrastructure.Tests', '-c', 'Release',
+        '--no-build', '--no-restore', '--filter', 'FullyQualifiedName~TranscriptSchemaTests')
+} finally {
+    Remove-Item Env:SIDECUE_SQLCIPHER_NATIVE_PATH
+}
+```
+
 The SQLCipher canary needs the reviewed native DLL under `artifacts/sqlcipher-native/sqlcipher.dll`. To build a candidate from the pinned sources, use Windows x64, MSVC 14.51.36231, Windows SDK 10.0.28000.0 and native Windows Perl 5.44.0, then run `powershell -NoProfile -File tools/build-sqlcipher.ps1 -PerlExecutable <absolute-perl-path>`. The recipe verifies source hashes and writes generated files under `artifacts/`; it may take several minutes. The checked-in canary manifest identifies the DLL tested for SC-004A. A rebuild may have a different hash: review its source, build information and dependencies, create a separate manifest for that exact binary, and rerun the canary with `-ManifestPath <absolute-manifest-path>`. Do not overwrite the tested evidence or treat a new hash as already approved. See [SC-004A evidence](evidence/SC-004A/2026-11-08.md) for the tested commands, license requirements and limitations.
 
 ## Project boundaries
@@ -55,7 +69,7 @@ The SQLCipher canary needs the reviewed native DLL under `artifacts/sqlcipher-na
 | `src/Sidecue.Core` | Platform-independent domain layer |
 | `src/Sidecue.Application` | Platform-independent application layer and bounded sent-sample timing helper, referencing Core |
 | `src/Sidecue.Windows` | Windowing, shared-mode audio capture and normalization adapters |
-| `src/Sidecue.Infrastructure` | Future storage and provider adapters |
+| `src/Sidecue.Infrastructure` | Encrypted persistence and provider adapters |
 | `src/Sidecue.Desktop` | WPF application and composition root |
 | `tests/Sidecue.Architecture.Tests` | Project dependency direction and pure-layer restore checks |
 | `tests/Sidecue.CipherProbe` | Isolated synthetic SQLCipher/FTS/WAL canary; run explicitly with the reviewed native DLL |
@@ -66,7 +80,7 @@ The SQLCipher canary needs the reviewed native DLL under `artifacts/sqlcipher-na
 | `tests/Sidecue.Windows.Tests` | Window capability, audio capture and normalization outcomes |
 | `tests/Sidecue.Desktop.Tests` | Shell bindings, overlay modes, auxiliary policy and owned HWND/control lifecycle |
 
-Desktop contains the shell and an [overlay prototype](OVERLAY_PROTOTYPE.md); Windows supplies native windowing and [audio capture](AUDIO_CAPTURE.md) adapters. Core contains validated [contract records](CONTRACT_RECORDS.md) and [request envelopes](CONTRACT_SERVICES.md); Application defines their service interfaces. Infrastructure has no storage/provider implementation. The prototype uses a small observable view model without a new MVVM package.
+Desktop contains the shell and an [overlay prototype](OVERLAY_PROTOTYPE.md). Windows supplies native windowing and [audio capture](AUDIO_CAPTURE.md) adapters. Core contains validated [contract records](CONTRACT_RECORDS.md) and [request envelopes](CONTRACT_SERVICES.md). Application defines their service interfaces. The prototype uses a small observable view model without a new MVVM package.
 
 ## Dependency changes
 

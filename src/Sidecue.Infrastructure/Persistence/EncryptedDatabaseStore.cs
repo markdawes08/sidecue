@@ -40,6 +40,30 @@ public sealed class EncryptedDatabaseStore
         return Open(key, SqliteOpenMode.ReadWrite, initialize: false);
     }
 
+    // Call before handing the connection to the transcript writer or readers.
+    internal SqliteConnection CreateNewTranscriptStore(string appVersion, CancellationToken cancellationToken = default) =>
+        OpenTranscriptStore(appVersion, createNew: true, cancellationToken);
+
+    internal SqliteConnection OpenExistingTranscriptStore(string appVersion, CancellationToken cancellationToken = default) =>
+        OpenTranscriptStore(appVersion, createNew: false, cancellationToken);
+
+    private SqliteConnection OpenTranscriptStore(string appVersion, bool createNew, CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(appVersion);
+        cancellationToken.ThrowIfCancellationRequested();
+        SqliteConnection connection = createNew ? CreateNew() : OpenExisting();
+        try
+        {
+            TranscriptSchema.Migrate(connection, appVersion, cancellationToken);
+            return connection;
+        }
+        catch
+        {
+            connection.Dispose();
+            throw;
+        }
+    }
+
     private SqliteConnection Open(DatabaseKey key, SqliteOpenMode mode, bool initialize)
     {
         var options = new SqliteConnectionStringBuilder
