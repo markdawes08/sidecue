@@ -1305,6 +1305,8 @@
         "SC-005A",
         "SC-005B",
         "SC-005E",
+        "SC-005F",
+        "SC-005G",
         "SC-005C"
       ],
       "instruction_file": "docs/IMPLEMENTATION_PLAN.md"
@@ -1513,6 +1515,97 @@
       "owner": null
     },
     {
+      "id": "SC-005F",
+      "phase": 0,
+      "title": "Make the opt-in picker cancellation probe observe the picker",
+      "status": "done",
+      "task_type": "implementation",
+      "parent_id": "SC-005",
+      "depends_on": [
+        "SC-000",
+        "SC-002B",
+        "SC-005E"
+      ],
+      "requires_gates": [],
+      "instruction_file": "docs/tasks/SC-005.md",
+      "scope": [
+        "Correct the existing native cancellation probe to observe the foreground test owner and its actual picker before requesting cancellation."
+      ],
+      "acceptance": [
+        "The probe bounds each wait and distinguishes early null completion, unexpected selection, a missing picker, and a picker left open. Only a test-owned synthetic window is used."
+      ],
+      "validation": [
+        "Run the existing opt-in screenshot probe and the regular Desktop suite. Record native limitations alongside the outcome."
+      ],
+      "owned_areas": [
+        "tests/Sidecue.Desktop.Tests/ScreenshotNativeProbeTests.cs",
+        "docs/evidence/SC-005F/"
+      ],
+      "out_of_scope": [
+        "No product cancellation changes, target selection or reduction of the physical display matrix."
+      ],
+      "prerequisites": [
+        "Interactive standard-user Windows desktop and evidence from SC-005B and SC-005E."
+      ],
+      "requires_interactive_windows_evidence": true,
+      "parent_coverage": {
+        "scope": [1],
+        "acceptance": [2],
+        "validation": [1]
+      },
+      "evidence": [
+        "docs/evidence/SC-005B/2026-11-27.md",
+        "docs/evidence/SC-005E/2026-11-27.md",
+        "docs/evidence/SC-005F/2026-11-27.md"
+      ],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-005G",
+      "phase": 0,
+      "title": "Verify pending picker teardown when Sidecue closes",
+      "status": "planned",
+      "task_type": "verification",
+      "parent_id": "SC-005",
+      "depends_on": [
+        "SC-000",
+        "SC-002B",
+        "SC-005F"
+      ],
+      "requires_gates": [],
+      "instruction_file": "docs/tasks/SC-005.md",
+      "scope": [
+        "Check the live Sidecue shell shutdown path while its native screenshot picker is open."
+      ],
+      "acceptance": [
+        "Record whether the shell and the observed picker close. If the picker remains open, retain the exact reproduction, clean up the test picker and record scoped corrective work."
+      ],
+      "validation": [
+        "Use the real shell on ordinary interactive Windows, select no target and retain ordered metadata-only outcomes."
+      ],
+      "owned_areas": [
+        "docs/evidence/SC-005G/"
+      ],
+      "out_of_scope": [
+        "No target selection, provider upload or broader display compatibility."
+      ],
+      "prerequisites": [
+        "An ordinary-user interactive Windows session, a fresh test-owned Sidecue shell and the SC-005F reproduction."
+      ],
+      "requires_interactive_windows_evidence": true,
+      "parent_coverage": {
+        "scope": [1],
+        "acceptance": [2],
+        "validation": [1]
+      },
+      "evidence": [
+        "docs/evidence/SC-005F/2026-11-27.md"
+      ],
+      "blockers": [],
+      "owner": null
+    },
+    {
       "id": "SC-005C",
       "phase": 0,
       "title": "Verify physical screenshot selection and cancellation",
@@ -1524,7 +1617,9 @@
         "SC-002B",
         "SC-002",
         "SC-005B",
-        "SC-005E"
+        "SC-005E",
+        "SC-005F",
+        "SC-005G"
       ],
       "requires_gates": [],
       "instruction_file": "docs/tasks/SC-005.md",
@@ -1547,7 +1642,7 @@
         "No remote vision-provider test or claim about display configurations not exercised."
       ],
       "prerequisites": [
-        "SC-005A/B/D/E and full SC-002 verification complete; interactive Windows, synthetic targets, multiple same-resolution displays and any HDR setup included in the claim."
+        "SC-005A/B/D/E/F/G and full SC-002 verification complete; interactive Windows, synthetic targets, multiple same-resolution displays and any HDR setup included in the claim."
       ],
       "requires_interactive_windows_evidence": true,
       "parent_coverage": {
@@ -1570,8 +1665,7 @@
         "docs/evidence/SC-005E/2026-11-27.md"
       ],
       "follow_ups": [
-        "Run WIN-05 through WIN-07 with the required display setup. Record exact target identity, resize and closure, SDR preview and HDR rejection, visible device loss, and temporary/cache inspection.",
-        "If using the timed native picker probe during verification, confirm its owner is foreground and clear any stale test picker first. Record early completion or a lingering picker separately from the observed foreground dismissal."
+        "Run WIN-05 through WIN-07 with the required display setup. Record exact target identity, resize and closure, SDR preview and HDR rejection, visible device loss, and temporary/cache inspection."
       ],
       "blockers": [
         "Full SC-002 evidence and the physical display setup for this task are pending. Only one active display is available on the development PC."
