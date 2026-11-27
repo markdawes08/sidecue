@@ -1636,7 +1636,7 @@
       "status": "planned",
       "depends_on": [
         "SC-001",
-        "SC-004"
+        "SC-004B"
       ],
       "requires_gates": [],
       "scope": [
@@ -1680,7 +1680,7 @@
       "parent_id": "SC-008",
       "depends_on": [
         "SC-001",
-        "SC-004"
+        "SC-004B"
       ],
       "requires_gates": [],
       "instruction_file": "docs/tasks/SC-008.md",
@@ -1703,7 +1703,7 @@
         "No serialized writer, partial UI projection or meeting lifecycle changes."
       ],
       "prerequisites": [
-        "SC-001 contracts and SC-004 validated encrypted store/key lifecycle; disposable database."
+        "Use the SC-001 contracts, the SC-004B encrypted store, the hash-pinned SC-004A SQLCipher DLL and a disposable local database with synthetic records."
       ],
       "requires_interactive_windows_evidence": false,
       "parent_coverage": {
@@ -1731,7 +1731,7 @@
       "parent_id": "SC-008",
       "depends_on": [
         "SC-001",
-        "SC-004",
+        "SC-004B",
         "SC-008A"
       ],
       "requires_gates": [],
@@ -1789,6 +1789,7 @@
       "parent_id": "SC-008",
       "depends_on": [
         "SC-001",
+        "SC-004B",
         "SC-004",
         "SC-008B"
       ],
@@ -1814,7 +1815,7 @@
         "No full session crash recovery, UI or runtime performance campaign."
       ],
       "prerequisites": [
-        "SC-008A/B complete; Windows runtime for the reviewed SQLCipher binary and a disposable synthetic store."
+        "Complete SC-008A/B and the full SC-004 storage proof, including the SC-004C clean Windows run. Use the reviewed SQLCipher binary on Windows with a disposable synthetic store."
       ],
       "requires_interactive_windows_evidence": false,
       "parent_coverage": {

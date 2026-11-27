@@ -305,7 +305,7 @@ Expected owned areas: `src/Sidecue.Application/Sessions/`, `src/Sidecue.Core/Ses
 
 **Persist transcript revisions and finalized segments**
 
-Phase: 1. Dependencies: SC-001, SC-004. Required gates: none beyond task dependencies.
+Phase: 1. SC-008A/B can start their local work with SC-001 and SC-004B, in sibling order. SC-008C and feature completion require full SC-004 evidence, including the clean Windows run. [Sequencing decision](DECISIONS.md#adr-013-local-transcript-storage-development)
 
 Scope:
 
