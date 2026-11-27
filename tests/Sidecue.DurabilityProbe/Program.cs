@@ -15,25 +15,40 @@ try
 {
     if (args.Length == 4 && args[0] == "child")
     {
-        RunInterruptedChild(args[1], args[2], args[3]);
+        if (args[3] is "transcript-before" or "transcript-after")
+            TranscriptDurability.RunChild(args[1], args[2], args[3], PauseUntilKilled);
+        else
+            RunInterruptedChild(args[1], args[2], args[3]);
         return 0;
     }
-    if (args.Length != 2 || !Path.IsPathFullyQualified(args[0]) || !Path.IsPathFullyQualified(args[1]))
+    bool transcript = args.Length == 3 && args[0] == "--transcript";
+    int pathIndex = transcript ? 1 : 0;
+    if (args.Length != pathIndex + 2 || !Path.IsPathFullyQualified(args[pathIndex]) ||
+        !Path.IsPathFullyQualified(args[pathIndex + 1]))
         throw new ArgumentException("Expected absolute paths for the approved library and isolated probe directory.");
 
-    string native = args[0];
-    string root = args[1];
+    string native = args[pathIndex];
+    string root = args[pathIndex + 1];
     Require(!Directory.Exists(root), "The isolated probe directory must not exist already.");
 
-    foreach (string stage in new[] { "write-before", "write-after", "migration-before", "migration-after" })
+    string[] stages = transcript ? ["transcript-before", "transcript-after"] :
+        ["write-before", "write-after", "migration-before", "migration-after"];
+    IReadOnlyList<string> canaries = transcript ? TranscriptDurability.Canaries : [baseline, pending];
+    foreach (string stage in stages)
     {
         var paths = SidecueDataPaths.ForRoot(Path.Combine(root, stage));
         var store = new EncryptedDatabaseStore(paths, native);
-        CreateBaseline(store);
-        InterruptAtBoundary(native, paths, stage);
-        VerifyRecovered(store, stage);
-        foreach (string artifact in Directory.EnumerateFiles(paths.RootDirectory)) AssertEncrypted(artifact);
-        Console.WriteLine($"PASS {stage}: terminated at synchronized boundary; committed data, schema, FTS and integrity verified.");
+        if (transcript) TranscriptDurability.CreateBaseline(store);
+        else CreateBaseline(store);
+
+        long liveWalBytes = InterruptAtBoundary(native, paths, stage, canaries);
+        if (transcript) TranscriptDurability.VerifyRecovered(store, stage);
+        else VerifyRecovered(store, stage);
+        ScanStoreArtifacts(paths, canaries);
+
+        string verified = transcript ? "revision history, gap, commit versions, retry and integrity" :
+            "committed data, schema, FTS and integrity";
+        Console.WriteLine($"PASS {stage}: terminated at synchronized boundary; live WAL bytes={liveWalBytes}; {verified} verified.");
     }
 
     Console.WriteLine("Durability probe passed using separate processes and synthetic data.");
@@ -91,12 +106,19 @@ static void RunInterruptedChild(string native, string directory, string stage)
     }
 
     if (stage.EndsWith("after", StringComparison.Ordinal)) transaction.Commit();
-    Console.WriteLine("READY");
-    Console.Out.Flush();
-    Thread.Sleep(Timeout.Infinite);
+    PauseUntilKilled();
 }
 
-static void InterruptAtBoundary(string native, SidecueDataPaths paths, string stage)
+static void PauseUntilKilled()
+{
+    Console.WriteLine("READY");
+    Console.Out.Flush();
+    // Bound the lifetime even if the coordinating process is interrupted.
+    Thread.Sleep(TimeSpan.FromSeconds(35));
+    throw new InvalidOperationException("The interruption coordinator did not terminate its child.");
+}
+
+static long InterruptAtBoundary(string native, SidecueDataPaths paths, string stage, IReadOnlyList<string> canaries)
 {
     string executable = Environment.ProcessPath ?? throw new InvalidOperationException("The probe executable is unavailable.");
     var start = new ProcessStartInfo(executable)
@@ -122,22 +144,27 @@ static void InterruptAtBoundary(string native, SidecueDataPaths paths, string st
             throw new InvalidOperationException($"The {stage} child did not reach its boundary: {error}");
         }
         Require(!process.HasExited, "The child exited before interruption.");
-        AssertEncrypted(paths.DatabasePath);
         string wal = paths.DatabasePath + "-wal";
-        // After-commit cases must retain a nonempty WAL at the instant of termination.
-        if (stage.EndsWith("after", StringComparison.Ordinal))
-            Require(File.Exists(wal) && new FileInfo(wal).Length > 0, "A committed live WAL was not observed.");
-        if (File.Exists(wal)) AssertEncrypted(wal);
+        long liveWalBytes = File.Exists(wal) ? new FileInfo(wal).Length : 0;
+        // Both transcript cases exercise the live WAL, including pre-commit spill.
+        if (stage == "transcript-before" || stage.EndsWith("after", StringComparison.Ordinal))
+            Require(liveWalBytes > 0, "A nonempty live WAL was not observed at the interruption boundary.");
+        ScanStoreArtifacts(paths, canaries, childHoldsDatabase: true);
         process.Kill(entireProcessTree: true);
         Require(process.WaitForExit(30000), "The child did not terminate.");
         Require(process.ExitCode != 0, "The interrupted child exited normally.");
+        // Scan the WAL index after Windows releases the child's byte-range locks,
+        // before reopening can remove or regenerate it.
+        string sharedMemory = paths.DatabasePath + "-shm";
+        if (File.Exists(sharedMemory)) AssertEncrypted(sharedMemory, canaries);
+        return liveWalBytes;
     }
     finally
     {
         if (!process.HasExited)
         {
             process.Kill(entireProcessTree: true);
-            process.WaitForExit();
+            Require(process.WaitForExit(5000), "The probe child did not terminate during cleanup.");
         }
     }
 }
@@ -183,13 +210,26 @@ static string Scalar(SqliteConnection connection, string sql, string? content = 
     return Convert.ToString(command.ExecuteScalar(), CultureInfo.InvariantCulture) ?? string.Empty;
 }
 
-static void AssertEncrypted(string path)
+static void ScanStoreArtifacts(SidecueDataPaths paths, IReadOnlyList<string> canaries, bool childHoldsDatabase = false)
+{
+    Require(File.Exists(paths.DatabasePath), "The probe database is missing.");
+    foreach (string artifact in Directory.EnumerateFileSystemEntries(paths.RootDirectory))
+    {
+        Require(artifact == paths.DatabasePath || artifact == paths.KeyPath ||
+            artifact == paths.DatabasePath + "-wal" || artifact == paths.DatabasePath + "-shm",
+            "The probe created an unexpected storage artifact.");
+        if (!childHoldsDatabase || artifact != paths.DatabasePath + "-shm")
+            AssertEncrypted(artifact, canaries);
+    }
+}
+
+static void AssertEncrypted(string path, IReadOnlyList<string> canaries)
 {
     using var file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
     using var content = new MemoryStream();
     file.CopyTo(content);
     ReadOnlySpan<byte> bytes = content.ToArray();
-    foreach (string marker in new[] { baseline, pending })
+    foreach (string marker in canaries)
     {
         Require(bytes.IndexOf(Encoding.UTF8.GetBytes(marker)) < 0 &&
             bytes.IndexOf(Encoding.Unicode.GetBytes(marker)) < 0 &&

@@ -3,6 +3,7 @@
 param(
     [ValidateSet('Debug', 'Release')][string]$Configuration = 'Release',
     [string]$NativePath,
+    [switch]$Transcript,
     [switch]$NoBuild
 )
 
@@ -20,8 +21,9 @@ try {
         Invoke-SidecueDotnet @('build', $project, '--configuration', $Configuration, '--no-restore')
     }
     $probeDirectory = Join-Path $repoRoot ('artifacts\durability-probe\' + [guid]::NewGuid().ToString('N'))
-    Invoke-SidecueDotnet @('run', '--project', $project, '--configuration', $Configuration,
-        '--no-restore', '--no-build', '--', $NativePath, $probeDirectory)
+    $probeArguments = @('run', '--project', $project, '--configuration', $Configuration, '--no-restore', '--no-build', '--')
+    if ($Transcript) { $probeArguments += '--transcript' }
+    Invoke-SidecueDotnet ($probeArguments + @($NativePath, $probeDirectory))
 } finally {
     Pop-Location
 }

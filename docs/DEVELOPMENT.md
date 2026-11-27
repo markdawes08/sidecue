@@ -35,6 +35,9 @@ powershell -NoProfile -File tools/probe-audio.ps1 -Normalize
 # Run the encrypted database canary against the reviewed local DLL.
 powershell -NoProfile -File tools/probe-sqlcipher.ps1
 
+# Interrupt the transcript writer's transaction in disposable test processes.
+powershell -NoProfile -File tools/probe-durability.ps1 -Transcript
+
 # Generate and validate the two synthetic audio streams locally.
 powershell -NoProfile -File tools/probe-deepgram.ps1
 

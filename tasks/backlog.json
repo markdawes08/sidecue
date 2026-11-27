@@ -1712,6 +1712,7 @@
       "children": [
         "SC-008A",
         "SC-008B",
+        "SC-008D",
         "SC-008C"
       ],
       "instruction_file": "docs/IMPLEMENTATION_PLAN.md"
@@ -1827,6 +1828,53 @@
       "owner": null
     },
     {
+      "id": "SC-008D",
+      "phase": 1,
+      "title": "Exercise transcript transaction interruption with the reviewed local store",
+      "status": "done",
+      "task_type": "verification",
+      "parent_id": "SC-008",
+      "depends_on": [
+        "SC-001",
+        "SC-004B",
+        "SC-008B"
+      ],
+      "requires_gates": [],
+      "instruction_file": "docs/tasks/SC-008.md",
+      "scope": [
+        "Use the production transcript transaction against a disposable encrypted store and interrupt a test-owned process before and after an amendment commit."
+      ],
+      "acceptance": [
+        "Reopen shows exactly the expected revisions, gap and commit versions for each termination boundary, and retry preserves the original event identity.",
+        "The tested database and live WAL keep encryption enabled and do not expose the synthetic canaries."
+      ],
+      "validation": [
+        "Run the two synchronized interruption cases on Windows with the hash-pinned SQLCipher candidate and capture sanitized results."
+      ],
+      "owned_areas": [
+        "tests/Sidecue.DurabilityProbe/",
+        "tools/probe-durability.ps1",
+        "docs/evidence/SC-008D/"
+      ],
+      "out_of_scope": [
+        "Clean Windows transcript verification, lifecycle crash recovery and installer evidence remain in their existing blocks."
+      ],
+      "prerequisites": [
+        "Use the completed transcript writer, the reviewed DLL and disposable synthetic stores on local Windows."
+      ],
+      "requires_interactive_windows_evidence": false,
+      "parent_coverage": {
+        "scope": [1, 2],
+        "acceptance": [1, 2],
+        "validation": [1, 2]
+      },
+      "evidence": [
+        "docs/evidence/SC-008D/2026-11-27.md"
+      ],
+      "blockers": [],
+      "owner": null
+    },
+    {
       "id": "SC-008C",
       "phase": 1,
       "title": "Verify transcript reopen and encrypted write integrity",
@@ -1837,7 +1885,8 @@
         "SC-001",
         "SC-004B",
         "SC-004",
-        "SC-008B"
+        "SC-008B",
+        "SC-008D"
       ],
       "requires_gates": [],
       "instruction_file": "docs/tasks/SC-008.md",
@@ -1861,7 +1910,7 @@
         "No full session crash recovery, UI or runtime performance campaign."
       ],
       "prerequisites": [
-        "Complete SC-008A/B and the full SC-004 storage proof, including the SC-004C clean Windows run. Use the reviewed SQLCipher binary on Windows with a disposable synthetic store."
+        "Complete SC-008A/B/D and the full SC-004 storage proof, including the SC-004C clean Windows run. Use the reviewed SQLCipher binary on Windows with a disposable synthetic store."
       ],
       "requires_interactive_windows_evidence": false,
       "parent_coverage": {

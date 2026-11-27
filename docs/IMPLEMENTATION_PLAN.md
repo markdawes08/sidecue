@@ -53,7 +53,7 @@ The JSON gate records carry the live state. G1 through G4 also require the prece
 | [SC-005](#sc-005) | 0 | Prove selected-target screenshot capture | [SC-005A to SC-005C](tasks/SC-005.md) |
 | [SC-006](#sc-006) | 0 | Prove installation and data preservation | [SC-006A to SC-006C](tasks/SC-006.md) |
 | [SC-007](#sc-007) | 1 | Implement the meeting lifecycle | Standalone leaf |
-| [SC-008](#sc-008) | 1 | Persist transcript revisions and finalized segments | [SC-008A to SC-008C](tasks/SC-008.md) |
+| [SC-008](#sc-008) | 1 | Persist transcript revisions and finalized segments | [SC-008A through SC-008D](tasks/SC-008.md) |
 | [SC-009](#sc-009) | 1 | Add the Deepgram streaming adapter | [SC-009A to SC-009C](tasks/SC-009.md) |
 | [SC-010](#sc-010) | 1 | Connect capture to durable live transcription | [SC-010A to SC-010C](tasks/SC-010.md) |
 | [SC-011](#sc-011) | 1 | Build diagnostics and the minimal transcript dashboard | [SC-011A to SC-011C](tasks/SC-011.md) |
@@ -305,7 +305,7 @@ Expected owned areas: `src/Sidecue.Application/Sessions/`, `src/Sidecue.Core/Ses
 
 **Persist transcript revisions and finalized segments**
 
-Phase: 1. SC-008A/B can start their local work with SC-001 and SC-004B, in sibling order. SC-008C and feature completion require full SC-004 evidence, including the clean Windows run. [Sequencing decision](DECISIONS.md#adr-013-local-transcript-storage-development)
+Phase: 1. SC-008A/B/D can do their local work with SC-001 and SC-004B, in sibling order. SC-008C and feature completion require full SC-004 evidence, including the clean Windows run. [Sequencing decision](DECISIONS.md#adr-013-local-transcript-storage-development)
 
 Scope:
 
