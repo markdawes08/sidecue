@@ -47,7 +47,7 @@ The JSON gate records carry the live state. G1 through G4 also require the prece
 | --- | --- | --- | --- |
 | [SC-000](#sc-000) | 0 | Bootstrap the solution and repeatable checks | Standalone leaf |
 | [SC-001](#sc-001) | 0 | Implement domain contracts and deterministic replay | [SC-001A to SC-001C](tasks/SC-001.md) |
-| [SC-002](#sc-002) | 0 | Prove overlay focus and capture exclusion | [SC-002A to SC-002F](tasks/SC-002.md) |
+| [SC-002](#sc-002) | 0 | Prove overlay focus and capture exclusion | [SC-002A through SC-002G](tasks/SC-002.md) |
 | [SC-003](#sc-003) | 0 | Prove two-source capture and stream epochs | [SC-003A to SC-003D](tasks/SC-003.md) |
 | [SC-004](#sc-004) | 0 | Prove encrypted database and protected keys | [SC-004A to SC-004C](tasks/SC-004.md) |
 | [SC-005](#sc-005) | 0 | Prove selected-target screenshot capture | [SC-005A to SC-005C](tasks/SC-005.md) |

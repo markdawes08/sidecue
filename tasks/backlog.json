@@ -301,6 +301,7 @@
       "children": [
         "SC-002A",
         "SC-002B",
+        "SC-002G",
         "SC-002C",
         "SC-002D",
         "SC-002E",
@@ -414,10 +415,10 @@
       "owner": "codex-root"
     },
     {
-      "id": "SC-002C",
+      "id": "SC-002G",
       "phase": 0,
-      "title": "Verify local overlay focus and monitor behavior",
-      "status": "blocked",
+      "title": "Verify overlay display updates preserve foreground focus on one monitor",
+      "status": "done",
       "task_type": "verification",
       "parent_id": "SC-002",
       "depends_on": [
@@ -427,7 +428,52 @@
       "requires_gates": [],
       "instruction_file": "docs/tasks/SC-002.md",
       "scope": [
-        "Run the overlay against a real foreground application, then exercise two monitors, mixed DPI and monitor movement.",
+        "Use a test-only foreground application and the real overlay display-update path on one active monitor."
+      ],
+      "acceptance": [
+        "A separate process owns foreground focus before the test and retains it while the overlay is shown and its displayed content is updated."
+      ],
+      "validation": [
+        "Record the foreground observations, applied updates, OS and display configuration with metadata-only evidence."
+      ],
+      "owned_areas": [
+        "tests/Sidecue.Desktop.Tests/",
+        "docs/evidence/SC-002G/"
+      ],
+      "out_of_scope": [
+        "Mixed DPI, monitor movement, physical input and receiving-client tests remain with the existing verification blocks."
+      ],
+      "prerequisites": [
+        "An interactive Windows desktop with an active monitor and a disposable synthetic foreground window."
+      ],
+      "requires_interactive_windows_evidence": true,
+      "parent_coverage": {
+        "scope": [2],
+        "acceptance": [3],
+        "validation": []
+      },
+      "evidence": [
+        "docs/evidence/SC-002G/2026-11-27.md"
+      ],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-002C",
+      "phase": 0,
+      "title": "Verify local overlay focus and monitor behavior",
+      "status": "blocked",
+      "task_type": "verification",
+      "parent_id": "SC-002",
+      "depends_on": [
+        "SC-000",
+        "SC-002B",
+        "SC-002G"
+      ],
+      "requires_gates": [],
+      "instruction_file": "docs/tasks/SC-002.md",
+      "scope": [
+        "Extend the SC-002G foreground check to two monitors, mixed DPI and monitor movement.",
         "Check deliberate text input, hotkey conflicts, hide/show, popups, tooltips and dialogs with metadata-only evidence."
       ],
       "acceptance": [
@@ -466,7 +512,6 @@
       ],
       "follow_ups": [
         "Obtain two active monitors at different scaling settings and verify movement, placement and the required monitor cases.",
-        "Provide a controlled synthetic display-update path and verify foreground focus is preserved in a separate application.",
         "Verify actual text entry and physical keyboard shortcuts, including held-key behavior.",
         "Retry the inconclusive hide check with both overlay surfaces open and exercise supported auxiliary and suppressed popup behavior."
       ],

@@ -14,4 +14,7 @@
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
     <ProjectReference Include="../../src/Sidecue.Desktop/Sidecue.Desktop.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="Fixtures/Show-OverlayFocusTarget.ps1" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>
