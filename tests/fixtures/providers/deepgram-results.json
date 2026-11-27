@@ -1,0 +1,74 @@
+{
+  "partial_initial": {
+    "type": "Results", "channel_index": [0, 1], "start": 0.0, "duration": 0.5,
+    "is_final": false, "speech_final": false,
+    "channel": { "alternatives": [{ "transcript": "Synthetic hello", "words": [
+      { "word": "synthetic", "start": 0.0, "end": 0.2, "speaker": 0 },
+      { "word": "hello", "start": 0.2, "end": 0.5, "speaker": 0 }
+    ] }] }
+  },
+  "partial_revision": {
+    "type": "Results", "channel_index": [0, 1], "start": 0.0, "duration": 0.8,
+    "is_final": false, "speech_final": false,
+    "channel": { "alternatives": [{ "transcript": "Synthetic hello again", "words": [
+      { "word": "synthetic", "start": 0.0, "end": 0.2, "speaker": 0 },
+      { "word": "hello", "start": 0.2, "end": 0.5, "speaker": 0 },
+      { "word": "again", "start": 0.5, "end": 0.8, "speaker": 0 }
+    ] }] }
+  },
+  "final": {
+    "type": "Results", "channel_index": [0, 1], "start": 0.0, "duration": 1.0,
+    "is_final": true, "speech_final": false,
+    "channel": { "alternatives": [{ "transcript": "Synthetic hello again", "words": [
+      { "word": "synthetic", "start": 0.0, "end": 0.2, "speaker": 0 },
+      { "word": "hello", "start": 0.2, "end": 0.5, "speaker": 0 },
+      { "word": "again", "start": 0.5, "end": 0.8, "speaker": 0 }
+    ] }] }
+  },
+  "same_text_later": {
+    "type": "Results", "channel_index": [0, 1], "start": 1.0, "duration": 1.0,
+    "is_final": true, "speech_final": false,
+    "channel": { "alternatives": [{ "transcript": "Synthetic hello again", "words": [
+      { "word": "synthetic", "start": 1.0, "end": 1.2, "speaker": 0 },
+      { "word": "hello", "start": 1.2, "end": 1.5, "speaker": 0 },
+      { "word": "again", "start": 1.5, "end": 1.8, "speaker": 0 }
+    ] }] }
+  },
+  "endpoint_nonfinal": {
+    "type": "Results", "channel_index": [0, 1], "start": 2.0, "duration": 1.0,
+    "is_final": false, "speech_final": true,
+    "channel": { "alternatives": [{ "transcript": "Synthetic endpoint", "words": [
+      { "word": "synthetic", "start": 2.0, "end": 2.4, "speaker": 1 },
+      { "word": "endpoint", "start": 2.4, "end": 2.8, "speaker": 1 }
+    ] }] }
+  },
+  "mixed_speakers": {
+    "type": "Results", "channel_index": [0, 1], "start": 3.0, "duration": 1.0,
+    "is_final": true, "speech_final": true,
+    "channel": { "alternatives": [{ "transcript": "Synthetic turn", "words": [
+      { "word": "synthetic", "start": 3.0, "end": 3.6, "speaker": 0 },
+      { "word": "turn", "start": 3.4, "end": 3.8, "speaker": 1 }
+    ] }] }
+  },
+  "empty_endpoint": {
+    "type": "Results", "channel_index": [0, 1], "start": 4.0, "duration": 1.0,
+    "is_final": true, "speech_final": true,
+    "channel": { "alternatives": [{ "transcript": "", "words": [] }] }
+  },
+  "utterance_end": { "type": "UtteranceEnd", "channel": [0, 1], "last_word_end": 4.5 },
+  "cross_gap_partial": {
+    "type": "Results", "channel_index": [0, 1], "start": 0.75, "duration": 0.5,
+    "is_final": false, "speech_final": false,
+    "channel": { "alternatives": [{ "transcript": "Synthetic gap", "words": [] }] }
+  },
+  "cross_gap_final": {
+    "type": "Results", "channel_index": [0, 1], "start": 0.75, "duration": 0.5,
+    "is_final": true, "speech_final": false,
+    "channel": { "alternatives": [{ "transcript": "Synthetic gap", "words": [] }] }
+  },
+  "uncertain_final": {
+    "type": "Results", "channel_index": [0, 1], "start": 1.0, "duration": 0.5,
+    "is_final": true, "speech_final": false,
+    "channel": { "alternatives": [{ "transcript": "Synthetic uncertain", "words": [] }] }
+  }
+}

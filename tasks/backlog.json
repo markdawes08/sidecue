@@ -1838,7 +1838,7 @@
       "id": "SC-009",
       "phase": 1,
       "title": "Add the Deepgram streaming adapter",
-      "status": "planned",
+      "status": "in_progress",
       "depends_on": [
         "SC-001"
       ],
@@ -1879,7 +1879,7 @@
       "id": "SC-009A",
       "phase": 1,
       "title": "Normalize synthetic Deepgram protocol events",
-      "status": "planned",
+      "status": "done",
       "task_type": "implementation",
       "parent_id": "SC-009",
       "depends_on": [
@@ -1926,7 +1926,9 @@
           3
         ]
       },
-      "evidence": [],
+      "evidence": [
+        "docs/evidence/SC-009A/2026-11-10.md"
+      ],
       "blockers": [],
       "owner": null
     },
@@ -1982,6 +1984,9 @@
         ]
       },
       "evidence": [],
+      "follow_ups": [
+        "Preserve or safely represent mixed-speaker word provenance through the normalized stream without rewriting transcript text; SC-009A reports this case as unattributed and degraded."
+      ],
       "blockers": [],
       "owner": null
     },
