@@ -38,7 +38,8 @@ public abstract record TranscriptEvent
 public sealed record PartialSegment : TranscriptEvent
 {
     public PartialSegment(TranscriptEventHeader header, SegmentId segmentId, SegmentRevision revision,
-        TimelineInterval interval, string text, SpeakerKey? speaker = null) : base(header)
+        TimelineInterval interval, string text, SpeakerKey? speaker = null,
+        IEnumerable<WordSpeakerSpan>? speakerSpans = null) : base(header)
     {
         ContractGuard.Guid(segmentId.Value, nameof(segmentId));
         ArgumentNullException.ThrowIfNull(interval);
@@ -49,6 +50,7 @@ public sealed record PartialSegment : TranscriptEvent
         Interval = interval;
         Text = text;
         Speaker = speaker;
+        SpeakerSpans = EventGuard.SpeakerSpans(speakerSpans, header.Source, [interval], speaker);
     }
 
     public SegmentId SegmentId { get; }
@@ -56,12 +58,14 @@ public sealed record PartialSegment : TranscriptEvent
     public TimelineInterval Interval { get; }
     public string Text { get; }
     public SpeakerKey? Speaker { get; }
+    public ImmutableArray<WordSpeakerSpan> SpeakerSpans { get; }
 }
 
 public sealed record FinalSegment : TranscriptEvent
 {
     public FinalSegment(TranscriptEventHeader header, SegmentId segmentId, SegmentRevision revision,
-        IEnumerable<TimelineInterval> intervals, TimingCertainty certainty, string text, SpeakerKey? speaker = null) : base(header)
+        IEnumerable<TimelineInterval> intervals, TimingCertainty certainty, string text, SpeakerKey? speaker = null,
+        IEnumerable<WordSpeakerSpan>? speakerSpans = null) : base(header)
     {
         ContractGuard.Guid(segmentId.Value, nameof(segmentId));
         ArgumentNullException.ThrowIfNull(text);
@@ -73,6 +77,7 @@ public sealed record FinalSegment : TranscriptEvent
         Certainty = certainty;
         Text = text;
         Speaker = speaker;
+        SpeakerSpans = EventGuard.SpeakerSpans(speakerSpans, header.Source, Intervals, speaker);
     }
 
     public SegmentId SegmentId { get; }
@@ -81,13 +86,14 @@ public sealed record FinalSegment : TranscriptEvent
     public TimingCertainty Certainty { get; }
     public string Text { get; }
     public SpeakerKey? Speaker { get; }
+    public ImmutableArray<WordSpeakerSpan> SpeakerSpans { get; }
 }
 
 public sealed record FinalAmendment : TranscriptEvent
 {
     public FinalAmendment(TranscriptEventHeader header, SegmentId segmentId, SegmentRevision revision,
         SegmentRevision amendsRevision, IEnumerable<TimelineInterval> intervals, TimingCertainty certainty,
-        string text, SpeakerKey? speaker = null) : base(header)
+        string text, SpeakerKey? speaker = null, IEnumerable<WordSpeakerSpan>? speakerSpans = null) : base(header)
     {
         ContractGuard.Guid(segmentId.Value, nameof(segmentId));
         ArgumentNullException.ThrowIfNull(text);
@@ -105,6 +111,7 @@ public sealed record FinalAmendment : TranscriptEvent
         Certainty = certainty;
         Text = text;
         Speaker = speaker;
+        SpeakerSpans = EventGuard.SpeakerSpans(speakerSpans, header.Source, Intervals, speaker);
     }
 
     public SegmentId SegmentId { get; }
@@ -114,6 +121,7 @@ public sealed record FinalAmendment : TranscriptEvent
     public TimingCertainty Certainty { get; }
     public string Text { get; }
     public SpeakerKey? Speaker { get; }
+    public ImmutableArray<WordSpeakerSpan> SpeakerSpans { get; }
 }
 
 public sealed record UtteranceBoundary : TranscriptEvent

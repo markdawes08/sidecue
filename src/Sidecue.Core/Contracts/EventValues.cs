@@ -53,6 +53,28 @@ public sealed record SpeakerKey
     public override string ToString() => $"SpeakerKey {{ SourceId = {SourceId}, StreamEpoch = {StreamEpoch} }}";
 }
 
+/// <summary>Anonymous speaker evidence for one word in the provider's result order.</summary>
+/// <remarks>The index refers to the provider's word list. It is not a character or token offset in the transcript text.</remarks>
+public sealed record WordSpeakerSpan
+{
+    public WordSpeakerSpan(int wordIndex, SpeakerKey speaker, IEnumerable<TimelineInterval> intervals,
+        TimingCertainty certainty)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(wordIndex);
+        ArgumentNullException.ThrowIfNull(speaker);
+        EventGuard.Defined(certainty, nameof(certainty));
+        WordIndex = wordIndex;
+        Speaker = speaker;
+        Intervals = EventGuard.Intervals(intervals);
+        Certainty = certainty;
+    }
+
+    public int WordIndex { get; }
+    public SpeakerKey Speaker { get; }
+    public ImmutableArray<TimelineInterval> Intervals { get; }
+    public TimingCertainty Certainty { get; }
+}
+
 internal static class EventGuard
 {
     internal static void Defined<T>(T value, string name) where T : struct, Enum
@@ -69,6 +91,33 @@ internal static class EventGuard
         {
             throw new ArgumentException("The speaker key must belong to the event source and stream epoch.", nameof(speaker));
         }
+    }
+
+    internal static ImmutableArray<WordSpeakerSpan> SpeakerSpans(IEnumerable<WordSpeakerSpan>? spans,
+        SourceIdentity source, ImmutableArray<TimelineInterval> segmentIntervals, SpeakerKey? aggregate)
+    {
+        if (spans is null) { return []; }
+        var copy = spans.ToImmutableArray();
+        int previousIndex = -1;
+        foreach (var span in copy)
+        {
+            ArgumentNullException.ThrowIfNull(span);
+            Speaker(span.Speaker, source);
+            if (span.WordIndex <= previousIndex || (aggregate is not null && aggregate != span.Speaker))
+            {
+                throw new ArgumentException("Speaker spans must be in word order and match any aggregate label.", nameof(spans));
+            }
+            foreach (var interval in span.Intervals)
+            {
+                if (!segmentIntervals.Any(segment => interval.TimelineEpoch == segment.TimelineEpoch &&
+                    interval.Start.Offset.Value >= segment.Start.Offset.Value && interval.End.Offset.Value <= segment.End.Offset.Value))
+                {
+                    throw new ArgumentException("Speaker spans must remain within supported segment intervals.", nameof(spans));
+                }
+            }
+            previousIndex = span.WordIndex;
+        }
+        return copy;
     }
 
     internal static ImmutableArray<TimelineInterval> Intervals(IEnumerable<TimelineInterval> intervals)

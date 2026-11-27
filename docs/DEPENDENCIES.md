@@ -50,3 +50,6 @@ The [workflow](../.github/workflows/ci.yml) pins these official, MIT-licensed Ac
 | [upload-artifact](https://github.com/actions/upload-artifact/releases/tag/v7.0.2) | 7.0.2 | `cf430e030ddbb5b0abf93d22962f4752f3646cd9` |
 
 Runner: `windows-2025`. The [official image inventory](https://github.com/actions/runner-images/blob/main/images/windows/Windows2025-Readme.md) reported image 20261101.318.1 at review; CI records its actual `ImageOS` and `ImageVersion` each run. A local Windows run does not constitute execution on that hosted image.
+## Deepgram streaming transport
+
+SC-009B uses .NET 10 `ClientWebSocket` and the Deepgram Listen v1 endpoint. Runtime configuration explicitly supplies the model identifier, provider model version and configuration version. Audio is mono 16 kHz signed little-endian PCM16. The adapter requests interim results, streaming diarizer `v1`, a 1,000 ms utterance-end setting and configurable endpointing with a 300 ms default. SC-009C records the model version and behavior observed on the configured account. [Deepgram streaming API](https://developers.deepgram.com/reference/speech-to-text/listen-streaming) · [Diarization](https://developers.deepgram.com/docs/diarization)

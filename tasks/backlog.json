@@ -1774,6 +1774,9 @@
         ]
       },
       "evidence": [],
+      "follow_ups": [
+        "Persist optional normalized word speaker spans with their source and epoch scope, and include them in the transcript payload fingerprint and reopen checks."
+      ],
       "blockers": [],
       "owner": null
     },
@@ -1936,7 +1939,7 @@
       "id": "SC-009B",
       "phase": 1,
       "title": "Implement bounded dual-stream speech transport",
-      "status": "planned",
+      "status": "done",
       "task_type": "implementation",
       "parent_id": "SC-009",
       "depends_on": [
@@ -1983,9 +1986,8 @@
           3
         ]
       },
-      "evidence": [],
-      "follow_ups": [
-        "Preserve or safely represent mixed-speaker word provenance through the normalized stream without rewriting transcript text; SC-009A reports this case as unattributed and degraded."
+      "evidence": [
+        "docs/evidence/SC-009B/2026-11-27.md"
       ],
       "blockers": [],
       "owner": null
@@ -2041,6 +2043,9 @@
         ]
       },
       "evidence": [],
+      "follow_ups": [
+        "The owner can configure a scoped Deepgram test credential and enable the explicit synthetic smoke mode when ready. Record exact model/version, configuration, terminal drain, and independent source results without secrets."
+      ],
       "blockers": [],
       "owner": null
     },
@@ -2145,7 +2150,8 @@
       },
       "evidence": [],
       "follow_ups": [
-        "Adapt the active-opening Windows capture run to the lifecycle's inert lease and synchronous nonblocking capture/upload fence; verify pause/end races using the composed pipeline."
+        "Adapt the active-opening Windows capture run to the lifecycle's inert lease and synchronous nonblocking capture/upload fence; verify pause/end races using the composed pipeline.",
+        "Allocate disjoint speech epoch ranges across capture runs for one logical source, route capture-status gaps, and resolve the enabled Deepgram credential from current-user DPAPI for the pinned runtime configuration."
       ],
       "blockers": [],
       "owner": null

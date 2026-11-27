@@ -22,6 +22,8 @@ The producer owns the frame until a successful transfer; the consumer then dispo
 
 `TranscriptEventHeader` carries the version, source identity, event ID and sequence. Its six variants map directly to the normalized transcript event table. Final intervals are copied into immutable collections and must be ordered, nonoverlapping and within one timeline. An amendment names the older revision and must advance it. A speaker key is scoped to its source and stream epoch.
 
+Partial segments, final segments and amendments accept optional immutable `WordSpeakerSpan` entries. Each span records the provider word index, an anonymous scoped speaker label and timing within the segment's supported intervals. Missing indices indicate absent provenance. Indices refer to the provider word list because formatting may change the displayed text. Existing callers can omit the spans.
+
 `AnswerEventHeader` carries the version, `AnswerFence` (session, context epoch, request ID) and answer sequence. Its six variants preserve that fence. Citation IDs are opaque references to a future frozen context; constructing `AnswerCompleted` does not verify grounding. The future coordinator must resolve citations and reject stale results.
 
 Collection-bearing records are immutable, but record equality is **not a payload fingerprint**: `ImmutableArray` equality can reflect collection identity. Replay/reconciliation must compare canonical payloads when checking duplicate event IDs. Content-bearing events have content-free `ToString()` output; this does not authorize structured logging or serialization of their text.

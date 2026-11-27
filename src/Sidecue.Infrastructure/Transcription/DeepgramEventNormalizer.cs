@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Numerics;
 using System.Security.Cryptography;
@@ -19,6 +20,9 @@ namespace Sidecue.Infrastructure.Transcription;
 /// </remarks>
 public sealed class DeepgramEventNormalizer
 {
+    private const int MaximumCaptureGaps = 2048;
+    private const int MaximumTransportStatuses = 16;
+    private const int MaximumSpeakerIntervals = 4096;
     private readonly TranscriptionRequest request;
     private readonly SentSampleMap sent;
     private readonly int maximumSegments;
@@ -30,6 +34,8 @@ public sealed class DeepgramEventNormalizer
     private readonly HashSet<EventId> emittedIds = [];
     private long sequence;
     private int eventCount;
+    private int transportStatusCount;
+    private bool transportGapRecorded;
     private decimal finalizedThrough;
 
     public DeepgramEventNormalizer(TranscriptionRequest request, int maximumSegments = 4096,
@@ -58,10 +64,10 @@ public sealed class DeepgramEventNormalizer
     public TranscriptGap RecordUncertain(AudioFrameMetadata frame)
     {
         ValidateFrameStart(frame);
-        EnsureCapacity(1);
-        EnsureIdAvailable(Id("uncertain", frame.Sequence.Value.ToString(CultureInfo.InvariantCulture)));
+        Guid id = Id("uncertain", frame.Sequence.Value.ToString(CultureInfo.InvariantCulture));
+        EnsureIdAvailable(id);
         sent.RecordUncertain(frame);
-        var header = NewHeader("uncertain", frame.Sequence.Value.ToString(CultureInfo.InvariantCulture));
+        var header = TrackHeader(new EventId(id));
         return new TranscriptGap(header, frame.Interval, GapReason.UnknownSendCompletion, TimingCertainty.Unknown);
     }
 
@@ -79,14 +85,39 @@ public sealed class DeepgramEventNormalizer
             if (previous.Gap != gap) throw new DeepgramProtocolException(DeepgramProtocolError.Conflict);
             return previous.Event;
         }
-        EnsureCapacity(1);
+        if (captureGaps.Count >= MaximumCaptureGaps) throw new DeepgramProtocolException(DeepgramProtocolError.CapacityExceeded);
         EnsureIdAvailable(eventId.Value);
-        emittedIds.Add(eventId);
-        eventCount++;
-        var header = new TranscriptEventHeader(ContractVersion.Current, request.Source, eventId, new EventSequence(sequence++));
+        var header = TrackHeader(eventId);
         var result = new TranscriptGap(header, gap.Interval, gap.Reason, gap.Certainty);
         captureGaps.Add(eventId, (gap, result));
         return result;
+    }
+
+    /// <summary>Record the connection's unresolved tail in a slot separate from provider results and capture gaps.</summary>
+    public TranscriptGap RecordTransportGap(TimelineInterval interval, GapReason reason)
+    {
+        ArgumentNullException.ThrowIfNull(interval);
+        if (interval.TimelineEpoch != request.StreamStart.TimelineEpoch ||
+            interval.Start.Offset.Value < request.StreamStart.Offset.Value || !Enum.IsDefined(reason))
+            throw new DeepgramProtocolException(DeepgramProtocolError.Malformed);
+        if (transportGapRecorded) throw new DeepgramProtocolException(DeepgramProtocolError.CapacityExceeded);
+        Guid id = Id("transport-gap", "tail");
+        EnsureIdAvailable(id);
+        transportGapRecorded = true;
+        return new TranscriptGap(TrackHeader(new EventId(id)), interval, reason, TimingCertainty.Unknown);
+    }
+
+    /// <summary>Record a transport transition without consuming provider result capacity.</summary>
+    public StreamStatus RecordStatus(TranscriptionStreamState state, EventErrorCategory? error = null)
+    {
+        if (!Enum.IsDefined(state) || (error.HasValue && !Enum.IsDefined(error.Value)) ||
+            (state == TranscriptionStreamState.Failed && !error.HasValue))
+            throw new DeepgramProtocolException(DeepgramProtocolError.Malformed);
+        if (transportStatusCount >= MaximumTransportStatuses) throw new DeepgramProtocolException(DeepgramProtocolError.CapacityExceeded);
+        Guid id = Id("transport-status", transportStatusCount.ToString(CultureInfo.InvariantCulture));
+        EnsureIdAvailable(id);
+        transportStatusCount++;
+        return new StreamStatus(TrackHeader(new EventId(id)), state, error);
     }
 
     private void ValidateFrameStart(AudioFrameMetadata frame)
@@ -137,7 +168,7 @@ public sealed class DeepgramEventNormalizer
             throw new DeepgramProtocolException(DeepgramProtocolError.Malformed);
         JsonElement alternative = alternatives[0];
         string text = RequiredString(alternative, "transcript");
-        (SpeakerKey? speaker, bool mixed, decimal? lastWordEnd) = ReadWords(alternative, start, end);
+        var (speaker, incompleteSpeakerSpans, lastWordEnd, speakerSpans) = ReadWords(alternative, start, end);
         if (text.Length == 0 && lastWordEnd.HasValue)
             throw new DeepgramProtocolException(DeepgramProtocolError.Malformed);
         if (text.Length != 0 && duration <= 0) throw new DeepgramProtocolException(DeepgramProtocolError.Malformed);
@@ -161,7 +192,7 @@ public sealed class DeepgramEventNormalizer
                 segment = new Segment(new SegmentId(Id("segment", Exact(start))));
                 isNewSegment = true;
             }
-            fingerprint = Fingerprint(start, duration, final, text, speaker, mixed, alternative);
+            fingerprint = Fingerprint(start, duration, final, alternative);
             segment.Replays.TryGetValue(fingerprint, out replay);
             if (segment.Final is not null && replay is null)
                 throw new DeepgramProtocolException(DeepgramProtocolError.Conflict);
@@ -175,7 +206,7 @@ public sealed class DeepgramEventNormalizer
         bool partialTimingUnknown = segment is not null && !final && range!.Certainty == TimingCertainty.Unknown;
         bool newBoundary = boundary is not null && !boundaries.ContainsKey(boundaryTime);
         int additional = (segment is not null && replay is null ? 1 : 0) +
-            (mixed && replay is null ? 1 : 0) + (partialTimingUnknown && replay is null ? 1 : 0) +
+            (incompleteSpeakerSpans && replay is null ? 1 : 0) + (partialTimingUnknown && replay is null ? 1 : 0) +
             (newBoundary ? (boundary!.Certainty == TimingCertainty.Unknown ? 2 : 1) : 0);
         EnsureCapacity(additional);
         // Preflight every generated event identity before mutating revisions, sequence,
@@ -185,7 +216,7 @@ public sealed class DeepgramEventNormalizer
         {
             string key = $"{Exact(start)}:{segment.NextRevision}";
             PreflightId(Id(final ? "final" : "partial", key), pendingIds);
-            if (mixed) PreflightId(Id("mixed", key), pendingIds);
+            if (incompleteSpeakerSpans) PreflightId(Id("speaker-coverage", key), pendingIds);
             if (partialTimingUnknown) PreflightId(Id("partial-timing", key), pendingIds);
         }
         if (newBoundary)
@@ -202,9 +233,10 @@ public sealed class DeepgramEventNormalizer
             {
                 long revision = segment.NextRevision++;
                 var header = NewHeader(final ? "final" : "partial", $"{Exact(start)}:{revision}");
-                TranscriptEventHeader? mixedHeader = mixed ? NewHeader("mixed", $"{Exact(start)}:{revision}") : null;
+                TranscriptEventHeader? speakerCoverageHeader = incompleteSpeakerSpans
+                    ? NewHeader("speaker-coverage", $"{Exact(start)}:{revision}") : null;
                 TranscriptEventHeader? timingHeader = partialTimingUnknown ? NewHeader("partial-timing", $"{Exact(start)}:{revision}") : null;
-                replay = new Replay(header, new SegmentRevision(revision), mixedHeader, timingHeader);
+                replay = new Replay(header, new SegmentRevision(revision), speakerCoverageHeader, timingHeader);
                 segment.Replays.Add(fingerprint!, replay);
                 if (final)
                 {
@@ -216,11 +248,13 @@ public sealed class DeepgramEventNormalizer
             if (final)
             {
                 var certainty = range!.Certainty == TimingCertainty.Exact ? TimingCertainty.Estimated : range.Certainty;
-                events.Add(new FinalSegment(replay.Header, segment.Id, replay.Revision, range.SupportedIntervals, certainty, text, speaker));
+                events.Add(new FinalSegment(replay.Header, segment.Id, replay.Revision, range.SupportedIntervals,
+                    certainty, text, speaker, speakerSpans));
             }
-            else events.Add(new PartialSegment(replay.Header, segment.Id, replay.Revision, range!.SupportedIntervals[0], text, speaker));
-            if (replay.MixedHeader is not null)
-                events.Add(new StreamStatus(replay.MixedHeader, TranscriptionStreamState.Degraded, EventErrorCategory.UnsupportedCapability));
+            else events.Add(new PartialSegment(replay.Header, segment.Id, replay.Revision, range!.SupportedIntervals[0],
+                text, speaker, speakerSpans));
+            if (replay.SpeakerCoverageHeader is not null)
+                events.Add(new StreamStatus(replay.SpeakerCoverageHeader, TranscriptionStreamState.Degraded, EventErrorCategory.UnsupportedCapability));
             if (replay.TimingHeader is not null)
                 events.Add(new StreamStatus(replay.TimingHeader, TranscriptionStreamState.Degraded, EventErrorCategory.Unknown));
         }
@@ -294,15 +328,20 @@ public sealed class DeepgramEventNormalizer
         { throw new DeepgramProtocolException(DeepgramProtocolError.UnsupportedTiming); }
     }
 
-    private (SpeakerKey? Speaker, bool Mixed, decimal? LastEnd) ReadWords(JsonElement alternative, decimal start, decimal end)
+    private (SpeakerKey? Speaker, bool Incomplete, decimal? LastEnd, ImmutableArray<WordSpeakerSpan> Spans)
+        ReadWords(JsonElement alternative, decimal start, decimal end)
     {
-        if (!alternative.TryGetProperty("words", out JsonElement words)) return (null, false, null);
+        if (!alternative.TryGetProperty("words", out JsonElement words)) return (null, false, null, []);
         if (words.ValueKind != JsonValueKind.Array) throw new DeepgramProtocolException(DeepgramProtocolError.Malformed);
         int? firstSpeaker = null;
-        bool missing = false, mixed = false;
+        bool missing = false, mixed = false, incompleteTiming = false;
         decimal? last = null;
+        int index = 0;
+        int remainingIntervals = MaximumSpeakerIntervals;
+        var spans = ImmutableArray.CreateBuilder<WordSpeakerSpan>();
         foreach (JsonElement word in words.EnumerateArray())
         {
+            int wordIndex = index++;
             decimal wordStart = RequiredNumber(word, "start"), wordEnd = RequiredNumber(word, "end");
             if (wordStart < start || wordEnd < wordStart || wordEnd > end)
                 throw new DeepgramProtocolException(DeepgramProtocolError.Malformed);
@@ -312,11 +351,38 @@ public sealed class DeepgramEventNormalizer
                 throw new DeepgramProtocolException(DeepgramProtocolError.Malformed);
             if (firstSpeaker.HasValue && firstSpeaker.Value != speaker) mixed = true;
             firstSpeaker ??= speaker;
+
+            // Word evidence is optional. If its timing has no confirmed support, preserve the
+            // full transcript and disclose the incomplete attribution instead of inventing a span.
+            if (wordStart == wordEnd || remainingIntervals == 0)
+            {
+                incompleteTiming = true;
+                continue;
+            }
+            SentAudioRange mapped;
+            try { mapped = MapRange(wordStart, wordEnd); }
+            catch (DeepgramProtocolException exception) when (exception.Error == DeepgramProtocolError.UnsupportedTiming)
+            {
+                incompleteTiming = true;
+                continue;
+            }
+            if (mapped.SupportedIntervals.Count == 0 || mapped.SupportedIntervals.Count > remainingIntervals)
+            {
+                incompleteTiming = true;
+                continue;
+            }
+            if (mapped.Certainty == TimingCertainty.Unknown) incompleteTiming = true;
+            var certainty = mapped.Certainty == TimingCertainty.Exact ? TimingCertainty.Estimated : mapped.Certainty;
+            spans.Add(new WordSpeakerSpan(wordIndex, Speaker(speaker), mapped.SupportedIntervals, certainty));
+            remainingIntervals -= mapped.SupportedIntervals.Count;
         }
-        bool ambiguous = mixed || (missing && firstSpeaker.HasValue);
-        return (firstSpeaker.HasValue && !ambiguous
-            ? new SpeakerKey(request.Source.SourceId, request.Source.StreamEpoch, firstSpeaker.Value.ToString(CultureInfo.InvariantCulture)) : null, ambiguous, last);
+        bool incomplete = incompleteTiming || (missing && firstSpeaker.HasValue);
+        return (firstSpeaker.HasValue && !mixed && !incomplete ? Speaker(firstSpeaker.Value) : null,
+            incomplete, last, spans.ToImmutable());
     }
+
+    private SpeakerKey Speaker(int label) => new(request.Source.SourceId, request.Source.StreamEpoch,
+        label.ToString(CultureInfo.InvariantCulture));
 
     private static void RequireMonoChannel(JsonElement root, string field, bool results)
     {
@@ -391,7 +457,11 @@ public sealed class DeepgramEventNormalizer
         Guid value = Id(kind, key);
         EnsureIdAvailable(value);
         eventCount++;
-        var eventId = new EventId(value);
+        return TrackHeader(new EventId(value));
+    }
+
+    private TranscriptEventHeader TrackHeader(EventId eventId)
+    {
         emittedIds.Add(eventId);
         return new TranscriptEventHeader(ContractVersion.Current, request.Source, eventId, new EventSequence(sequence++));
     }
@@ -415,10 +485,10 @@ public sealed class DeepgramEventNormalizer
         return new Guid(digest.AsSpan(0, 16));
     }
 
-    private static string Fingerprint(decimal start, decimal duration, bool final, string text, SpeakerKey? speaker, bool mixed, JsonElement alternative)
+    private static string Fingerprint(decimal start, decimal duration, bool final, JsonElement alternative)
     {
         // This verifies exact replay of a provider window; text alone never identifies an event.
-        string canonical = FormattableString.Invariant($"{Exact(start)}|{Exact(duration)}|{final}|{speaker?.ProviderSpeakerId}|{mixed}|{text}|{alternative.GetRawText()}");
+        string canonical = FormattableString.Invariant($"{Exact(start)}|{Exact(duration)}|{final}|{alternative.GetRawText()}");
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(canonical)));
     }
 
@@ -431,7 +501,7 @@ public sealed class DeepgramEventNormalizer
         public decimal? LastPartialEnd { get; set; }
         public Dictionary<string, Replay> Replays { get; } = [];
     }
-    private sealed record Replay(TranscriptEventHeader Header, SegmentRevision Revision, TranscriptEventHeader? MixedHeader,
+    private sealed record Replay(TranscriptEventHeader Header, SegmentRevision Revision, TranscriptEventHeader? SpeakerCoverageHeader,
         TranscriptEventHeader? TimingHeader);
     private sealed record BoundaryReplay(TranscriptEventHeader Header, TranscriptEventHeader? TimingHeader);
 }

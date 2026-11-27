@@ -37,16 +37,19 @@ internal static class TranscriptFingerprint
                     Interval(writer, partial.Interval);
                     writer.WriteStringValue(partial.Text);
                     Speaker(writer, partial.Speaker);
+                    SpeakerSpans(writer, partial.SpeakerSpans);
                     break;
                 case FinalSegment final:
                     writer.WriteStringValue(nameof(FinalSegment));
                     Final(writer, final.SegmentId, final.Revision, final.Intervals, final.Certainty, final.Text, final.Speaker);
+                    SpeakerSpans(writer, final.SpeakerSpans);
                     break;
                 case FinalAmendment amendment:
                     writer.WriteStringValue(nameof(FinalAmendment));
                     writer.WriteNumberValue(amendment.AmendsRevision.Value);
                     Final(writer, amendment.SegmentId, amendment.Revision, amendment.Intervals,
                         amendment.Certainty, amendment.Text, amendment.Speaker);
+                    SpeakerSpans(writer, amendment.SpeakerSpans);
                     break;
                 case TranscriptGap gap:
                     writer.WriteStringValue(nameof(TranscriptGap));
@@ -102,6 +105,25 @@ internal static class TranscriptFingerprint
         writer.WriteStringValue(speaker.SourceId.Value);
         writer.WriteNumberValue(speaker.StreamEpoch.Value);
         writer.WriteStringValue(speaker.ProviderSpeakerId);
+        writer.WriteEndArray();
+    }
+
+    private static void SpeakerSpans(Utf8JsonWriter writer, IReadOnlyList<WordSpeakerSpan> spans)
+    {
+        // Preserve the existing synthetic fingerprint when the optional evidence is absent.
+        if (spans.Count == 0) { return; }
+        writer.WriteStartArray();
+        foreach (var span in spans)
+        {
+            writer.WriteStartArray();
+            writer.WriteNumberValue(span.WordIndex);
+            Speaker(writer, span.Speaker);
+            writer.WriteNumberValue((int)span.Certainty);
+            writer.WriteStartArray();
+            foreach (var interval in span.Intervals) { Interval(writer, interval); }
+            writer.WriteEndArray();
+            writer.WriteEndArray();
+        }
         writer.WriteEndArray();
     }
 }

@@ -31,6 +31,9 @@ public sealed class DeepgramEventNormalizerTests
         Assert.Equal(SourceId, final.Speaker.SourceId);
         Assert.Equal(0, final.Speaker.StreamEpoch.Value);
         Assert.Equal("0", final.Speaker.ProviderSpeakerId);
+        Assert.Equal(2, first.SpeakerSpans.Length);
+        Assert.Equal(3, next.SpeakerSpans.Length);
+        Assert.Equal(3, final.SpeakerSpans.Length);
     }
 
     [Fact]
@@ -86,6 +89,10 @@ public sealed class DeepgramEventNormalizerTests
         var final = Assert.Single(mixed.OfType<FinalSegment>());
         Assert.Equal("Synthetic turn", final.Text);
         Assert.Null(final.Speaker);
+        Assert.Collection(final.SpeakerSpans,
+            span => AssertSpeakerSpan(span, 0, "0", 3_000_000, 3_600_000),
+            span => AssertSpeakerSpan(span, 1, "1", 3_400_000, 3_800_000));
+        Assert.Empty(mixed.OfType<StreamStatus>());
         Assert.Single(mixed.OfType<UtteranceBoundary>());
 
         var empty = normalizer.Normalize(Fixture("empty_endpoint"));
@@ -105,6 +112,9 @@ public sealed class DeepgramEventNormalizerTests
         var final = Assert.Single(events.OfType<FinalSegment>());
         Assert.Equal("Synthetic speaker labels", final.Text);
         Assert.Null(final.Speaker);
+        Assert.Collection(final.SpeakerSpans,
+            span => AssertSpeakerSpan(span, 0, "0", 0, 400_000),
+            span => AssertSpeakerSpan(span, 2, "0", 700_000, 900_000));
         var status = Assert.Single(events.OfType<StreamStatus>());
         Assert.Equal(TranscriptionStreamState.Degraded, status.State);
         Assert.Equal(EventErrorCategory.UnsupportedCapability, status.Error);
@@ -134,6 +144,24 @@ public sealed class DeepgramEventNormalizerTests
         Assert.Equal(2, final.Intervals.Length);
         AssertInterval(final.Intervals[0], 750_000, 1_000_000);
         AssertInterval(final.Intervals[1], 2_000_000, 2_250_000);
+    }
+
+    [Fact]
+    public void WordSpeakerSpanNeverBridgesAudioThatWasNotSent()
+    {
+        var normalizer = NewNormalizer();
+        Confirm(normalizer, 0, 0);
+        Confirm(normalizer, 2, 2_000_000);
+        const string json = "{\"type\":\"Results\",\"channel_index\":[0,1],\"start\":0.75,\"duration\":0.5,\"is_final\":true,\"channel\":{\"alternatives\":[{\"transcript\":\"Synthetic gap\",\"words\":[{\"word\":\"Synthetic\",\"start\":0.8,\"end\":1.2,\"speaker\":0}]}]}}";
+
+        var final = Assert.IsType<FinalSegment>(Assert.Single(normalizer.Normalize(json)));
+
+        Assert.Equal("Synthetic gap", final.Text);
+        var span = Assert.Single(final.SpeakerSpans);
+        Assert.Equal(TimingCertainty.Estimated, span.Certainty);
+        Assert.Collection(span.Intervals,
+            interval => AssertInterval(interval, 800_000, 1_000_000),
+            interval => AssertInterval(interval, 2_000_000, 2_200_000));
     }
 
     [Fact]
@@ -377,12 +405,32 @@ public sealed class DeepgramEventNormalizerTests
         Assert.Equal(DeepgramProtocolError.CapacityExceeded, error.Error);
     }
 
-    private static DeepgramEventNormalizer NewNormalizer(SourceIdentity? source = null, int maximumSegments = 16, long streamStart = 0)
+    [Fact]
+    public void TransportCanReportShutdownAfterProviderEventCapacityIsExhausted()
+    {
+        var normalizer = NewNormalizer(maximumEvents: 1);
+        var connecting = normalizer.RecordStatus(TranscriptionStreamState.Connecting);
+        Confirm(normalizer, 0, 0);
+        var final = Assert.IsType<FinalSegment>(Assert.Single(normalizer.Normalize(Fixture("final"))));
+        var uncertain = normalizer.RecordUncertain(Frame(1, 1_000_000));
+        var tail = normalizer.RecordTransportGap(new TimelineInterval(Position(800_000), Position(1_000_000)), GapReason.TransportDisconnected);
+        var failed = normalizer.RecordStatus(TranscriptionStreamState.Failed, EventErrorCategory.ProviderUnavailable);
+
+        Assert.Equal(connecting.Header.Sequence.Value + 1, final.Header.Sequence.Value);
+        Assert.Equal(final.Header.Sequence.Value + 1, uncertain.Header.Sequence.Value);
+        Assert.Equal(uncertain.Header.Sequence.Value + 1, tail.Header.Sequence.Value);
+        Assert.Equal(tail.Header.Sequence.Value + 1, failed.Header.Sequence.Value);
+        Assert.Equal(TimingCertainty.Unknown, tail.Certainty);
+    }
+
+    private static DeepgramEventNormalizer NewNormalizer(SourceIdentity? source = null, int maximumSegments = 16,
+        long streamStart = 0, int maximumEvents = 16384)
     {
         source ??= new SourceIdentity(Session, SourceId, new StreamEpoch(0));
         var request = new TranscriptionRequest(ContractVersion.Current, source, "en-US", Format,
             new ProviderConfigurationReference("synthetic-deepgram", "fixture-1"), Position(streamStart));
-        return new DeepgramEventNormalizer(request, maximumSegments: maximumSegments, maximumIntervals: 16);
+        return new DeepgramEventNormalizer(request, maximumSegments: maximumSegments, maximumIntervals: 16,
+            maximumEvents: maximumEvents);
     }
 
     private static void Confirm(DeepgramEventNormalizer normalizer, long sequence, long start, SourceIdentity? source = null) =>
@@ -404,5 +452,15 @@ public sealed class DeepgramEventNormalizerTests
     {
         Assert.Equal(start, interval.Start.Offset.Value);
         Assert.Equal(end, interval.End.Offset.Value);
+    }
+
+    private static void AssertSpeakerSpan(WordSpeakerSpan span, int wordIndex, string label, long start, long end)
+    {
+        Assert.Equal(wordIndex, span.WordIndex);
+        Assert.Equal(SourceId, span.Speaker.SourceId);
+        Assert.Equal(new StreamEpoch(0), span.Speaker.StreamEpoch);
+        Assert.Equal(label, span.Speaker.ProviderSpeakerId);
+        Assert.Equal(TimingCertainty.Estimated, span.Certainty);
+        AssertInterval(Assert.Single(span.Intervals), start, end);
     }
 }
