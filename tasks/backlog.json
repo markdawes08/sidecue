@@ -1565,7 +1565,7 @@
       "id": "SC-005G",
       "phase": 0,
       "title": "Verify pending picker teardown when Sidecue closes",
-      "status": "planned",
+      "status": "done",
       "task_type": "verification",
       "parent_id": "SC-005",
       "depends_on": [
@@ -1600,7 +1600,8 @@
         "validation": [1]
       },
       "evidence": [
-        "docs/evidence/SC-005F/2026-11-27.md"
+        "docs/evidence/SC-005F/2026-11-27.md",
+        "docs/evidence/SC-005G/2026-11-27.md"
       ],
       "blockers": [],
       "owner": null
@@ -1662,10 +1663,12 @@
       },
       "evidence": [
         "docs/evidence/SC-005B/2026-11-27.md",
-        "docs/evidence/SC-005E/2026-11-27.md"
+        "docs/evidence/SC-005E/2026-11-27.md",
+        "docs/evidence/SC-005G/2026-11-27.md"
       ],
       "follow_ups": [
-        "Run WIN-05 through WIN-07 with the required display setup. Record exact target identity, resize and closure, SDR preview and HDR rejection, visible device loss, and temporary/cache inspection."
+        "Run WIN-05 through WIN-07 with the required display setup. Record exact target identity, resize and closure, SDR preview and HDR rejection, visible device loss, and temporary/cache inspection.",
+        "During the physical picker cases, record how normal shell close behaves with the picker open. SC-005G observed that the shell stayed open until picker dismissal. If a supported close path exits the owner while the picker is active, check whether the same picker remains and record the result."
       ],
       "blockers": [
         "Full SC-002 evidence and the physical display setup for this task are pending. Only one active display is available on the development PC."
