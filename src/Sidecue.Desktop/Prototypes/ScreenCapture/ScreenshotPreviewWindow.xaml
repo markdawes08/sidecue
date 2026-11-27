@@ -1,0 +1,29 @@
+<Window x:Class="Sidecue.Desktop.Prototypes.ScreenCapture.ScreenshotPreviewWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Screenshot preview" Width="640" Height="460" MinWidth="300" MinHeight="260"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"
+        Foreground="{DynamicResource {x:Static SystemColors.WindowTextBrushKey}}"
+        FontFamily="{DynamicResource {x:Static SystemFonts.MessageFontFamilyKey}}" FontSize="14"
+        FocusManager.FocusedElement="{Binding ElementName=CancelButton}">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Border BorderThickness="1" BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"
+                Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Padding="8">
+            <Image x:Name="PreviewImage" Stretch="Uniform" StretchDirection="DownOnly"
+                   AutomationProperties.Name="Screenshot preview" />
+        </Border>
+        <TextBlock x:Name="CaptureStatusText" Grid.Row="1" Margin="0,12,0,0" TextWrapping="Wrap" />
+        <StackPanel Grid.Row="2" Margin="0,16,0,0" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="IncludeButton" Content="_Include" MinWidth="88" Padding="12,6" Click="OnIncludeClick"
+                    AutomationProperties.Name="Include screenshot" />
+            <Button x:Name="CancelButton" Content="_Cancel" MinWidth="88" Padding="12,6" Margin="8,0,0,0"
+                    IsCancel="True" IsDefault="True" Click="OnCancelClick" AutomationProperties.Name="Cancel screenshot" />
+        </StackPanel>
+    </Grid>
+</Window>

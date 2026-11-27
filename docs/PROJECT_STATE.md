@@ -24,6 +24,8 @@ SC-008D interrupted the production transcript journal in two test-owned processe
 
 SC-002G verified foreground retention on one display. A separate synthetic window held foreground focus while the WPF overlay appeared, displayed four updates and hid. The test is opt-in. SC-002C still needs the mixed-DPI, physical keyboard and auxiliary-window checks. [Foreground evidence](evidence/SC-002G/2026-11-27.md)
 
+SC-005D adds a bounded BGRA32 screenshot frame and an owned WPF preview. Include hands the caller the previewed frame. Cancel, close and token cancellation release it. Synthetic tests verified exact displayed pixels and the preview HWND affinity call. The next eligible block is **SC-005A**, the Windows system picker and single-frame capture integration. SC-005C still requires the full SC-002 evidence. [Preview evidence](evidence/SC-005D/2026-11-27.md) · [Sequencing decision](DECISIONS.md#adr-014-local-screenshot-prototype-development)
+
 The next transcript block is **SC-008C**. It requires full SC-004 proof, including the SC-004C clean Windows run. A separate clean Windows PC can be used for that run. The hardware and live-provider checks remain on SC-002C, SC-003D and SC-009C. Run `powershell -NoProfile -File tools/show-task.ps1` for the live selection and blocker list. [Clean Windows procedure](evidence/SC-004C/clean-environment.md) · [Sequencing decision](DECISIONS.md#adr-013-local-transcript-storage-development)
 
 The owner handles staging, committing and pushing. Leave the root README alone until asked. Keep private data and generated artifacts ignored, preserve sanitized evidence and lockfiles, test the affected behavior proportionally, and stop after one executable leaf per prompt.

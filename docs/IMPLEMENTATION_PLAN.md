@@ -50,7 +50,7 @@ The JSON gate records carry the live state. G1 through G4 also require the prece
 | [SC-002](#sc-002) | 0 | Prove overlay focus and capture exclusion | [SC-002A through SC-002G](tasks/SC-002.md) |
 | [SC-003](#sc-003) | 0 | Prove two-source capture and stream epochs | [SC-003A to SC-003D](tasks/SC-003.md) |
 | [SC-004](#sc-004) | 0 | Prove encrypted database and protected keys | [SC-004A to SC-004C](tasks/SC-004.md) |
-| [SC-005](#sc-005) | 0 | Prove selected-target screenshot capture | [SC-005A to SC-005C](tasks/SC-005.md) |
+| [SC-005](#sc-005) | 0 | Prove selected-target screenshot capture | [SC-005A through SC-005D](tasks/SC-005.md) |
 | [SC-006](#sc-006) | 0 | Prove installation and data preservation | [SC-006A to SC-006C](tasks/SC-006.md) |
 | [SC-007](#sc-007) | 1 | Implement the meeting lifecycle | Standalone leaf |
 | [SC-008](#sc-008) | 1 | Persist transcript revisions and finalized segments | [SC-008A through SC-008D](tasks/SC-008.md) |
@@ -225,7 +225,7 @@ Expected owned areas: `src/Sidecue.Infrastructure/Persistence/`, `src/Sidecue.In
 
 **Prove selected-target screenshot capture**
 
-Phase: 0. Dependencies: SC-000, SC-002. Required gates: none beyond task dependencies.
+Phase: 0. Local implementation uses SC-000 and SC-002B. SC-005C and feature completion require full SC-002 verification. [Sequencing decision](DECISIONS.md#adr-014-local-screenshot-prototype-development)
 
 Scope:
 

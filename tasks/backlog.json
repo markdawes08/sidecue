@@ -1221,10 +1221,10 @@
       "id": "SC-005",
       "phase": 0,
       "title": "Prove selected-target screenshot capture",
-      "status": "planned",
+      "status": "in_progress",
       "depends_on": [
         "SC-000",
-        "SC-002"
+        "SC-002B"
       ],
       "requires_gates": [],
       "scope": [
@@ -1253,11 +1253,59 @@
       "owner": null,
       "task_type": "group",
       "children": [
+        "SC-005D",
         "SC-005A",
         "SC-005B",
         "SC-005C"
       ],
       "instruction_file": "docs/IMPLEMENTATION_PLAN.md"
+    },
+    {
+      "id": "SC-005D",
+      "phase": 0,
+      "title": "Build the in-memory screenshot approval preview",
+      "status": "done",
+      "task_type": "implementation",
+      "parent_id": "SC-005",
+      "depends_on": [
+        "SC-000",
+        "SC-002B"
+      ],
+      "requires_gates": [],
+      "instruction_file": "docs/tasks/SC-005.md",
+      "scope": [
+        "Add a bounded disposable screenshot frame and an owned WPF preview with explicit Include and Cancel using synthetic pixels."
+      ],
+      "acceptance": [
+        "Include transfers the same approved frame exactly once. Dismissal or cancellation releases the frame and yields no approved image.",
+        "The preview uses the existing window affinity policy and holds pixels in memory for the preview lifetime."
+      ],
+      "validation": [
+        "Run focused frame ownership and WPF dialog checks with synthetic pixels."
+      ],
+      "owned_areas": [
+        "src/Sidecue.Windows/ScreenCapture/",
+        "src/Sidecue.Desktop/Prototypes/ScreenCapture/",
+        "tests/Sidecue.Windows.Tests/ScreenCapture/",
+        "tests/Sidecue.Desktop.Tests/"
+      ],
+      "out_of_scope": [
+        "System picker, native selected-target acquisition, and provider request integration remain in their existing blocks."
+      ],
+      "prerequisites": [
+        "Use the SC-002B local window policy, an interactive Windows desktop and synthetic image fixtures."
+      ],
+      "requires_interactive_windows_evidence": false,
+      "parent_coverage": {
+        "scope": [2],
+        "acceptance": [2],
+        "validation": [2]
+      },
+      "evidence": [
+        "docs/evidence/SC-005D/2026-11-27.md"
+      ],
+      "blockers": [],
+      "owner": null
     },
     {
       "id": "SC-005A",
@@ -1268,13 +1316,14 @@
       "parent_id": "SC-005",
       "depends_on": [
         "SC-000",
-        "SC-002"
+        "SC-002B",
+        "SC-005D"
       ],
       "requires_gates": [],
       "instruction_file": "docs/tasks/SC-005.md",
       "scope": [
         "Use Windows.Graphics.Capture and the system picker to acquire a single bounded in-memory screenshot lease.",
-        "Add a prototype preview with explicit Include/Cancel; preview alone does not authorize upload."
+        "Connect the captured frame to the SC-005D Include/Cancel preview."
       ],
       "acceptance": [
         "Target selection retains native identity, including same-resolution displays; cancellation yields no approved image.",
@@ -1292,7 +1341,7 @@
         "No provider upload, automatic capture or request integration; those belong to SC-023."
       ],
       "prerequisites": [
-        "SC-002 overlay boundary; interactive Windows for the system picker and selected-target API probe."
+        "SC-005D approval preview; interactive Windows for the system picker and selected-target API probe."
       ],
       "requires_interactive_windows_evidence": false,
       "parent_coverage": {
@@ -1321,7 +1370,7 @@
       "parent_id": "SC-005",
       "depends_on": [
         "SC-000",
-        "SC-002",
+        "SC-002B",
         "SC-005A"
       ],
       "requires_gates": [],
@@ -1374,6 +1423,7 @@
       "parent_id": "SC-005",
       "depends_on": [
         "SC-000",
+        "SC-002B",
         "SC-002",
         "SC-005B"
       ],
@@ -1398,7 +1448,7 @@
         "No remote vision-provider test or claim about display configurations not exercised."
       ],
       "prerequisites": [
-        "SC-005A/B complete; interactive Windows, synthetic targets, multiple same-resolution displays and any HDR setup included in the claim."
+        "SC-005A/B/D and full SC-002 verification complete; interactive Windows, synthetic targets, multiple same-resolution displays and any HDR setup included in the claim."
       ],
       "requires_interactive_windows_evidence": true,
       "parent_coverage": {

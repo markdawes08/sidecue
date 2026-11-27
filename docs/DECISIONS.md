@@ -17,12 +17,19 @@ Status applies to a design decision, not to implementation or test completion. T
 | ADR-011 | Baseline clarification | User state outside installer RootAppDir | Updates/uninstall cannot unintentionally remove the meeting database/key |
 | ADR-012 | Baseline clarification | Native/provider checks require real evidence | Mock tests do not close Windows or quality gates |
 | [ADR-013](#adr-013-local-transcript-storage-development) | Adopted | Build the transcript schema and writer against the reviewed local encrypted store | Full SC-004 evidence is required at SC-008C |
+| [ADR-014](#adr-014-local-screenshot-prototype-development) | Adopted | Develop the screenshot prototype with the local window policy | Full SC-002 evidence is required at SC-005C |
 
 ## ADR-013 Local transcript storage development
 
 Adopted November 27, 2026. SC-008 originally required all of SC-004 before any schema work could start. The reviewed SQLCipher binary and DPAPI-backed store already passed local restart, live-WAL and interrupted migration checks on Windows. These results support development against a disposable database containing synthetic records. [Storage adapter evidence](evidence/SC-004B/2026-11-09.md) and [durability preflight](evidence/SC-004C/2026-11-10-preflight.md)
 
 SC-008A and then SC-008B may use that exact binary for local development and focused tests. SC-008C requires full SC-004 completion, including the independent clean Windows run. A failure there must be resolved before SC-008 can close. If it requires a different binary or a change to the store, repeat the affected schema and writer checks against the corrected configuration. Packaging still requires SC-004 and live integration still requires SC-008 and G0.
+
+## ADR-014 Local screenshot prototype development
+
+Adopted November 27, 2026. SC-002B established the local window policy and SC-002G exercised real foreground retention with a synthetic target. SC-005D can use synthetic pixels to prove preview consent and frame ownership. The selected-target prototype and resource handling can then be developed locally against the implemented window policy. [Window policy evidence](evidence/SC-002B/2026-11-06.md) · [Foreground evidence](evidence/SC-002G/2026-11-27.md)
+
+SC-005C still requires all of SC-002 and the physical screenshot matrix. SC-005 cannot close until that evidence exists. If overlay verification changes the window policy, repeat the affected preview and picker checks with the corrected policy. Request-scoped screenshot integration still belongs to SC-023 and its existing prerequisites.
 
 ## Selections to resolve during implementation
 
