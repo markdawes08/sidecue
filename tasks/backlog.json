@@ -1311,7 +1311,7 @@
       "id": "SC-005A",
       "phase": 0,
       "title": "Capture one selected target into an explicit preview",
-      "status": "planned",
+      "status": "done",
       "task_type": "implementation",
       "parent_id": "SC-005",
       "depends_on": [
@@ -1357,7 +1357,9 @@
           2
         ]
       },
-      "evidence": [],
+      "evidence": [
+        "docs/evidence/SC-005A/2026-11-27.md"
+      ],
       "blockers": [],
       "owner": null
     },

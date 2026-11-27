@@ -10,6 +10,7 @@
     <ProjectReference Include="../Sidecue.Core/Sidecue.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Sidecue.Desktop.Tests" />
     <InternalsVisibleTo Include="Sidecue.Windows.Tests" />
   </ItemGroup>
 </Project>

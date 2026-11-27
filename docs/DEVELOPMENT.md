@@ -47,6 +47,8 @@ powershell -NoProfile -File tools/run.ps1
 
 Both build and test accept `-Configuration Debug`; Release is the default. Test results are written as TRX files under ignored `artifacts/test-results/`. The scripts stop on restore, build or test errors. No provider calls occur in these tests.
 
+In the desktop prototype, **Choose screenshot target** opens the Windows picker. A completed selection opens an in-memory preview. **Include** confirms the prototype flow and releases its frame. Use synthetic windows for capture tests. Run the opt-in native checks from the ordinary interactive Windows desktop. [Screenshot test commands](evidence/SC-005A/2026-11-27.md)
+
 The Deepgram probe uses an installed Windows English desktop speech voice. For an authorized live run, load a scoped test key into the current PowerShell process as `SIDECUE_DEEPGRAM_TEST_KEY`. Set `SIDECUE_DEEPGRAM_MODEL` and `SIDECUE_DEEPGRAM_MODEL_VERSION` to the intended model and pinned version. Run `powershell -NoProfile -File tools/probe-deepgram.ps1 -Live`. Use a local secret manager or secure prompt and clear the test key from the process afterward. The probe reports requested settings and counts of normalized events for each source.
 
 The transcript storage integration tests use disposable encrypted databases. Set the absolute path to the reviewed SQLCipher DLL for this test run. With the variable unset, ordinary CI skips these native cases.
