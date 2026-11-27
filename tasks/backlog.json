@@ -302,6 +302,7 @@
         "SC-002A",
         "SC-002B",
         "SC-002G",
+        "SC-002H",
         "SC-002C",
         "SC-002D",
         "SC-002E",
@@ -459,10 +460,10 @@
       "owner": null
     },
     {
-      "id": "SC-002C",
+      "id": "SC-002H",
       "phase": 0,
-      "title": "Verify local overlay focus and monitor behavior",
-      "status": "blocked",
+      "title": "Verify overlay text entry and hide on one monitor",
+      "status": "done",
       "task_type": "verification",
       "parent_id": "SC-002",
       "depends_on": [
@@ -473,8 +474,54 @@
       "requires_gates": [],
       "instruction_file": "docs/tasks/SC-002.md",
       "scope": [
+        "Verify deliberate text mode and that Hide removes both visible overlay surfaces on one monitor."
+      ],
+      "acceptance": [
+        "Display mode disables the textbox and deliberate text mode focuses it in the live shell. A synthetic WPF text composition delivers the exact expected text to the real textbox.",
+        "The details window reports its affinity status, and invoking a Hide control with both surfaces visible hides both while keeping the shell available."
+      ],
+      "validation": [
+        "Record ordered UI observations, Windows build and display configuration with metadata-only evidence."
+      ],
+      "owned_areas": [
+        "docs/evidence/SC-002H/"
+      ],
+      "out_of_scope": [
+        "Physical keys, mixed DPI, remaining popup behavior and receiving-client evidence stay in SC-002C through SC-002F."
+      ],
+      "prerequisites": [
+        "An interactive Windows desktop with one active monitor and a fresh test-owned shell."
+      ],
+      "requires_interactive_windows_evidence": true,
+      "parent_coverage": {
+        "scope": [2, 3],
+        "acceptance": [2, 3],
+        "validation": [2]
+      },
+      "evidence": [
+        "docs/evidence/SC-002H/2026-11-27.md"
+      ],
+      "blockers": [],
+      "owner": null
+    },
+    {
+      "id": "SC-002C",
+      "phase": 0,
+      "title": "Verify local overlay focus and monitor behavior",
+      "status": "blocked",
+      "task_type": "verification",
+      "parent_id": "SC-002",
+      "depends_on": [
+        "SC-000",
+        "SC-002B",
+        "SC-002G",
+        "SC-002H"
+      ],
+      "requires_gates": [],
+      "instruction_file": "docs/tasks/SC-002.md",
+      "scope": [
         "Extend the SC-002G foreground check to two monitors, mixed DPI and monitor movement.",
-        "Check deliberate text input, hotkey conflicts, hide/show, popups, tooltips and dialogs with metadata-only evidence."
+        "Extend the SC-002H local input and hide checks to physical keys and the required monitor cases. Check hotkey conflicts, popups, tooltips and dialogs with metadata-only evidence."
       ],
       "acceptance": [
         "Observed non-activating updates preserve foreground focus; deliberate input remains usable.",
@@ -508,12 +555,13 @@
         ]
       },
       "evidence": [
-        "docs/evidence/SC-002C/2026-11-06-preflight.md"
+        "docs/evidence/SC-002C/2026-11-06-preflight.md",
+        "docs/evidence/SC-002H/2026-11-27.md"
       ],
       "follow_ups": [
         "Obtain two active monitors at different scaling settings and verify movement, placement and the required monitor cases.",
-        "Verify actual text entry and physical keyboard shortcuts, including held-key behavior.",
-        "Retry the inconclusive hide check with both overlay surfaces open and exercise supported auxiliary and suppressed popup behavior."
+        "Verify physical text entry and keyboard shortcuts, including held-key behavior.",
+        "Exercise supported auxiliary and suppressed popup behavior and repeat the relevant hide checks across the required monitor cases."
       ],
       "blockers": [
         "Only one active monitor at 150% scaling is available; the owner cannot connect a second mixed-DPI display now."

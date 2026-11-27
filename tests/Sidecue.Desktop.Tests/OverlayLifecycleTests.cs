@@ -188,7 +188,8 @@ public sealed class OverlayLifecycleTests
             Assert.Equal(OverlayMode.Interactive, overlay.ViewModel.Mode);
             Assert.True(input.IsEnabled);
             Assert.True(input.Focusable);
-            input.Text = "Synthetic local draft";
+            TextCompositionManager.StartComposition(new TextComposition(InputManager.Current, input, "Synthetic local draft"));
+            Assert.Equal("Synthetic local draft", input.Text);
             policyCalls = activation.InteractiveRequests.Count;
 
             host.UpdateDisplay("Synthetic revised answer");
