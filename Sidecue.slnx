@@ -8,6 +8,7 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Sidecue.CipherProbe/Sidecue.CipherProbe.csproj" />
+    <Project Path="tests/Sidecue.DeepgramProbe/Sidecue.DeepgramProbe.csproj" />
     <Project Path="tests/Sidecue.DurabilityProbe/Sidecue.DurabilityProbe.csproj" />
     <Project Path="tests/Sidecue.StorageProbe/Sidecue.StorageProbe.csproj" />
     <Project Path="tests/Sidecue.Infrastructure.Tests/Sidecue.Infrastructure.Tests.csproj" />

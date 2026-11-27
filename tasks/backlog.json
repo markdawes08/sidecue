@@ -1996,7 +1996,7 @@
       "id": "SC-009C",
       "phase": 1,
       "title": "Verify the enabled speech provider with synthetic audio",
-      "status": "planned",
+      "status": "blocked",
       "task_type": "verification",
       "parent_id": "SC-009",
       "depends_on": [
@@ -2017,7 +2017,8 @@
         "Run the synthetic-audio smoke only with configured credentials and enabled test mode; record completion/error outcomes and safe connection metadata."
       ],
       "owned_areas": [
-        "tests/Sidecue.Infrastructure.Tests/Transcription/",
+        "tests/Sidecue.DeepgramProbe/",
+        "tools/probe-deepgram.ps1",
         "docs/evidence/SC-009C/"
       ],
       "out_of_scope": [
@@ -2042,11 +2043,16 @@
           2
         ]
       },
-      "evidence": [],
-      "follow_ups": [
-        "The owner can configure a scoped Deepgram test credential and enable the explicit synthetic smoke mode when ready. Record exact model/version, configuration, terminal drain, and independent source results without secrets."
+      "evidence": [
+        "docs/evidence/SC-009C/2026-11-27-preflight.md"
       ],
-      "blockers": [],
+      "follow_ups": [
+        "Owner action when ready: configure the scoped SIDECUE_DEEPGRAM_TEST_KEY and intended SIDECUE_DEEPGRAM_MODEL and SIDECUE_DEEPGRAM_MODEL_VERSION in a local PowerShell process, then explicitly enable the synthetic smoke with -Live.",
+        "Record live independent source results, requested model and version, configuration, terminal drain and any errors without credentials or transcript content. Reconcile SC-009 parent acceptance."
+      ],
+      "blockers": [
+        "The scoped Deepgram test key and pinned model/version are absent from the current environment. Live verification also requires explicit -Live invocation."
+      ],
       "owner": null
     },
     {

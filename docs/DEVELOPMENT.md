@@ -35,11 +35,16 @@ powershell -NoProfile -File tools/probe-audio.ps1 -Normalize
 # Run the encrypted database canary against the reviewed local DLL.
 powershell -NoProfile -File tools/probe-sqlcipher.ps1
 
+# Generate and validate the two synthetic audio streams locally.
+powershell -NoProfile -File tools/probe-deepgram.ps1
+
 # Build Debug and open the minimal desktop shell.
 powershell -NoProfile -File tools/run.ps1
 ```
 
 Both build and test accept `-Configuration Debug`; Release is the default. Test results are written as TRX files under ignored `artifacts/test-results/`. The scripts stop on restore, build or test errors. No provider calls occur in these tests.
+
+The Deepgram probe uses an installed Windows English desktop speech voice. For an authorized live run, load a scoped test key into the current PowerShell process as `SIDECUE_DEEPGRAM_TEST_KEY`. Set `SIDECUE_DEEPGRAM_MODEL` and `SIDECUE_DEEPGRAM_MODEL_VERSION` to the intended model and pinned version. Run `powershell -NoProfile -File tools/probe-deepgram.ps1 -Live`. Use a local secret manager or secure prompt and clear the test key from the process afterward. The probe reports requested settings and counts of normalized events for each source.
 
 The SQLCipher canary needs the reviewed native DLL under `artifacts/sqlcipher-native/sqlcipher.dll`. To build a candidate from the pinned sources, use Windows x64, MSVC 14.51.36231, Windows SDK 10.0.28000.0 and native Windows Perl 5.44.0, then run `powershell -NoProfile -File tools/build-sqlcipher.ps1 -PerlExecutable <absolute-perl-path>`. The recipe verifies source hashes and writes generated files under `artifacts/`; it may take several minutes. The checked-in canary manifest identifies the DLL tested for SC-004A. A rebuild may have a different hash: review its source, build information and dependencies, create a separate manifest for that exact binary, and rerun the canary with `-ManifestPath <absolute-manifest-path>`. Do not overwrite the tested evidence or treat a new hash as already approved. See [SC-004A evidence](evidence/SC-004A/2026-11-08.md) for the tested commands, license requirements and limitations.
 
@@ -54,6 +59,7 @@ The SQLCipher canary needs the reviewed native DLL under `artifacts/sqlcipher-na
 | `src/Sidecue.Desktop` | WPF application and composition root |
 | `tests/Sidecue.Architecture.Tests` | Project dependency direction and pure-layer restore checks |
 | `tests/Sidecue.CipherProbe` | Isolated synthetic SQLCipher/FTS/WAL canary; run explicitly with the reviewed native DLL |
+| `tests/Sidecue.DeepgramProbe` | Explicit synthetic speech probe with local preflight and opt-in provider verification |
 | `tests/Sidecue.Core.Tests` | Identity/time, immutable event and audio ownership invariants |
 | `tests/Sidecue.Application.Tests` | Service signature boundaries and immutable request/context/store envelopes |
 | `tests/Sidecue.Replay.Tests` | Deterministic fakes, fixture runner and test-only reconciliation rules |
